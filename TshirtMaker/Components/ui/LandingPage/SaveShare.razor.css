@@ -7,8 +7,6 @@
     overflow: hidden;
     display: flex;
     align-items: center;
-    scroll-margin-top: 100px;
-    scroll-behavior: smooth;
 }
 
 .background-blobs {

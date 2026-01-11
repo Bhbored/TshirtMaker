@@ -5,16 +5,6 @@
     font-family: 'Inter', sans-serif;
 }
 
-/* Smooth scroll with offset for sticky header */
-#hero,
-#features,
-#how-it-works,
-#describe-vision,
-#save-share {
-    scroll-margin-top: 100px;
-    scroll-behavior: smooth;
-}
-
 .landing-bg {
     background: var(--custom-bg-core);
 }
