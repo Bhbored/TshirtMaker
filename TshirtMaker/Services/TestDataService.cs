@@ -21,6 +21,11 @@ public class TestDataService
 
     public void Logout() => _currentUser = _users[0];
 
+    public void AddUser(User user)
+    {
+        _users.Add(user);
+    }
+
     public List<User> GetAllUsers() => _users;
 
     public List<Design> GetAllDesigns() => _designs.Where(d => d.IsShared).ToList();

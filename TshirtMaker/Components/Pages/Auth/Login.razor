@@ -2,7 +2,7 @@
 @layout EmptyLayout
 @using TshirtMaker.Services
 @inject NavigationManager Navigation
-@inject AuthService AuthService
+@inject AuthService Auth
 
 <div class="card card-custom p-4 shadow-lg fade-in" style="max-width: 450px; width: 100%;">
     <div class="text-center mb-4">
@@ -13,34 +13,24 @@
         <p class="small text-muted" style="opacity: 0.7;">Test users: design@test.com, artist@test.com, creative@test.com</p>
     </div>
 
-    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-        <DataAnnotationsValidator />
-        
+    <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
         <div class="mb-3">
             <label class="form-label fw-semibold">Email</label>
-            <InputText @bind-Value="loginModel.Email" class="form-control input-custom py-2" placeholder="your@email.com" />
-            <ValidationMessage For="@(() => loginModel.Email)" />
+            <input @bind="email" class="form-control input-custom py-2" placeholder="your@email.com" />
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Password</label>
-            <InputText @bind-Value="loginModel.Password" type="password" class="form-control input-custom py-2" placeholder="••••••••" />
-            <ValidationMessage For="@(() => loginModel.Password)" />
+            <input type="password" @bind="password" class="form-control input-custom py-2" placeholder="••••••••" />
         </div>
 
-        @if (!string.IsNullOrEmpty(errorMessage))
+        @if (!string.IsNullOrEmpty(error))
         {
-            <div class="alert alert-danger">@errorMessage</div>
+            <div class="alert alert-danger">@error</div>
         }
 
-        <button type="submit" class="btn btn-custom-primary w-100 py-2 mb-3 fw-semibold" disabled="@isLoading">
-            @if (isLoading)
-            {
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            }
-            Sign In
-        </button>
-    </EditForm>
+        <button type="submit" class="btn btn-custom-primary w-100 py-2 mb-3 fw-semibold">Sign In</button>
+    </form>
 
     <div class="text-center">
         <p class="text-muted mb-0">Don't have an account? <a href="/signup" class="text-decoration-none" style="color: var(--custom-primary-core); font-weight: 600;">Sign Up</a></p>
@@ -48,47 +38,20 @@
 </div>
 
 @code {
-    private LoginModel loginModel = new();
-    private string errorMessage = string.Empty;
-    private bool isLoading = false;
+    string email = "";
+    string password = "";
+    string error = "";
 
-    protected override void OnInitialized()
+    async Task HandleLogin()
     {
-        AuthService.Initialize();
-        
-        if (AuthService.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/dashboard", forceLoad: true);
-        }
-    }
+        var user = await Auth.Login(email, password);
 
-    private async Task HandleLogin()
-    {
-        errorMessage = string.Empty;
-        isLoading = true;
-        
-        try
+        if (user is null)
         {
-            var user = await AuthService.Login(loginModel.Email, loginModel.Password);
-            
-            if (user != null)
-            {
-                Navigation.NavigateTo("/dashboard", forceLoad: true);
-            }
-            else
-            {
-                errorMessage = "Invalid credentials. Try: design@test.com, artist@test.com, creative@test.com, style@test.com, or trend@test.com";
-            }
+            error = "Invalid credentials. Try: design@test.com, artist@test.com, creative@test.com, style@test.com, or trend@test.com";
+            return;
         }
-        finally
-        {
-            isLoading = false;
-        }
-    }
 
-    public class LoginModel
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        Navigation.NavigateTo("/dashboard");
     }
 }

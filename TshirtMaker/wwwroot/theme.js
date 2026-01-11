@@ -18,3 +18,20 @@ window.getScrollInfo = function () {
         isNearBottom: scrollPosition >= threshold
     };
 };
+
+window.scrollToElement = function (elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) {
+        console.warn('Element not found:', elementId);
+        return;
+    }
+
+    const headerOffset = 80;
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+    window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: 'smooth'
+    });
+};

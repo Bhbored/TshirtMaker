@@ -1,107 +1,220 @@
 @page "/landing"
 @layout PublicLayout
+@using Microsoft.AspNetCore.Components.Web
 @using TshirtMaker.Components.ui.LandingPage
 @using TshirtMaker.Components.ui.common
 @using TshirtMaker.Models
 @using TshirtMaker.Services
 @inject TestDataService DataService
+@inject NavigationManager Navigation
+@inject AuthService AuthService
 
-<PageTitle>TshirtMaker - Create Your Dream Design</PageTitle>
+<PageTitle>ClothIQ - Create Your Dream Design</PageTitle>
 
-<div class="container-fluid py-5 fade-in">
-    <div class="row mb-5">
-        <div class="col-12 text-center">
-            <h1 class="display-3 fw-bold mb-3"
-                style="background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                Create Your Dream Design
-            </h1>
-            <p class="lead text-muted mb-4">Choose your clothing, describe your vision, and let AI bring it to life</p>
-            <a href="/create" class="btn btn-custom-primary btn-lg px-5 py-3 fw-semibold">
-                Start Creating ✨
-            </a>
+<div class="landing-page-wrapper">
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none landing-bg">
+        <div class="absolute inset-0 grid-bg opacity-30"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-blur blur-[120px] rounded-full"></div>
+        <div
+            class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-blur-secondary blur-[120px] rounded-full">
         </div>
     </div>
 
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold mb-0">🔥 Trending Designs</h2>
-                <a href="/feed?filter=likes" class="btn btn-custom-secondary">View All</a>
-            </div>
-
-            @if (isLoading)
-            {
-                <LoadingSpinner />
-            }
-            else if (trendingDesigns.Any())
-            {
-                <div id="trendingCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
-                    <div class="carousel-indicators">
-                        @for (int i = 0; i < Math.Min(trendingDesigns.Count, 5); i++)
-                        {
-                            <button type="button" data-bs-target="#trendingCarousel" data-bs-slide-to="@i"
-                                class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")"></button>
-                        }
+    <main id="hero" class="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:px-20 relative z-10">
+        <div class="mx-auto max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="flex flex-col gap-8 order-2 lg:order-1 text-center lg:text-left">
+                <div
+                    class="inline-flex items-center gap-2 self-center lg:self-start glass-panel rounded-full px-4 py-1.5 border border-primary-border">
+                    <span class="flex size-2 rounded-full bg-primary animate-pulse"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest text-primary">New v2.0 AI Engine</span>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h1
+                        class="hero-gradient-text text-6xl md:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tighter">
+                        ClothIQ
+                    </h1>
+                    <h2 class="text-xl md:text-2xl font-light text-white-opacity max-w-xl">
+                        Your Intelligence, Styled by AI. Create studio-quality apparel designs in seconds.
+                    </h2>
+                </div>
+                <div
+                    class="relative w-full max-w-xl glass-panel p-2 rounded-full flex items-center group focus-within:ring-2 ring-primary-ring transition-all">
+                    <div class="pl-4 flex items-center justify-center text-white-opacity-low">
+                        <span>🎨</span>
                     </div>
-                    <div class="carousel-inner">
-                        @for (int i = 0; i < Math.Min(trendingDesigns.Count, 5); i++)
-                        {
-                            var design = trendingDesigns[i];
-                            <div class="carousel-item @(i == 0 ? "active" : "")">
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-6 col-md-8">
-                                        <div class="card card-custom border-0 shadow-lg">
-                                            <img src="@design.FinalImageUrl" class="card-img-top"
-                                                style="height: 500px; object-fit: cover;" alt="@design.Prompt">
-                                            <div class="card-body p-4">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <img src="@design.UserAvatar" class="rounded-circle me-2"
-                                                        style="width: 40px; height: 40px;" alt="@design.Username">
-                                                    <div>
-                                                        <p class="mb-0 fw-semibold">@design.Username</p>
-                                                        <small class="text-muted">@design.ClothingType - @design.Color</small>
-                                                    </div>
-                                                </div>
-                                                <p class="mb-3">@design.Prompt</p>
-                                                <div class="d-flex justify-content-between">
-                                                    <span class="badge badge-custom">@design.ClothingType</span>
-                                                    <span class="text-muted">❤️ @design.Likes likes</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#trendingCarousel"
-                        data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#trendingCarousel"
-                        data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
+                    <input @bind="promptText" @onkeypress="HandleKeyPress"
+                        class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-text-white-opacity text-base md:text-lg px-4 h-12"
+                        placeholder="Describe your design... (e.g., 'Liquid chrome tiger')" type="text" />
+                    <button @onclick="HandleGenerate"
+                        class="bg-primary hover:bg-primary-hover text-white font-bold h-12 px-8 rounded-full transition-all flex items-center gap-2 glow-shadow">
+                        <span>Generate</span>
+                        <span class="text-sm">⚡</span>
                     </button>
                 </div>
-            }
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-white-opacity-low">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">✓</span>
+                        <span class="text-xs uppercase tracking-widest">3D Mockups</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">✓</span>
+                        <span class="text-xs uppercase tracking-widest">4K Texture export</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">✓</span>
+                        <span class="text-xs uppercase tracking-widest">Print Ready</span>
+                    </div>
+                </div>
+            </div>
+            <div class="relative order-1 lg:order-2 flex justify-center items-center h-[400px] lg:h-[600px]">
+                <!-- AI Design Showcase - Multiple Clothing Items -->
+                <div class="relative z-10 w-full h-full flex items-center justify-center gap-4 lg:gap-6">
+                    @for (int i = 0; i < showcaseDesigns.Count; i++)
+                    {
+                        var showcaseDesign = showcaseDesigns[i];
+                        <div class="clothing-showcase-item" style="--delay: @(i * 0.2)s;">
+                            <div class="clothing-mockup-wrapper">
+                                <div class="clothing-mockup" style="background-color: @showcaseDesign.Color;">
+                                    <img src="@showcaseDesign.FinalImageUrl" alt="@showcaseDesign.Prompt"
+                                        class="design-print" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <!-- Animated background circles -->
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-primary-border-low rounded-full animate-spin-slow">
+                </div>
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] border-dashed border border-white-opacity-very-low rounded-full animate-spin-reverse">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="features" class="px-6 lg:px-20 py-10 relative z-10">
+        <div class="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+                class="glass-panel p-6 rounded-xl flex items-start gap-4 hover:border-primary-border transition-colors">
+                <div class="p-3 bg-primary-opacity rounded-lg text-primary">
+                    <span style="font-size: 1.5rem;">🎯</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Real-time Rendering</h3>
+                    <p class="text-sm text-white-opacity-low">
+                        Watch your prompt evolve into complex fabrics instantly.
+                    </p>
+                </div>
+            </div>
+            <div
+                class="glass-panel p-6 rounded-xl flex items-start gap-4 hover:border-primary-border transition-colors">
+                <div class="p-3 bg-primary-opacity rounded-lg text-primary">
+                    <span style="font-size: 1.5rem;">🎨</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Intelligent Patterns</h3>
+                    <p class="text-sm text-white-opacity-low">
+                        Metallic, liquid glass, and procedural embroidery
+                        textures.
+                    </p>
+                </div>
+            </div>
+            <div
+                class="glass-panel p-6 rounded-xl flex items-start gap-4 hover:border-primary-border transition-colors">
+                <div class="p-3 bg-primary-opacity rounded-lg text-primary">
+                    <span style="font-size: 1.5rem;">👕</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Premium Mockups</h3>
+                    <p class="text-sm text-white-opacity-low">
+                        Studio-quality 3D visuals for high-end fashion
+                        presentation.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
     <TshirtMaker.Components.ui.LandingPage.HowItWorks />
     <TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
     <TshirtMaker.Components.ui.LandingPage.SaveShare />
+
+    <footer class="px-6 py-8 mt-auto lg:px-20 border-t border-white-opacity-very-low relative z-10">
+        <div class="mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <p class="text-sm text-white-opacity-low">© 2024 ClothIQ AI. Redefining fashion intelligence.</p>
+            <div class="flex items-center gap-8">
+                <a class="text-sm text-white-opacity-low hover:text-white transition-colors" href="#">Privacy</a>
+                <a class="text-sm text-white-opacity-low hover:text-white transition-colors" href="#">Terms</a>
+                <div class="flex items-center gap-4">
+                    <a class="text-white-opacity-low hover:text-primary transition-colors" href="#">
+                        <span class="text-lg">🌐</span>
+                    </a>
+                    <a class="text-white-opacity-low hover:text-primary transition-colors" href="#">
+                        <span class="text-lg">✉️</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
 </div>
 
 @code {
-    private List<Design> trendingDesigns = new();
-    private bool isLoading = true;
+    private string promptText = "";
+    private List<Design> showcaseDesigns = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await Task.Delay(500);
-        trendingDesigns = DataService.GetTrendingDesigns(5);
-        isLoading = false;
+        if (AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard");
+        }
+
+        showcaseDesigns = DataService.GetTrendingDesigns(3);
+
+        if (showcaseDesigns.Count < 3)
+        {
+            showcaseDesigns = new List<Design>
+{
+new Design
+{
+FinalImageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
+Prompt = "Cyberpunk cityscape with neon lights",
+Color = "#000000"
+},
+new Design
+{
+FinalImageUrl = "https://images.unsplash.com/photo-1557683316-973673baf926?w=400&h=400&fit=crop",
+Prompt = "Abstract geometric patterns",
+Color = "#FFFFFF"
+},
+new Design
+{
+FinalImageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
+Prompt = "Cosmic nebula with stars",
+Color = "#1a1a2e"
+}
+};
+        }
+    }
+
+    private void HandleGenerate()
+    {
+        if (!string.IsNullOrWhiteSpace(promptText))
+        {
+            Navigation.NavigateTo($"/create?prompt={Uri.EscapeDataString(promptText)}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/create");
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            HandleGenerate();
+        }
     }
 }

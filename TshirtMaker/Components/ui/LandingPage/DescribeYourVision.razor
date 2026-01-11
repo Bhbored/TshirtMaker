@@ -1,10 +1,10 @@
-<section class="describe-vision-section fade-in">
+<section id="describe-vision" class="describe-vision-section fade-in">
     <div class="container">
         <div class="text-center mb-5 mb-md-6">
             <div class="icon-container">
                 <div class="icon-glow"></div>
                 <div class="icon-wrapper">
-                    <span class="material-icons gradient-icon">smart_toy</span>
+                    <span class="gradient-icon" style="font-size: 3rem;">🤖</span>
                 </div>
             </div>
             <div class="mt-4">
@@ -22,7 +22,7 @@
                 <div class="input-section mb-4">
                     <div class="input-glow"></div>
                     <div class="input-wrapper">
-                        <span class="material-icons input-icon">auto_awesome</span>
+                        <span class="input-icon" style="font-size: 1.5rem;">✨</span>
                         <input type="text" 
                                class="prompt-input" 
                                placeholder="A futuristic cyberpunk cat on a neon skateboard..." 
@@ -30,14 +30,14 @@
                                @bind:event="oninput" />
                         <button class="generate-btn" @onclick="HandleGenerate">
                             <span>Generate</span>
-                            <span class="material-icons">arrow_forward</span>
+                            <span>→</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="trending-section mb-4">
                     <h3 class="trending-title">
-                        <span class="material-icons">trending_up</span>
+                        <span>📈</span>
                         Trending Prompts
                     </h3>
                     <div class="prompt-buttons">
@@ -58,7 +58,7 @@
                             <div class="creation-item" @onclick="() => ViewCreation(creation)">
                                 <img src="@creation.ImageUrl" alt="@creation.Alt" class="creation-image" />
                                 <div class="creation-overlay">
-                                    <span class="material-icons">visibility</span>
+                                    <span>👁️</span>
                                 </div>
                             </div>
                         }
@@ -81,7 +81,7 @@
                         <div class="mockup-container">
                             <img src="@mockupImageUrl" alt="T-Shirt Mockup" class="mockup-image" />
                             <div class="preview-placeholder">
-                                <span class="material-icons">image</span>
+                                <span style="font-size: 3rem;">🖼️</span>
                                 <p>Your creation will appear here</p>
                             </div>
                             <div class="live-preview-badge">
@@ -100,7 +100,7 @@
                                 }
                             </div>
                             <button class="download-btn">
-                                <span class="material-icons">download</span>
+                                <span>⬇️</span>
                                 Download Mockup
                             </button>
                         </div>

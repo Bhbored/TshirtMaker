@@ -2,9 +2,26 @@
 @layout MainLayout
 @using TshirtMaker.Components.ui.LandingPage
 @using TshirtMaker.Services
+@inject AuthService Auth
+@inject NavigationManager Nav
 
 <PageTitle>TshirtMaker - Dashboard</PageTitle>
 
-<TshirtMaker.Components.ui.LandingPage.HowItWorks />
-<TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
-<TshirtMaker.Components.ui.LandingPage.SaveShare />
+@if (!Auth.IsAuthenticated)
+{
+    <p>Redirecting...</p>
+}
+else
+{
+    <TshirtMaker.Components.ui.LandingPage.HowItWorks />
+    <TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
+    <TshirtMaker.Components.ui.LandingPage.SaveShare />
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo("/landing");
+    }
+}

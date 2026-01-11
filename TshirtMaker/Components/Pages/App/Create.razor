@@ -1,5 +1,6 @@
 @page "/create"
 @layout MainLayout
+@using Microsoft.AspNetCore.Components
 @using TshirtMaker.Components.ui.common
 @using TshirtMaker.Models
 @using TshirtMaker.Models.AI
@@ -9,9 +10,16 @@
 @inject AIDesignService AIService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject AuthService Auth
 
 <PageTitle>Create Design - TshirtMaker</PageTitle>
 
+@if (!Auth.IsAuthenticated)
+{
+    <p>Redirecting...</p>
+}
+else
+{
 <div class="container py-4 fade-in">
     <div class="row">
         <div class="col-12 mb-4">
@@ -137,6 +145,7 @@
         </div>
     </div>
 </div>
+}
 
 @code {
     private Design design = new();
@@ -147,12 +156,26 @@
     private bool isContentBlocked = false;
     private List<string> predefinedColors = new() { "#FFFFFF", "#000000", "#FF5733", "#3357FF", "#33FF57", "#FFC300", "#C70039" };
 
+    [SupplyParameterFromQuery(Name = "prompt")]
+    public string? PromptParam { get; set; }
+
     protected override void OnInitialized()
     {
+        if (!Auth.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
         var currentUser = DataService.GetCurrentUser();
         design.UserId = currentUser.Id;
         design.Username = currentUser.Username;
         design.UserAvatar = currentUser.AvatarUrl;
+
+        if (!string.IsNullOrEmpty(PromptParam))
+        {
+            promptText = Uri.UnescapeDataString(PromptParam);
+        }
     }
 
     private async Task GenerateDesign()

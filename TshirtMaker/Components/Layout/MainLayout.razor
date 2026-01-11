@@ -1,102 +1,37 @@
 @inherits LayoutComponentBase
-@implements IDisposable
-@using TshirtMaker.Components.ui.common
-@using TshirtMaker.Models
-@using TshirtMaker.Services
-@inject AuthService AuthService
-@inject NavigationManager Navigation
 
-@if (!AuthService.IsAuthenticated)
-{
-    <div></div>
-}
-else
-{
-    <nav class="navbar navbar-expand-lg nav-custom sticky-top">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="/dashboard"
-                style="font-size: 1.5rem; background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                ✨ TshirtMaker
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center gap-2">
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom px-3 py-2 rounded" href="/dashboard">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom px-3 py-2 rounded" href="/create">Create</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom px-3 py-2 rounded" href="/feed">Feed</a>
-                    </li>
-                    @if (AuthService.CurrentUser != null)
-                    {
-                        <li class="nav-item dropdown">
-                            <a class="nav-link nav-link-custom px-3 py-2 rounded dropdown-toggle d-flex align-items-center gap-2"
-                                href="#" role="button" data-bs-toggle="dropdown">
-                                <img src="@AuthService.CurrentUser.AvatarUrl" class="rounded-circle"
-                                    style="width: 32px; height: 32px;" alt="@AuthService.CurrentUser.Username" />
-                                <span>@AuthService.CurrentUser.Username</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end"
-                                style="background-color: var(--custom-card-core); border: 1px solid var(--custom-border-core);">
-                                <li><a class="dropdown-item" href="#" style="color: var(--custom-text-core);"
-                                        @onclick="HandleLogout">Logout</a></li>
-                            </ul>
-                        </li>
-                    }
-                    <li class="nav-item">
-                        <ThemeToggle />
-                    </li>
-                </ul>
-            </div>
+<nav class="navbar navbar-expand-lg nav-custom sticky-top">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="/dashboard"
+            style="font-size: 1.5rem; background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            ✨ TshirtMaker
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-label="Toggle navigation menu" aria-controls="navbarNav" aria-expanded="false">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link nav-link-custom px-3 py-2 rounded" href="/dashboard">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-custom px-3 py-2 rounded" href="/create">Create</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-custom px-3 py-2 rounded" href="/feed">Feed</a>
+                </li>
+                <li class="nav-item">
+                    <ThemeToggle />
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <main class="container-fluid py-4">
-        @Body
-    </main>
-}
-
-@code {
-    protected override void OnInitialized()
-    {
-        AuthService.Initialize();
-        AuthService.OnUserChanged += StateHasChanged;
-
-        if (!AuthService.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/login", forceLoad: true);
-        }
-    }
-
-    protected override void OnParametersSet()
-    {
-        AuthService.Initialize();
-
-        if (!AuthService.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/login", forceLoad: true);
-        }
-    }
-
-    private void HandleLogout()
-    {
-        AuthService.Logout();
-        Navigation.NavigateTo("/landing", forceLoad: true);
-    }
-
-    public void Dispose()
-    {
-        if (AuthService != null)
-        {
-            AuthService.OnUserChanged -= StateHasChanged;
-        }
-    }
-}
+<main class="container-fluid py-4">
+    @Body
+</main>
 
 <div id="blazor-error-ui" class="blazor-error-boundary" data-nosnippet>
     An unhandled error has occurred.

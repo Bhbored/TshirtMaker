@@ -1,0 +1,14 @@
+﻿@page "/"
+@layout MainLayout
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (Auth.IsAuthenticated)
+            Nav.NavigateTo("/dashboard");
+        else
+            Nav.NavigateTo("/landing");
+    }
+}

@@ -5,14 +5,11 @@ namespace TshirtMaker.Services;
 public class AuthService
 {
     private readonly TestDataService _dataService;
-    private User? currentUser = null;
-    private User? defaultUser = null;
+    private User? currentUser;
 
     public AuthService(TestDataService dataService)
     {
         _dataService = dataService;
-        var allUsers = _dataService.GetAllUsers();
-        defaultUser = allUsers.FirstOrDefault();
     }
 
     public event Action? OnUserChanged;
@@ -20,50 +17,56 @@ public class AuthService
     public User? CurrentUser
     {
         get => currentUser;
-        set
+        private set
         {
             currentUser = value;
             OnUserChanged?.Invoke();
         }
     }
 
-    public bool IsAuthenticated => CurrentUser != null && defaultUser != null && CurrentUser.Id != defaultUser.Id;
+    public bool IsAuthenticated => CurrentUser != null;
 
     public async Task<User?> Login(string email, string password)
     {
         await Task.Delay(100);
+
         var user = _dataService.GetAllUsers().FirstOrDefault(u =>
             u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
 
-        if (user != null)
-        {
-            _dataService.SetCurrentUser(user);
-            CurrentUser = user;
-            return user;
-        }
+        if (user is null)
+            return null;
 
-        return null;
+        _dataService.SetCurrentUser(user);
+        CurrentUser = user;
+        return user;
     }
 
     public void Logout()
     {
-        if (CurrentUser != null && defaultUser != null)
-        {
-            _dataService.SetCurrentUser(defaultUser);
-            CurrentUser = null;
-        }
+        CurrentUser = null;
     }
 
-    public void Initialize()
+    public async Task<User?> SignUp(string email, string username)
     {
-        var user = _dataService.GetCurrentUser();
-        if (user != null && defaultUser != null && user.Id != defaultUser.Id)
+        await Task.Delay(100);
+
+        var existingUser = _dataService.GetAllUsers().FirstOrDefault(u =>
+            u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+
+        if (existingUser != null)
+            return null;
+
+        var newUser = new User
         {
-            CurrentUser = user;
-        }
-        else
-        {
-            CurrentUser = null;
-        }
+            Id = Guid.NewGuid().ToString(),
+            Username = username,
+            Email = email,
+            AvatarUrl = $"https://api.dicebear.com/7.x/avataaars/svg?seed={username}"
+        };
+
+        _dataService.AddUser(newUser);
+        _dataService.SetCurrentUser(newUser);
+        CurrentUser = newUser;
+        return newUser;
     }
 }
