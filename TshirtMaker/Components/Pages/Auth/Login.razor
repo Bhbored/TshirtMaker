@@ -1,0 +1,94 @@
+@page "/login"
+@layout EmptyLayout
+@using TshirtMaker.Services
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+
+<div class="card card-custom p-4 shadow-lg fade-in" style="max-width: 450px; width: 100%;">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-2" style="background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Welcome Back
+        </h2>
+        <p class="text-muted">Sign in to continue creating amazing designs</p>
+        <p class="small text-muted" style="opacity: 0.7;">Test users: design@test.com, artist@test.com, creative@test.com</p>
+    </div>
+
+    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <InputText @bind-Value="loginModel.Email" class="form-control input-custom py-2" placeholder="your@email.com" />
+            <ValidationMessage For="@(() => loginModel.Email)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Password</label>
+            <InputText @bind-Value="loginModel.Password" type="password" class="form-control input-custom py-2" placeholder="••••••••" />
+            <ValidationMessage For="@(() => loginModel.Password)" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        <button type="submit" class="btn btn-custom-primary w-100 py-2 mb-3 fw-semibold" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
+            Sign In
+        </button>
+    </EditForm>
+
+    <div class="text-center">
+        <p class="text-muted mb-0">Don't have an account? <a href="/signup" class="text-decoration-none" style="color: var(--custom-primary-core); font-weight: 600;">Sign Up</a></p>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string errorMessage = string.Empty;
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        AuthService.Initialize();
+        
+        if (AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard", forceLoad: true);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+        isLoading = true;
+        
+        try
+        {
+            var user = await AuthService.Login(loginModel.Email, loginModel.Password);
+            
+            if (user != null)
+            {
+                Navigation.NavigateTo("/dashboard", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Invalid credentials. Try: design@test.com, artist@test.com, creative@test.com, style@test.com, or trend@test.com";
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

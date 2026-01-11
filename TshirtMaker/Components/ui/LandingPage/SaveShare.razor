@@ -1,0 +1,219 @@
+<section class="save-share-section fade-in">
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <div class="text-center mb-5 mb-md-6">
+            <div class="star-icon-wrapper mb-4">
+                <svg class="star-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L14.39 9.26L22 12L14.39 14.74L12 22L9.61 14.74L2 12L9.61 9.26L12 2Z"></path>
+                </svg>
+                <svg class="star-icon-small" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L14.39 9.26L22 12L14.39 14.74L12 22L9.61 14.74L2 12L9.61 9.26L12 2Z"></path>
+                </svg>
+            </div>
+            <h2 class="section-title mb-4">
+                Save & Share
+            </h2>
+            <p class="section-description">
+                Explore the community feed. Save your favorites, share your creations with the world, and remix designs
+                to make them uniquely yours.
+            </p>
+        </div>
+
+        <div class="scrolling-container">
+            <div class="gradient-fade left-fade"></div>
+            <div class="gradient-fade right-fade"></div>
+            <div class="scrolling-content pause-on-hover">
+                <div class="scrolling-items">
+                    @foreach (var item in allItems)
+                    {
+                        <div class="design-card">
+                            <div class="card-image-wrapper">
+                                <img src="@item.ImageUrl" alt="@item.Title" class="card-image" />
+                                @if (item.IsAIGenerated)
+                                {
+                                    <div class="ai-badge">
+                                        <i class="fas fa-bolt"></i> AI Generated
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-footer">
+                                <div class="user-info">
+                                    <img src="@item.UserAvatar" alt="@item.Username" class="user-avatar" />
+                                    <span class="username">@item.Username</span>
+                                </div>
+                                <button class="remix-btn">
+                                    <i class="fas fa-wand-magic-sparkles"></i> Remix Design
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="scrolling-items">
+                    @foreach (var item in allItems)
+                    {
+                        <div class="design-card">
+                            <div class="card-image-wrapper">
+                                <img src="@item.ImageUrl" alt="@item.Title" class="card-image" />
+                                @if (item.IsAIGenerated)
+                                {
+                                    <div class="ai-badge">
+                                        <i class="fas fa-bolt"></i> AI Generated
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-footer">
+                                <div class="user-info">
+                                    <img src="@item.UserAvatar" alt="@item.Username" class="user-avatar" />
+                                    <span class="username">@item.Username</span>
+                                </div>
+                                <button class="remix-btn">
+                                    <i class="fas fa-wand-magic-sparkles"></i> Remix Design
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="share-section">
+            <div class="share-panel">
+                <div class="panel-glow-1"></div>
+                <div class="panel-glow-2"></div>
+                <h3 class="share-title">Show off your style</h3>
+                <div class="social-buttons">
+                    <a href="#" class="social-btn instagram">
+                        <div class="social-icon instagram-icon">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <span>Instagram</span>
+                    </a>
+                    <a href="#" class="social-btn tiktok">
+                        <div class="social-icon tiktok-icon">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <span>TikTok</span>
+                    </a>
+                    <a href="#" class="social-btn pinterest">
+                        <div class="social-icon pinterest-icon">
+                            <i class="fab fa-pinterest-p"></i>
+                        </div>
+                        <span>Pinterest</span>
+                    </a>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn save-btn">
+                        <i class="fas fa-save"></i> Save to Collection
+                    </button>
+                    <button class="action-btn share-btn">
+                        <i class="fas fa-share-nodes"></i> Share Design
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<DesignItem> allItems = new();
+
+    protected override void OnInitialized()
+    {
+        allItems = new List<DesignItem>
+{
+new DesignItem
+{
+Title = "Abstract AI T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=creative_kat",
+Username = "@creative_kat",
+IsAIGenerated = true
+},
+new DesignItem
+{
+Title = "Cyberpunk T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=neon_drifter",
+Username = "@neon_drifter",
+IsAIGenerated = false
+},
+new DesignItem
+{
+Title = "Minimalist T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=art_flow",
+Username = "@art_flow",
+IsAIGenerated = false
+},
+new DesignItem
+{
+Title = "Retro T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=retro_king",
+Username = "@retro_king",
+IsAIGenerated = false
+},
+new DesignItem
+{
+Title = "Vintage Style T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1617137968427-85924c3a6d64?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=vintage_style",
+Username = "@vintage_style",
+IsAIGenerated = true
+},
+new DesignItem
+{
+Title = "Modern Art T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=modern_art",
+Username = "@modern_art",
+IsAIGenerated = false
+},
+new DesignItem
+{
+Title = "Streetwear T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=streetwear",
+Username = "@streetwear",
+IsAIGenerated = false
+},
+new DesignItem
+{
+Title = "Abstract Design T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=abstract_design",
+Username = "@abstract_design",
+IsAIGenerated = true
+},
+new DesignItem
+{
+Title = "Geometric T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=geometric",
+Username = "@geometric",
+IsAIGenerated = false
+},
+new DesignItem
+{
+Title = "Artistic T-Shirt",
+ImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=600&fit=crop&q=80",
+UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=artistic",
+Username = "@artistic",
+IsAIGenerated = true
+}
+};
+    }
+
+    private class DesignItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string ImageUrl { get; set; } = string.Empty;
+        public string UserAvatar { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public bool IsAIGenerated { get; set; }
+    }
+}

@@ -1,0 +1,78 @@
+@page "/signup"
+@layout EmptyLayout
+@using TshirtMaker.Services
+@using TshirtMaker.Models
+@inject NavigationManager Navigation
+@inject TestDataService DataService
+@inject AuthService AuthService
+
+<div class="card card-custom p-4 shadow-lg fade-in" style="max-width: 450px; width: 100%;">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-2" style="background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Create Account
+        </h2>
+        <p class="text-muted">Join us and start creating unique designs</p>
+    </div>
+
+    <EditForm Model="signupModel" OnValidSubmit="HandleSignUp">
+        <DataAnnotationsValidator />
+        
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Username</label>
+            <InputText @bind-Value="signupModel.Username" class="form-control input-custom py-2" placeholder="Choose a username" />
+            <ValidationMessage For="@(() => signupModel.Username)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <InputText @bind-Value="signupModel.Email" class="form-control input-custom py-2" placeholder="your@email.com" />
+            <ValidationMessage For="@(() => signupModel.Email)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Password</label>
+            <InputText @bind-Value="signupModel.Password" type="password" class="form-control input-custom py-2" placeholder="••••••••" />
+            <ValidationMessage For="@(() => signupModel.Password)" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        <button type="submit" class="btn btn-custom-primary w-100 py-2 mb-3 fw-semibold">
+            Create Account
+        </button>
+    </EditForm>
+
+    <div class="text-center">
+        <p class="text-muted mb-0">Already have an account? <a href="/login" class="text-decoration-none" style="color: var(--custom-primary-core); font-weight: 600;">Sign In</a></p>
+    </div>
+</div>
+
+@code {
+    private SignUpModel signupModel = new();
+    private string errorMessage = string.Empty;
+
+    private async Task HandleSignUp()
+    {
+        var newUser = new User
+        {
+            Id = Guid.NewGuid().ToString(),
+            Username = signupModel.Username,
+            Email = signupModel.Email,
+            AvatarUrl = $"https://api.dicebear.com/7.x/avataaars/svg?seed={signupModel.Username}"
+        };
+
+        DataService.SetCurrentUser(newUser);
+        AuthService.CurrentUser = newUser;
+        Navigation.NavigateTo("/dashboard", forceLoad: true);
+    }
+
+    public class SignUpModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

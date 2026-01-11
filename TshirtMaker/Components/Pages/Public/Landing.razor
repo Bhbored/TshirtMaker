@@ -1,0 +1,107 @@
+@page "/landing"
+@layout PublicLayout
+@using TshirtMaker.Components.ui.LandingPage
+@using TshirtMaker.Components.ui.common
+@using TshirtMaker.Models
+@using TshirtMaker.Services
+@inject TestDataService DataService
+
+<PageTitle>TshirtMaker - Create Your Dream Design</PageTitle>
+
+<div class="container-fluid py-5 fade-in">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-3 fw-bold mb-3"
+                style="background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Create Your Dream Design
+            </h1>
+            <p class="lead text-muted mb-4">Choose your clothing, describe your vision, and let AI bring it to life</p>
+            <a href="/create" class="btn btn-custom-primary btn-lg px-5 py-3 fw-semibold">
+                Start Creating ✨
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">🔥 Trending Designs</h2>
+                <a href="/feed?filter=likes" class="btn btn-custom-secondary">View All</a>
+            </div>
+
+            @if (isLoading)
+            {
+                <LoadingSpinner />
+            }
+            else if (trendingDesigns.Any())
+            {
+                <div id="trendingCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+                    <div class="carousel-indicators">
+                        @for (int i = 0; i < Math.Min(trendingDesigns.Count, 5); i++)
+                        {
+                            <button type="button" data-bs-target="#trendingCarousel" data-bs-slide-to="@i"
+                                class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")"></button>
+                        }
+                    </div>
+                    <div class="carousel-inner">
+                        @for (int i = 0; i < Math.Min(trendingDesigns.Count, 5); i++)
+                        {
+                            var design = trendingDesigns[i];
+                            <div class="carousel-item @(i == 0 ? "active" : "")">
+                                <div class="row justify-content-center">
+                                    <div class="col-lg-6 col-md-8">
+                                        <div class="card card-custom border-0 shadow-lg">
+                                            <img src="@design.FinalImageUrl" class="card-img-top"
+                                                style="height: 500px; object-fit: cover;" alt="@design.Prompt">
+                                            <div class="card-body p-4">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <img src="@design.UserAvatar" class="rounded-circle me-2"
+                                                        style="width: 40px; height: 40px;" alt="@design.Username">
+                                                    <div>
+                                                        <p class="mb-0 fw-semibold">@design.Username</p>
+                                                        <small class="text-muted">@design.ClothingType - @design.Color</small>
+                                                    </div>
+                                                </div>
+                                                <p class="mb-3">@design.Prompt</p>
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="badge badge-custom">@design.ClothingType</span>
+                                                    <span class="text-muted">❤️ @design.Likes likes</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#trendingCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#trendingCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <TshirtMaker.Components.ui.LandingPage.HowItWorks />
+    <TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
+    <TshirtMaker.Components.ui.LandingPage.SaveShare />
+</div>
+
+@code {
+    private List<Design> trendingDesigns = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500);
+        trendingDesigns = DataService.GetTrendingDesigns(5);
+        isLoading = false;
+    }
+}

@@ -1,0 +1,195 @@
+@page "/feed"
+@layout PublicLayout
+@using TshirtMaker.Components.ui.common
+@using TshirtMaker.Models
+@using TshirtMaker.Services
+@inject TestDataService DataService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Feed - TshirtMaker</PageTitle>
+
+<div class="container py-4 fade-in">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold mb-3">Community Designs 🎨</h1>
+            <p class="text-muted">Discover amazing designs from our creative community</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group w-100" role="group">
+                <button type="button"
+                    class="btn @(currentFilter == "likes" ? "btn-custom-primary" : "btn-custom-secondary")"
+                    @onclick='() => ChangeFilter("likes")'>
+                    🔥 Most Liked
+                </button>
+                <button type="button"
+                    class="btn @(currentFilter == "latest" ? "btn-custom-primary" : "btn-custom-secondary")"
+                    @onclick='() => ChangeFilter("latest")'>
+                    ⏰ Latest
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var design in displayedDesigns)
+        {
+            <div class="col-lg-4 col-md-6">
+                <DesignCard Design="@design" OnLikeClicked="HandleLike" OnCopyPromptClicked="HandleCopyPrompt" />
+            </div>
+        }
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner />
+    }
+
+    @if (!hasMoreDesigns && displayedDesigns.Any())
+    {
+        <div class="text-center py-4">
+            <p class="text-muted">You've reached the end! 🎉</p>
+        </div>
+    }
+
+    @if (!displayedDesigns.Any() && !isLoading)
+    {
+        <div class="text-center py-5">
+            <div style="font-size: 4rem; opacity: 0.5;">📭</div>
+            <h3 class="fw-semibold mt-3">No designs yet</h3>
+            <p class="text-muted">Be the first to create and share!</p>
+            <a href="/create" class="btn btn-custom-primary mt-3">Create Design</a>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Design> displayedDesigns = new();
+    private string currentFilter = "likes";
+    private int currentPage = 0;
+    private const int PageSize = 10;
+    private bool isLoading = true;
+    private bool hasMoreDesigns = true;
+    private global::System.Timers.Timer? scrollCheckTimer;
+
+    [SupplyParameterFromQuery(Name = "filter")]
+    public string? FilterParam { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(FilterParam))
+        {
+            currentFilter = FilterParam;
+        }
+        await LoadMoreDesigns();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadScrollCheckScript();
+            InitializeScrollCheck();
+        }
+    }
+
+    private Task LoadScrollCheckScript()
+    {
+        return Task.CompletedTask;
+    }
+
+    private void InitializeScrollCheck()
+    {
+        scrollCheckTimer = new global::System.Timers.Timer(300);
+        scrollCheckTimer.Elapsed += async (sender, e) => await CheckScrollAndLoad();
+        scrollCheckTimer.AutoReset = true;
+        scrollCheckTimer.Start();
+    }
+
+    private async Task CheckScrollAndLoad()
+    {
+        if (isLoading || !hasMoreDesigns)
+            return;
+
+        try
+        {
+            var scrollInfo = await JS.InvokeAsync<ScrollInfo>("getScrollInfo");
+
+            if (scrollInfo.IsNearBottom)
+            {
+                await LoadMoreDesigns();
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private async Task LoadMoreDesigns()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        await Task.Delay(300);
+
+        var newDesigns = DataService.GetDesignsByFilter(currentFilter, currentPage * PageSize, PageSize);
+
+        if (newDesigns.Count < PageSize)
+        {
+            hasMoreDesigns = false;
+        }
+
+        displayedDesigns.AddRange(newDesigns);
+        currentPage++;
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ChangeFilter(string filter)
+    {
+        if (currentFilter != filter)
+        {
+            currentFilter = filter;
+            displayedDesigns.Clear();
+            currentPage = 0;
+            hasMoreDesigns = true;
+            await LoadMoreDesigns();
+        }
+    }
+
+    private void HandleLike(Design design)
+    {
+        DataService.LikeDesign(design.Id);
+        design.Likes++;
+        StateHasChanged();
+    }
+
+    private async Task HandleCopyPrompt(string prompt)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", prompt);
+        }
+        catch
+        {
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (scrollCheckTimer != null)
+        {
+            scrollCheckTimer.Stop();
+            scrollCheckTimer.Dispose();
+        }
+        return ValueTask.CompletedTask;
+    }
+
+    private class ScrollInfo
+    {
+        public bool IsNearBottom { get; set; }
+    }
+}

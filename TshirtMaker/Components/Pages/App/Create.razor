@@ -1,0 +1,227 @@
+@page "/create"
+@layout MainLayout
+@using TshirtMaker.Components.ui.common
+@using TshirtMaker.Models
+@using TshirtMaker.Models.AI
+@using TshirtMaker.Services
+@using TshirtMaker.Services.AI
+@inject TestDataService DataService
+@inject AIDesignService AIService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Create Design - TshirtMaker</PageTitle>
+
+<div class="container py-4 fade-in">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h1 class="fw-bold">Create Your Design ✨</h1>
+            <p class="text-muted">Choose your clothing and let AI create your unique design</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card card-custom border-0 p-4">
+                <h4 class="fw-semibold mb-4">Clothing Options</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Clothing Type</label>
+                    <select @bind="design.ClothingType" class="form-select input-custom">
+                        @foreach (ClothingType type in Enum.GetValues<ClothingType>())
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Color</label>
+                    <div class="d-flex gap-2 mb-2">
+                        @foreach (var color in predefinedColors)
+                        {
+                            <button type="button" 
+                                    class="btn rounded-circle @(design.Color == color ? "border border-3" : "")" 
+                                    style="width: 50px; height: 50px; background-color: @color; border-color: var(--custom-primary-core) !important;"
+                                    @onclick="() => design.Color = color">
+                            </button>
+                        }
+                    </div>
+                    <input type="color" @bind="design.Color" class="form-control input-custom" style="height: 50px;" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Size</label>
+                    <select @bind="design.Size" class="form-select input-custom">
+                        @foreach (ClothingSize size in Enum.GetValues<ClothingSize>())
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Material</label>
+                    <select @bind="design.Material" class="form-select input-custom">
+                        @foreach (Material material in Enum.GetValues<Material>())
+                        {
+                            <option value="@material">@material</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Print Position</label>
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" 
+                                class="btn @(design.PrintPosition == PrintPosition.Front ? "btn-custom-primary" : "btn-custom-secondary")"
+                                @onclick="() => design.PrintPosition = PrintPosition.Front">
+                            Front
+                        </button>
+                        <button type="button" 
+                                class="btn @(design.PrintPosition == PrintPosition.Back ? "btn-custom-primary" : "btn-custom-secondary")"
+                                @onclick="() => design.PrintPosition = PrintPosition.Back">
+                            Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-custom border-0 p-4 mb-4">
+                <h4 class="fw-semibold mb-4">Design Prompt</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Describe your design</label>
+                    <textarea @bind="promptText" 
+                              class="form-control input-custom" 
+                              rows="6" 
+                              placeholder="e.g., A majestic mountain landscape with aurora borealis in vibrant purple and green colors"
+                              disabled="@isGenerating"></textarea>
+                </div>
+
+                @if (!string.IsNullOrEmpty(statusMessage))
+                {
+                    <div class="alert @(isError ? "alert-danger" : isContentBlocked ? "alert-warning" : "alert-info")">
+                        @statusMessage
+                    </div>
+                }
+
+                <button @onclick="GenerateDesign" 
+                        class="btn btn-custom-primary w-100 py-3 fw-semibold"
+                        disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
+                    @if (isGenerating)
+                    {
+                        <span>Generating... ⏳</span>
+                    }
+                    else
+                    {
+                        <span>Generate Design ✨</span>
+                    }
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(design.GeneratedImageUrl))
+            {
+                <div class="card card-custom border-0 p-4">
+                    <h4 class="fw-semibold mb-4">Preview</h4>
+                    <img src="@design.FinalImageUrl" class="img-fluid rounded mb-3" alt="Generated Design" />
+                    <div class="d-flex gap-2">
+                        <button @onclick="SaveDesign" class="btn btn-custom-primary flex-fill">Save</button>
+                        <button @onclick="ShareDesign" class="btn btn-custom-secondary flex-fill">Share to Feed</button>
+                        <button @onclick="DiscardDesign" class="btn btn-outline-danger flex-fill">Discard</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Design design = new();
+    private string promptText = string.Empty;
+    private bool isGenerating = false;
+    private string statusMessage = string.Empty;
+    private bool isError = false;
+    private bool isContentBlocked = false;
+    private List<string> predefinedColors = new() { "#FFFFFF", "#000000", "#FF5733", "#3357FF", "#33FF57", "#FFC300", "#C70039" };
+
+    protected override void OnInitialized()
+    {
+        var currentUser = DataService.GetCurrentUser();
+        design.UserId = currentUser.Id;
+        design.Username = currentUser.Username;
+        design.UserAvatar = currentUser.AvatarUrl;
+    }
+
+    private async Task GenerateDesign()
+    {
+        isGenerating = true;
+        isError = false;
+        isContentBlocked = false;
+        statusMessage = "Generating your design...";
+        StateHasChanged();
+
+        var request = new DesignRequestDto
+        {
+            Prompt = promptText,
+            ClothingType = design.ClothingType,
+            Color = design.Color,
+            PrintPosition = design.PrintPosition
+        };
+
+        var response = await AIService.GenerateDesign(request);
+
+        if (response.Success)
+        {
+            design.Prompt = promptText;
+            design.GeneratedImageUrl = response.ImageUrl;
+            design.FinalImageUrl = response.ImageUrl;
+            statusMessage = "Design generated successfully! ✨";
+            isError = false;
+        }
+        else
+        {
+            statusMessage = response.Message;
+            isError = !response.IsContentBlocked;
+            isContentBlocked = response.IsContentBlocked;
+        }
+
+        isGenerating = false;
+        StateHasChanged();
+    }
+
+    private void SaveDesign()
+    {
+        design.IsShared = false;
+        DataService.AddDesign(design);
+        statusMessage = "Design saved! 💾";
+        ResetForm();
+    }
+
+    private void ShareDesign()
+    {
+        design.IsShared = true;
+        DataService.AddDesign(design);
+        DataService.ShareDesign(design.Id);
+        Navigation.NavigateTo("/feed");
+    }
+
+    private void DiscardDesign()
+    {
+        ResetForm();
+    }
+
+    private void ResetForm()
+    {
+        design = new Design
+        {
+            UserId = DataService.GetCurrentUser().Id,
+            Username = DataService.GetCurrentUser().Username,
+            UserAvatar = DataService.GetCurrentUser().AvatarUrl
+        };
+        promptText = string.Empty;
+        statusMessage = string.Empty;
+    }
+}
