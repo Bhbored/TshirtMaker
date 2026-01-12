@@ -12,20 +12,24 @@
         <p class="text-muted">Join us and start creating unique designs</p>
     </div>
 
-    <form @onsubmit="HandleSignUp" @onsubmit:preventDefault="true">
+    <EditForm Model="NewUser" OnValidSubmit="HandleSignUp" FormName="signupForm">
+        <DataAnnotationsValidator />
         <div class="mb-3">
             <label class="form-label fw-semibold">Username</label>
-            <input @bind="username" class="form-control input-custom py-2" placeholder="Choose a username" />
+            <InputText @bind-Value="NewUser.Username" class="form-control input-custom py-2" placeholder="Choose a username" />
+            <ValidationMessage For="@(() => NewUser.Username)" />
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Email</label>
-            <input @bind="email" class="form-control input-custom py-2" placeholder="your@email.com" />
+            <InputText @bind-Value="NewUser.Email" class="form-control input-custom py-2" placeholder="your@email.com" />
+            <ValidationMessage For="@(() => NewUser.Email)" />
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Password</label>
-            <input type="password" @bind="password" class="form-control input-custom py-2" placeholder="••••••••" />
+            <InputText type="password" @bind-Value="NewUser.Password" class="form-control input-custom py-2" placeholder="••••••••" />
+            <ValidationMessage For="@(() => NewUser.Password)" />
         </div>
 
         @if (!string.IsNullOrEmpty(error))
@@ -36,7 +40,7 @@
         <button type="submit" class="btn btn-custom-primary w-100 py-2 mb-3 fw-semibold">
             Create Account
         </button>
-    </form>
+    </EditForm>
 
     <div class="text-center">
         <p class="text-muted mb-0">Already have an account? <a href="/login" class="text-decoration-none" style="color: var(--custom-primary-core); font-weight: 600;">Sign In</a></p>
@@ -44,14 +48,13 @@
 </div>
 
 @code {
-    string username = "";
-    string email = "";
-    string password = "";
+    public User NewUser { get; set; } = new User();
     string error = "";
 
     async Task HandleSignUp()
     {
-        var user = await Auth.SignUp(email, username);
+        error = "";
+        var user = await Auth.SignUp(NewUser.Email, NewUser.Username, NewUser.Password);
 
         if (user is null)
         {

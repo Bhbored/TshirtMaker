@@ -1,13 +1,13 @@
 @inherits LayoutComponentBase
-
+@inject AuthService Auth
+@implements IDisposable
 <nav class="navbar navbar-expand-lg nav-custom sticky-top">
     <div class="container-fluid px-4">
-        <a class="navbar-brand fw-bold" href="/dashboard"
-            style="font-size: 1.5rem; background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <a class="navbar-brand fw-bold" href="/dashboard">
             ✨ TshirtMaker
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-label="Toggle navigation menu" aria-controls="navbarNav" aria-expanded="false">
+                aria-label="Toggle navigation menu" aria-controls="navbarNav" aria-expanded="false">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -38,3 +38,17 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+
+@code {
+
+    override protected void OnInitialized()
+    {
+        Auth.OnUserChanged += StateHasChanged;
+    }
+    public void Dispose()
+    {
+        Auth.OnUserChanged -= StateHasChanged;
+    }
+
+}

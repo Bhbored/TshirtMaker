@@ -1,38 +1,24 @@
 using TshirtMaker.Models;
+using TshirtMaker.Tests;
 
 namespace TshirtMaker.Services;
 
 public class TestDataService
 {
-    private readonly List<User> _users;
     private readonly List<Design> _designs;
-    private User _currentUser;
 
     public TestDataService()
     {
-        _users = GenerateUsers();
-        _currentUser = _users[0];
         _designs = GenerateDesigns();
     }
 
-    public User GetCurrentUser() => _currentUser;
-
-    public void SetCurrentUser(User user) => _currentUser = user;
-
-    public void Logout() => _currentUser = _users[0];
-
-    public void AddUser(User user)
-    {
-        _users.Add(user);
-    }
-
-    public List<User> GetAllUsers() => _users;
+    public List<User> GetAllUsers() => TestUsers.Users;
 
     public List<Design> GetAllDesigns() => _designs.Where(d => d.IsShared).ToList();
 
     public List<Design> GetUserDesigns(string userId) => _designs.Where(d => d.UserId == userId).ToList();
 
-    public List<Design> GetTrendingDesigns(int count = 5) => 
+    public List<Design> GetTrendingDesigns(int count = 5) =>
         _designs.Where(d => d.IsShared)
                 .OrderByDescending(d => d.Likes)
                 .Take(count)
@@ -41,7 +27,7 @@ public class TestDataService
     public List<Design> GetDesignsByFilter(string filter, int skip = 0, int take = 10)
     {
         var query = _designs.Where(d => d.IsShared);
-        
+
         query = filter.ToLower() switch
         {
             "latest" => query.OrderByDescending(d => d.CreatedAt),
@@ -75,18 +61,6 @@ public class TestDataService
         }
     }
 
-    private List<User> GenerateUsers()
-    {
-        return new List<User>
-        {
-            new User { Id = "1", Username = "DesignPro", Email = "design@test.com", AvatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=DesignPro" },
-            new User { Id = "2", Username = "ArtistX", Email = "artist@test.com", AvatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=ArtistX" },
-            new User { Id = "3", Username = "CreativeMin", Email = "creative@test.com", AvatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=CreativeMin" },
-            new User { Id = "4", Username = "StyleMaster", Email = "style@test.com", AvatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=StyleMaster" },
-            new User { Id = "5", Username = "TrendSetter", Email = "trend@test.com", AvatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=TrendSetter" }
-        };
-    }
-
     private List<Design> GenerateDesigns()
     {
         var designs = new List<Design>();
@@ -107,11 +81,10 @@ public class TestDataService
 
         for (int i = 0; i < 150; i++)
         {
-            var user = _users[random.Next(_users.Count)];
+            var user = GetAllUsers()[random.Next(GetAllUsers().Count)];
             designs.Add(new Design
             {
                 Id = Guid.NewGuid().ToString(),
-                UserId = user.Id,
                 Username = user.Username,
                 UserAvatar = user.AvatarUrl,
                 Prompt = prompts[random.Next(prompts.Length)],

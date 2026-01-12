@@ -17,11 +17,3 @@ else
     <TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
     <TshirtMaker.Components.ui.LandingPage.SaveShare />
 }
-
-@code {
-    protected override void OnInitialized()
-    {
-        if (!Auth.IsAuthenticated)
-            Nav.NavigateTo("/landing");
-    }
-}

@@ -30,15 +30,24 @@ public class AuthService
     {
         await Task.Delay(100);
 
-        var user = _dataService.GetAllUsers().FirstOrDefault(u =>
-            u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+        try
+        {
+            var user = _dataService.GetAllUsers().FirstOrDefault(x =>
+                x.Email.Equals(email, StringComparison.OrdinalIgnoreCase) &&
+                x.Password == password);
 
-        if (user is null)
+            if (user is not null)
+            {
+                CurrentUser = user;
+            }
+
+            return user;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Login failed: {ex.Message}");
             return null;
-
-        _dataService.SetCurrentUser(user);
-        CurrentUser = user;
-        return user;
+        }
     }
 
     public void Logout()
@@ -46,7 +55,7 @@ public class AuthService
         CurrentUser = null;
     }
 
-    public async Task<User?> SignUp(string email, string username)
+    public async Task<User?> SignUp(string email, string username, string password)
     {
         await Task.Delay(100);
 
@@ -58,14 +67,11 @@ public class AuthService
 
         var newUser = new User
         {
-            Id = Guid.NewGuid().ToString(),
             Username = username,
+            Password = password,
             Email = email,
             AvatarUrl = $"https://api.dicebear.com/7.x/avataaars/svg?seed={username}"
         };
-
-        _dataService.AddUser(newUser);
-        _dataService.SetCurrentUser(newUser);
         CurrentUser = newUser;
         return newUser;
     }

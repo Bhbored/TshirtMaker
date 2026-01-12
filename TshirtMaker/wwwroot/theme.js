@@ -35,3 +35,30 @@ window.scrollToElement = function (elementId) {
         behavior: 'smooth'
     });
 };
+
+// Scroll-triggered fade-in animations
+window.initScrollAnimations = function () {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    // Observe all sections that should fade in
+    const sections = document.querySelectorAll('.how-it-works-section, .describe-vision-section, .save-share-section, #features');
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+};
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initScrollAnimations);
+} else {
+    window.initScrollAnimations();
+}

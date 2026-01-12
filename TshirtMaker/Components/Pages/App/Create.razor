@@ -167,9 +167,8 @@ else
             return;
         }
 
-        var currentUser = DataService.GetCurrentUser();
-        design.UserId = currentUser.Id;
-        design.Username = currentUser.Username;
+        var currentUser = Auth.CurrentUser;
+        design.Username = currentUser!.Username;
         design.UserAvatar = currentUser.AvatarUrl;
 
         if (!string.IsNullOrEmpty(PromptParam))
@@ -240,9 +239,8 @@ else
     {
         design = new Design
         {
-            UserId = DataService.GetCurrentUser().Id,
-            Username = DataService.GetCurrentUser().Username,
-            UserAvatar = DataService.GetCurrentUser().AvatarUrl
+            Username =Auth.CurrentUser!.Username,
+            UserAvatar = Auth.CurrentUser!.AvatarUrl
         };
         promptText = string.Empty;
         statusMessage = string.Empty;
