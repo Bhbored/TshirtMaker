@@ -7,13 +7,7 @@
 
 <PageTitle>TshirtMaker - Dashboard</PageTitle>
 
-@if (!Auth.IsAuthenticated)
-{
-    <p>Redirecting...</p>
-}
-else
-{
-    <TshirtMaker.Components.ui.LandingPage.HowItWorks />
-    <TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
-    <TshirtMaker.Components.ui.LandingPage.SaveShare />
-}
+<TshirtMaker.Components.ui.LandingPage.HowItWorks />
+<TshirtMaker.Components.ui.LandingPage.DescribeYourVision />
+<TshirtMaker.Components.ui.LandingPage.SaveShare />
+

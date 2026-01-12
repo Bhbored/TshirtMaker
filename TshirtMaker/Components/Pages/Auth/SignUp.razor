@@ -1,67 +1,166 @@
 @page "/signup"
 @layout EmptyLayout
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Web
 @using TshirtMaker.Services
+@using TshirtMaker.Models
 @inject NavigationManager Navigation
 @inject AuthService Auth
 
-<div class="card card-custom p-4 shadow-lg fade-in" style="max-width: 450px; width: 100%;">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold mb-2" style="background: linear-gradient(135deg, var(--custom-primary-core), var(--custom-accent-core)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Create Account
-        </h2>
-        <p class="text-muted">Join us and start creating unique designs</p>
+<div class="login-container">
+    <!-- Left Side: Visual Showcase -->
+    <div class="login-visual-side">
+        <div class="visual-background">
+            <div class="iq-pattern"></div>
+            <div class="gradient-blur gradient-blur-1"></div>
+            <div class="gradient-blur gradient-blur-2"></div>
+        </div>
+
+        <div class="brand-logo">
+            <div class="logo-icon">
+                <span style="font-size: 1.25rem;">✨</span>
+            </div>
+            <h2 class="brand-name">ClothIQ</h2>
+        </div>
+
+        <div class="visual-content">
+            <div class="hero-image-container">
+                <div class="hero-image"
+                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC8zmD3xZIKdIbFvfkR7vdS0kJ2tcyVbltsg3rIWZ-xjQ-B_9u2rzh5dRBG0A9oMiX-ocmhiZY1k9L5v98tcAL5N5Wwh3m-oD5kS0tOTNQE0eTTp6MvTmNBlBd6C5iM3fXIywEgRKJ0U1mDUsL2Z5XyeKBNjJ0_8PktpVwRoF-K8EZfSLWrtyAlcurrAuNtjR0x1kjFZt--jAglKPVYXcIqIkf4JEPrS6ycpqAWFA9O8UXTGWor_RNRj25CoxIe2qqdpa1HhmMLEZ3u");'>
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-footer">
+            <p class="visual-tagline">Generative Fashion</p>
+            <h3 class="visual-title">Start your creative journey with <span class="primary-text">AI-powered
+                    design.</span></h3>
+        </div>
     </div>
 
-    <EditForm Model="NewUser" OnValidSubmit="HandleSignUp" FormName="signupForm">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Username</label>
-            <InputText @bind-Value="NewUser.Username" class="form-control input-custom py-2" placeholder="Choose a username" />
-            <ValidationMessage For="@(() => NewUser.Username)" />
+    <!-- Right Side: Sign Up Form -->
+    <div class="login-form-side">
+        <div class="form-background">
+            <div class="iq-pattern"></div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Email</label>
-            <InputText @bind-Value="NewUser.Email" class="form-control input-custom py-2" placeholder="your@email.com" />
-            <ValidationMessage For="@(() => NewUser.Email)" />
+        <div class="form-content">
+            <!-- Mobile Logo -->
+            <div class="mobile-logo">
+                <div class="logo-icon">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                </div>
+                <h2 class="brand-name">ClothIQ</h2>
+            </div>
+
+            <div class="form-header">
+                <h1 class="form-title">Create Account</h1>
+                <p class="form-subtitle">Join us and start creating unique designs.</p>
+            </div>
+
+            <!-- Glassmorphism Card -->
+            <div class="glass-card">
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="alert alert-danger">@error</div>
+                }
+
+                <EditForm Model="NewUser" OnValidSubmit="HandleSignUp" OnInvalidSubmit="HandleInvalidSubmit"
+                    FormName="signupForm">
+                    <DataAnnotationsValidator />
+
+                    <!-- Username Field -->
+                    <div class="form-field">
+                        <label class="form-label">Username</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon material-symbols-outlined">person</span>
+                            <InputText @bind-Value="NewUser.Username" class="login-input"
+                                placeholder="Choose a username"
+                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                        </div>
+                        @if (showValidationMessages)
+                        {
+                            <ValidationMessage For="@(() => NewUser.Username)" />
+                        }
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="form-field">
+                        <label class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon material-symbols-outlined">mail</span>
+                            <InputText @bind-Value="NewUser.Email" class="login-input" placeholder="name@example.com"
+                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                        </div>
+                        @if (showValidationMessages)
+                        {
+                            <ValidationMessage For="@(() => NewUser.Email)" />
+                        }
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-field">
+                        <label class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon material-symbols-outlined">lock</span>
+                            <InputText type="password" @bind-Value="NewUser.Password" class="login-input"
+                                placeholder="••••••••"
+                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                        </div>
+                        @if (showValidationMessages)
+                        {
+                            <ValidationMessage For="@(() => NewUser.Password)" />
+                        }
+                    </div>
+
+                    <!-- Sign Up Button -->
+                    <button type="submit" class="submit-button">
+                        <span>Create Account</span>
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </EditForm>
+            </div>
+
+            <!-- Footer CTA -->
+            <div class="form-footer">
+                <p class="footer-text">
+                    Already have an account?
+                    <a class="footer-link" href="/login">Sign In</a>
+                </p>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Password</label>
-            <InputText type="password" @bind-Value="NewUser.Password" class="form-control input-custom py-2" placeholder="••••••••" />
-            <ValidationMessage For="@(() => NewUser.Password)" />
-        </div>
-
-        @if (!string.IsNullOrEmpty(error))
-        {
-            <div class="alert alert-danger">@error</div>
-        }
-
-        <button type="submit" class="btn btn-custom-primary w-100 py-2 mb-3 fw-semibold">
-            Create Account
-        </button>
-    </EditForm>
-
-    <div class="text-center">
-        <p class="text-muted mb-0">Already have an account? <a href="/login" class="text-decoration-none" style="color: var(--custom-primary-core); font-weight: 600;">Sign In</a></p>
     </div>
 </div>
 
 @code {
     public User NewUser { get; set; } = new User();
     string error = "";
+    bool showValidationMessages = false;
+
+    void HandleInvalidSubmit()
+    {
+        showValidationMessages = true;
+    }
 
     async Task HandleSignUp()
     {
         error = "";
-        var user = await Auth.SignUp(NewUser.Email, NewUser.Username, NewUser.Password);
+        showValidationMessages = true;
 
-        if (user is null)
+        try
         {
-            error = "Email already exists";
-            return;
-        }
+            var user = await Auth.SignUp(NewUser.Email, NewUser.Username, NewUser.Password);
+            if (user is null)
+            {
+                error = "Email already exists";
+                return;
+            }
 
-        Navigation.NavigateTo("/dashboard");
+            Navigation.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
     }
 }
