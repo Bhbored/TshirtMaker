@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /TshirtMaker/appsettings.json
 /designs
+
+# Cursor IDE
+.cursor/
