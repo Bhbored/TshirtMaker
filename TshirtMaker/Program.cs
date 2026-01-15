@@ -16,9 +16,9 @@ namespace TshirtMaker
 
             builder.Services.AddSingleton<TestDataService>();
             builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<SupabaseAuthService>();
-            builder.Services.AddScoped<SupabaseDbService>();
-            builder.Services.AddHttpClient<AIDesignService>();
+            //builder.Services.AddScoped<SupabaseAuthService>();
+            //builder.Services.AddScoped<SupabaseDbService>();
+            //builder.Services.AddHttpClient<AIDesignService>();
 
             var app = builder.Build();
 

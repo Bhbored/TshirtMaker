@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Pages\UserInterface\" />
+    <Folder Include="Components\ui\creation\" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,260 @@
+@page "/collections"
+@layout MainLayout
+
+<PageTitle>TshirtMaker - My Collection</PageTitle>
+
+<main class="collections-main">
+    <div class="collections-container">
+        <aside class="collections-sidebar">
+            <div class="collections-filters">
+                <div class="collections-filters-header">
+                    <h1 class="collections-filters-title">Filters</h1>
+                    <p class="collections-filters-subtitle">Organize your creations</p>
+                </div>
+                <div class="collections-search">
+                    <div class="collections-search-container">
+                        <div class="collections-search-icon">
+                            <span class="material-symbols-outlined">search</span>
+                        </div>
+                        <input type="text" placeholder="Search collection..." class="collections-search-input" />
+                    </div>
+                </div>
+                <div class="collections-nav-items">
+                    <div class="collections-nav-item active">
+                        <span class="material-symbols-outlined">grid_view</span>
+                        <p>All Designs</p>
+                    </div>
+                    <div class="collections-nav-item">
+                        <span class="material-symbols-outlined">favorite</span>
+                        <p>Favorites</p>
+                    </div>
+                    <div class="collections-nav-item">
+                        <span class="material-symbols-outlined">history</span>
+                        <p>Recent</p>
+                    </div>
+                    <div class="collections-nav-item">
+                        <span class="material-symbols-outlined">archive</span>
+                        <p>Archive</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collections-divider"></div>
+            
+            <div class="collections-filter-section">
+                <h2 class="collections-filter-section-title">Apparel Type</h2>
+                <div class="collections-checkbox-group">
+                    <label class="collections-checkbox-label">
+                        <input type="checkbox" checked class="collections-checkbox" />
+                        <span>Tees (12)</span>
+                    </label>
+                    <label class="collections-checkbox-label">
+                        <input type="checkbox" class="collections-checkbox" />
+                        <span>Hoodies (8)</span>
+                    </label>
+                    <label class="collections-checkbox-label">
+                        <input type="checkbox" class="collections-checkbox" />
+                        <span>Crewnecks (4)</span>
+                    </label>
+                    <label class="collections-checkbox-label">
+                        <input type="checkbox" class="collections-checkbox" />
+                        <span>Accessories (15)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="collections-divider"></div>
+            
+            <div class="collections-filter-section">
+                <h2 class="collections-filter-section-title">Styles</h2>
+                <div class="collections-tags">
+                    <span class="collections-tag">Cyberpunk</span>
+                    <span class="collections-tag">Minimalist</span>
+                    <span class="collections-tag">Vintage</span>
+                    <span class="collections-tag">Gothic</span>
+                    <span class="collections-tag">Streetwear</span>
+                </div>
+            </div>
+        </aside>
+        
+        <section class="collections-content">
+            <div class="collections-header">
+                <div>
+                    <h2 class="collections-title">My Collection</h2>
+                    <p class="collections-subtitle">Manage 39 designs across all categories</p>
+                </div>
+                <button class="collections-new-btn">
+                    <span class="material-symbols-outlined">add</span>
+                    New Design
+                </button>
+            </div>
+            
+            <div class="collections-tabs">
+                <a href="#" class="collections-tab active">My Creations</a>
+                <a href="#" class="collections-tab">Community Saves</a>
+            </div>
+            
+            <div class="collections-grid">
+                <div class="collections-card">
+                    <div class="collections-card-image">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnvNduohTLITZxeKnGY034qlmN9UsB3SKvXHwUpYQxqVu_PY8kbKw7RtZbcMAYZ_nea35MBI4UHBOC_BfhPATwK8QtdlClXqHr5vuBGP5C9cZr2-PQAgj7PDdzpR8U9KN6acoKdTvnktQax1hLyZchaEgi_69GCC3hwX-T3dXzudAMXtRihydLLkSGzUiWSTTtMhc1OGyuYfjMEP2VCsm57ntOnoKeI3Tggsmw0ukEkuoXHQSx1NYJz_vpk6gOjurhjpcOdxvXMZ6H" alt="Black tshirt mockup with neon cyberpunk graphic" />
+                        <div class="collections-card-overlay">
+                            <div class="collections-card-actions">
+                                <button class="collections-card-action-btn" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="collections-card-action-btn primary" title="Order">
+                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                </button>
+                                <button class="collections-card-action-btn" title="Share">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collections-card-body">
+                        <div class="collections-card-info">
+                            <h3>Neo Tokyo 2077</h3>
+                            <p>Oversized Tee • Black</p>
+                        </div>
+                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                    </div>
+                </div>
+                
+                <div class="collections-card">
+                    <div class="collections-card-image">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuARVOFPa-KRrUUd6NveHyeTTL3BVKbVZ7QJPMf_RCAkjvry10J-bnBLPIjXiqJURj6bKXBvETER4OVTNKZeGUWZtSq2xtCUSMeDiR2SooSW32DDjyfYGCNiOXQUyOtmJx3ipP84kNH2iWmZPtVHZab20rXh0dNigWbTrqfXG47T7koOxxDlLpoFYbdRZ07wk9nktLZfeqV_ilhLT2bVxjb4WpSdEfz1SaSCgWyaL2SXqif23_lL0QR_AzvdEgUuAFrtNk1MgignP3kM" alt="Minimalist grey hoodie mockup with white logo" />
+                        <div class="collections-card-overlay">
+                            <div class="collections-card-actions">
+                                <button class="collections-card-action-btn" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="collections-card-action-btn primary" title="Order">
+                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                </button>
+                                <button class="collections-card-action-btn" title="Share">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collections-card-body">
+                        <div class="collections-card-info">
+                            <h3>Quiet Luxury V1</h3>
+                            <p>Heavyweight Hoodie • Sand</p>
+                        </div>
+                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                    </div>
+                </div>
+                
+                <div class="collections-card">
+                    <div class="collections-card-image">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDofSefLwkqS7m-jN2wSonCaJxjH2eiZFryMOsMhiQisyTqxNPPbME_z31fj-6RxoulV-piGc_rPR9VqU4kqiBEXqZiJsX8wPdHh4RArlXPNpH7HtvZ8fmCR5J9J6cyvSdZjnQZYmwMArddydats-R_ax1lsb6jsuYKURMx_kx7W2XjJGIUHidl-8iOMlqMbz1T_dpHd2rnRysBMVSL0YoYM3gtSVs5ASIMJ_Klp7i40SqN1UzAQMQuNYoVwY52_pmOAsanIlEf8I-_" alt="White t-shirt with retro floral design" />
+                        <div class="collections-card-overlay">
+                            <div class="collections-card-actions">
+                                <button class="collections-card-action-btn" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="collections-card-action-btn primary" title="Order">
+                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                </button>
+                                <button class="collections-card-action-btn" title="Share">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collections-card-body">
+                        <div class="collections-card-info">
+                            <h3>Summer Bloom</h3>
+                            <p>Boxy Tee • Cream</p>
+                        </div>
+                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                    </div>
+                </div>
+                
+                <div class="collections-card">
+                    <div class="collections-card-image">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRWmEuKvUFYHscMiIXCPRDqcK_3kO9jKe7YcklhWSRjPkcQ9G_IoZVHH_Rmsnqrm8JvuPwpoqLDucam2bgrArJlRdvxKaagCI9una_NVeWii492jUhpwEvBFMR9EHzTY_z7T5efrpuhF3LTbx28Q8PYiPfVajFC_eBsTBzz2P44vj1G_VmlT7iLxRt-pu0KW2JZW2uYejNH9LR9r7D8HOi8qT3p-v1w0iMWH5z6zEl6QMoYy6leOHQT-q2rvjto7OX3dLPzvq4fczc" alt="Black hoodie with intricate glitch art print" />
+                        <div class="collections-card-overlay">
+                            <div class="collections-card-actions">
+                                <button class="collections-card-action-btn" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="collections-card-action-btn primary" title="Order">
+                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                </button>
+                                <button class="collections-card-action-btn" title="Share">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collections-card-body">
+                        <div class="collections-card-info">
+                            <h3>Void Glitch</h3>
+                            <p>Zip Hoodie • Black</p>
+                        </div>
+                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                    </div>
+                </div>
+                
+                <div class="collections-card">
+                    <div class="collections-card-image">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9yUETGeEglgXguMjmAPiN1rriVpA7sYW2N6Xjp0za6JCw7pj3hVxy7s2J9-UH6MdzBf9ZDfThVjx-rrKkgRPjXryY6f1fvqwEgwP89vlIAHb6zO5aWjOQHMpFXYdwISwobeLc0XjavkF_sMDUWwxKF8WFyH2767RViVqGRUgYtdPbrY_ykTZeJyRVB7IYOav2h-vTosdnI2tcPv-Q0W_UR6vOjshruceT4iiPALp1h4CD3X_ZBIiVFc5USQmaNAbbhhMjlhWay6KY" alt="Tote bag with minimalist logo design" />
+                        <div class="collections-card-overlay">
+                            <div class="collections-card-actions">
+                                <button class="collections-card-action-btn" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="collections-card-action-btn primary" title="Order">
+                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                </button>
+                                <button class="collections-card-action-btn" title="Share">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collections-card-body">
+                        <div class="collections-card-info">
+                            <h3>Archival Tote</h3>
+                            <p>Canvas Bag • Ecru</p>
+                        </div>
+                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                    </div>
+                </div>
+                
+                <div class="collections-card">
+                    <div class="collections-card-image">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg-e72SmexYNrIV88jj4PyTL9o2cuD1gvOQSpO9satm1M4-x4nzt0K16nQ1h3TfYXv97Sl01zcSrCWW3y5j748I70mSGt1mmm7laf4vzti0n-4M_6OO9XCLmYpwl2RtWFD0SLGDXxI5Q-x9yLyi8df0JUq_nmufjE2kldk8iUBpD7Oc_QEOp9fQGqKtGaremwkCLmCQWJLPygnWgzkGLQQHA57BNJCkFutoLTyrbUaN7SlM9SpVvOIJGW8NmwRpQjigw3_Cj7U3THH" alt="White sweatshirt mockup with futuristic print" />
+                        <div class="collections-card-overlay">
+                            <div class="collections-card-actions">
+                                <button class="collections-card-action-btn" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="collections-card-action-btn primary" title="Order">
+                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                </button>
+                                <button class="collections-card-action-btn" title="Share">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collections-card-body">
+                        <div class="collections-card-info">
+                            <h3>Future Static</h3>
+                            <p>Crewneck • Heather Grey</p>
+                        </div>
+                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collections-load-more">
+                <button class="collections-load-more-btn">Load More Creations</button>
+            </div>
+        </section>
+    </div>
+</main>

@@ -2,13 +2,31 @@
 @layout MainLayout
 @inject AuthService Auth
 @inject NavigationManager Nav
+@inject ILogger<RouteChecker> Logger
 
 @code {
-    protected override void OnInitialized()
+
+    protected override Task OnInitializedAsync()
     {
-        if (Auth.IsAuthenticated)
-            Nav.NavigateTo("/dashboard");
-        else
-            Nav.NavigateTo("/landing");
+
+        try
+        {
+            if (!Auth.IsAuthenticated || Auth.CurrentUser == null)
+            {
+                Nav.NavigateTo("/landing");
+
+            }
+            else
+            {
+                Nav.NavigateTo("/dashboard");
+            }
+        }
+        catch
+        (Exception ex)
+        {
+            Logger.LogError("Error during route check: {Message}", ex.Message);
+        }
+
+        return base.OnInitializedAsync();
     }
 }

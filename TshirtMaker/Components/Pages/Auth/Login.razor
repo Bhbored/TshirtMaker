@@ -144,8 +144,10 @@
         try
         {
             var user = await Auth.Login(LoginModel.Email, LoginModel.Password);
+            
             if (user is not null)
             {
+                Auth.OnUserChanged += StateHasChanged;
                 Navigation.NavigateTo("/dashboard");
             }
             else

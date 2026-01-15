@@ -5,7 +5,7 @@ namespace TshirtMaker.Services;
 public class AuthService
 {
     private readonly TestDataService _dataService;
-    private User? currentUser;
+    private User? currentUser = null;
 
     public AuthService(TestDataService dataService)
     {
@@ -17,7 +17,7 @@ public class AuthService
     public User? CurrentUser
     {
         get => currentUser;
-        private set
+        set
         {
             currentUser = value;
             OnUserChanged?.Invoke();

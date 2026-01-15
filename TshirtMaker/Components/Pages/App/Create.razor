@@ -1,248 +1,273 @@
 @page "/create"
 @layout MainLayout
-@using Microsoft.AspNetCore.Components
-@using TshirtMaker.Components.ui.common
-@using TshirtMaker.Models
-@using TshirtMaker.Models.AI
-@using TshirtMaker.Services
-@using TshirtMaker.Services.AI
-@inject TestDataService DataService
-@inject AIDesignService AIService
-@inject NavigationManager Navigation
-@inject IJSRuntime JS
-@inject AuthService Auth
+@inject NavigationManager Nav
 
-<PageTitle>Create Design - TshirtMaker</PageTitle>
+<PageTitle>TshirtMaker - AI Creation Workspace</PageTitle>
 
-@if (!Auth.IsAuthenticated)
-{
-    <p>Redirecting...</p>
-}
-else
-{
-<div class="container py-4 fade-in">
-    <div class="row">
-        <div class="col-12 mb-4">
-            <h1 class="fw-bold">Create Your Design ✨</h1>
-            <p class="text-muted">Choose your clothing and let AI create your unique design</p>
-        </div>
-    </div>
+<main class="create-main">
+    <div class="create-container">
+        <!-- Left Sidebar: Configuration -->
+        <aside class="create-sidebar create-sidebar-left">
+            <div class="create-sidebar-content">
+                <div class="create-section">
+                    <h3 class="create-section-title">Garment Specs</h3>
+                    <div class="create-specs">
+                        <!-- Apparel Type -->
+                        <div class="create-spec-group">
+                            <p class="create-label">Apparel Type</p>
+                            <div class="create-radio-group">
+                                <label class="create-radio-label @(selectedApparelType == "T-shirt" ? "active" : "")">
+                                    <span>T-shirt</span>
+                                    <input type="radio" name="apparel-type" value="T-shirt"
+                                           checked="@(selectedApparelType == "T-shirt")"
+                                           @onchange="@(() => selectedApparelType = "T-shirt")" />
+                                </label>
+                                <label class="create-radio-label @(selectedApparelType == "Hoodie" ? "active" : "")">
+                                    <span>Hoodie</span>
+                                    <input type="radio" name="apparel-type" value="Hoodie"
+                                           checked="@(selectedApparelType == "Hoodie")"
+                                           @onchange="@(() => selectedApparelType = "Hoodie")" />
+                                </label>
+                                <label class="create-radio-label @(selectedApparelType == "Sweat" ? "active" : "")">
+                                    <span>Sweat</span>
+                                    <input type="radio" name="apparel-type" value="Sweat"
+                                           checked="@(selectedApparelType == "Sweat")"
+                                           @onchange="@(() => selectedApparelType = "Sweat")" />
+                                </label>
+                            </div>
+                        </div>
 
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="card card-custom border-0 p-4">
-                <h4 class="fw-semibold mb-4">Clothing Options</h4>
-                
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Clothing Type</label>
-                    <select @bind="design.ClothingType" class="form-select input-custom">
-                        @foreach (ClothingType type in Enum.GetValues<ClothingType>())
-                        {
-                            <option value="@type">@type</option>
-                        }
-                    </select>
-                </div>
+                        <!-- Base Color -->
+                        <div class="create-spec-group">
+                            <p class="create-label">Base Color</p>
+                            <div class="create-color-picker">
+                                @foreach (var color in baseColors)
+                                {
+                                    <button class="create-color-btn @(selectedColor == color.Value ? "active" : "")"
+                                            style="background-color: @color.Value"
+                                            @onclick="@(() => selectedColor = color.Value)" title="@color.Name"></button>
+                                }
+                            </div>
+                        </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Color</label>
-                    <div class="d-flex gap-2 mb-2">
-                        @foreach (var color in predefinedColors)
-                        {
-                            <button type="button" 
-                                    class="btn rounded-circle @(design.Color == color ? "border border-3" : "")" 
-                                    style="width: 50px; height: 50px; background-color: @color; border-color: var(--custom-primary-core) !important;"
-                                    @onclick="() => design.Color = color">
-                            </button>
-                        }
+                        <!-- Size Selector -->
+                        <div class="create-spec-group">
+                            <p class="create-label">Size</p>
+                            <div class="create-size-grid">
+                                @foreach (var size in sizes)
+                                {
+                                    <button class="create-size-btn @(selectedSize == size ? "active" : "")"
+                                            @onclick="@(() => selectedSize = size)">
+                                        @size
+                                    </button>
+                                }
+                            </div>
+                        </div>
                     </div>
-                    <input type="color" @bind="design.Color" class="form-control input-custom" style="height: 50px;" />
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Size</label>
-                    <select @bind="design.Size" class="form-select input-custom">
-                        @foreach (ClothingSize size in Enum.GetValues<ClothingSize>())
-                        {
-                            <option value="@size">@size</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Material</label>
-                    <select @bind="design.Material" class="form-select input-custom">
-                        @foreach (Material material in Enum.GetValues<Material>())
-                        {
-                            <option value="@material">@material</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Print Position</label>
-                    <div class="btn-group w-100" role="group">
-                        <button type="button" 
-                                class="btn @(design.PrintPosition == PrintPosition.Front ? "btn-custom-primary" : "btn-custom-secondary")"
-                                @onclick="() => design.PrintPosition = PrintPosition.Front">
-                            Front
-                        </button>
-                        <button type="button" 
-                                class="btn @(design.PrintPosition == PrintPosition.Back ? "btn-custom-primary" : "btn-custom-secondary")"
-                                @onclick="() => design.PrintPosition = PrintPosition.Back">
-                            Back
-                        </button>
+                <!-- Material Specs -->
+                <div class="create-section create-section-divider">
+                    <h4 class="create-subsection-title">Fabric Texture</h4>
+                    <div class="create-material-grid">
+                        <div class="create-material-card @(selectedMaterial == "Heavy Cotton" ? "active" : "")"
+                             @onclick="@(() => selectedMaterial = "Heavy Cotton")">
+                            <div class="create-material-preview create-material-cotton"></div>
+                            <span>Heavy Cotton</span>
+                        </div>
+                        <div class="create-material-card @(selectedMaterial == "Polyester" ? "active" : "")"
+                             @onclick="@(() => selectedMaterial = "Polyester")">
+                            <div class="create-material-preview create-material-polyester"></div>
+                            <span>Polyester</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div class="col-lg-6">
-            <div class="card card-custom border-0 p-4 mb-4">
-                <h4 class="fw-semibold mb-4">Design Prompt</h4>
-                
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Describe your design</label>
-                    <textarea @bind="promptText" 
-                              class="form-control input-custom" 
-                              rows="6" 
-                              placeholder="e.g., A majestic mountain landscape with aurora borealis in vibrant purple and green colors"
-                              disabled="@isGenerating"></textarea>
-                </div>
-
-                @if (!string.IsNullOrEmpty(statusMessage))
-                {
-                    <div class="alert @(isError ? "alert-danger" : isContentBlocked ? "alert-warning" : "alert-info")">
-                        @statusMessage
-                    </div>
-                }
-
-                <button @onclick="GenerateDesign" 
-                        class="btn btn-custom-primary w-100 py-3 fw-semibold"
-                        disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
-                    @if (isGenerating)
-                    {
-                        <span>Generating... ⏳</span>
-                    }
-                    else
-                    {
-                        <span>Generate Design ✨</span>
-                    }
+        <!-- Center: 3D Preview Viewport -->
+        <section class="create-viewport">
+            <!-- Viewport Tools -->
+            <div class="create-viewport-tools">
+                <button class="create-tool-btn" title="View in AR">
+                    <span class="material-symbols-outlined">view_in_ar</span>
+                </button>
+                <button class="create-tool-btn" title="Fullscreen">
+                    <span class="material-symbols-outlined">fullscreen</span>
                 </button>
             </div>
 
-            @if (!string.IsNullOrEmpty(design.GeneratedImageUrl))
-            {
-                <div class="card card-custom border-0 p-4">
-                    <h4 class="fw-semibold mb-4">Preview</h4>
-                    <img src="@design.FinalImageUrl" class="img-fluid rounded mb-3" alt="Generated Design" />
-                    <div class="d-flex gap-2">
-                        <button @onclick="SaveDesign" class="btn btn-custom-primary flex-fill">Save</button>
-                        <button @onclick="ShareDesign" class="btn btn-custom-secondary flex-fill">Share to Feed</button>
-                        <button @onclick="DiscardDesign" class="btn btn-outline-danger flex-fill">Discard</button>
+            <!-- Main 3D Model Placeholder -->
+            <div class="create-preview-container">
+                <div class="create-preview-wrapper">
+                    <!-- Glow effect behind the shirt -->
+                    <div class="create-preview-glow"></div>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmEMtTaAHkxTj9AB6Ss4qgOA8YWdxcJmfQ93v4sRpK3lKF4AlD2p8mYvfAc5aqxBVPbkv_2VB-CuL8JQkmcqqgULm-g4ENnm0ZDG4jNXNfUpHxeC9Oa2oLzT2t8udhTGMCqmcN5FOi-Fa6I7JGBR0Z19uxmarFqH6lZloRePqQqa-or30w29Sspg7_njVzZbZR6Nbf7FfNWDu0sQ4ArkSZHwCDMfrV2OxBhNWT7Yhva3gge5G1FmRnBpSePC5l5GU-i-sRWbT3JomV"
+                         alt="Interactive 3D preview" class="create-preview-image" />
+
+                    <!-- Floating rotation controls -->
+                    <div class="create-rotation-controls">
+                        <button class="create-rotation-btn" @onclick="RotateLeft">
+                            <span class="material-symbols-outlined">rotate_left</span>
+                        </button>
+                        <div class="create-rotation-divider"></div>
+                        <span class="create-rotation-label">FRONT VIEW</span>
+                        <div class="create-rotation-divider"></div>
+                        <button class="create-rotation-btn" @onclick="RotateRight">
+                            <span class="material-symbols-outlined">rotate_right</span>
+                        </button>
                     </div>
                 </div>
-            }
-        </div>
+            </div>
+
+            <!-- Bottom Action Bar -->
+            <div class="create-action-bar">
+                <button class="create-generate-btn" @onclick="GenerateAIArt">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    GENERATE AI ART
+                </button>
+            </div>
+        </section>
+
+        <!-- Right Sidebar: Creative Engine -->
+        <aside class="create-sidebar create-sidebar-right">
+            <div class="create-sidebar-content">
+                <div class="create-section">
+                    <h3 class="create-section-title">Design Engine</h3>
+                    <p class="create-section-subtitle">AI-powered artwork generation for your apparel.</p>
+
+                    <div class="create-design-content">
+                        <!-- Style Presets -->
+                        <div class="create-preset-group">
+                            <p class="create-label">Preset Styles</p>
+                            <div class="create-preset-grid">
+                                @foreach (var preset in stylePresets)
+                                {
+                                    <div class="create-preset-card @(selectedPreset == preset.Name ? "active" : "")"
+                                         @onclick="@(() => selectedPreset = preset.Name)">
+                                        <div class="create-preset-overlay"></div>
+                                        <img src="@preset.ImageUrl" alt="@preset.Name" />
+                                        <div class="create-preset-label">
+                                            <p>@preset.Name</p>
+                                        </div>
+                                        @if (selectedPreset == preset.Name)
+                                        {
+                                            <div class="create-preset-check">
+                                                <span class="material-symbols-outlined">check</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Prompt Input -->
+                        <div class="create-prompt-group">
+                            <div class="create-prompt-header">
+                                <p class="create-label">Prompt Input</p>
+                                <button class="create-enhance-btn" @onclick="EnhancePrompt">
+                                    <span class="material-symbols-outlined">bolt</span>
+                                    ENHANCE
+                                </button>
+                            </div>
+                            <div class="create-textarea-wrapper">
+                                <textarea class="create-textarea"
+                                          placeholder="Describe the artwork you want to generate on the center of the garment..."
+                                          @bind="promptText" @bind:event="oninput" maxlength="500"></textarea>
+                                <div class="create-char-count">@promptText.Length / 500</div>
+                            </div>
+                        </div>
+
+                        <!-- Negative Prompt (Advanced) -->
+                        <div class="create-advanced-group">
+                            <details class="create-advanced-details">
+                                <summary class="create-advanced-summary">
+                                    <span>Advanced Settings</span>
+                                    <span class="material-symbols-outlined">expand_more</span>
+                                </summary>
+                                <div class="create-advanced-content">
+                                    <div class="create-advanced-field">
+                                        <p class="create-advanced-label">Negative Prompt</p>
+                                        <input class="create-advanced-input" type="text"
+                                               placeholder="What to exclude (e.g. text, blur)" @bind="negativePrompt" />
+                                    </div>
+                                    <div class="create-advanced-field">
+                                        <p class="create-advanced-label">Upscale Resolution</p>
+                                        <div class="create-resolution-buttons">
+                                            <button class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
+                                                    @onclick="@(() => selectedResolution = "2K")">
+                                                2K
+                                            </button>
+                                            <button class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
+                                                    @onclick="@(() => selectedResolution = "4K")">
+                                                4K
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
-</div>
-}
+</main>
 
 @code {
-    private Design design = new();
+    private string selectedApparelType = "T-shirt";
+    private string selectedColor = "#FFFFFF";
+    private string selectedSize = "M";
+    private string selectedMaterial = "Heavy Cotton";
+    private string selectedPreset = "Cyberpunk";
     private string promptText = string.Empty;
-    private bool isGenerating = false;
-    private string statusMessage = string.Empty;
-    private bool isError = false;
-    private bool isContentBlocked = false;
-    private List<string> predefinedColors = new() { "#FFFFFF", "#000000", "#FF5733", "#3357FF", "#33FF57", "#FFC300", "#C70039" };
+    private string negativePrompt = string.Empty;
+    private string selectedResolution = "2K";
+    private int rotationAngle = 0;
 
-    [SupplyParameterFromQuery(Name = "prompt")]
-    public string? PromptParam { get; set; }
+    private List<(string Name, string Value)> baseColors = new()
+{
+("White", "#FFFFFF"),
+("Black", "#000000"),
+("Blue", "#2563eb"),
+("Red", "#dc2626"),
+("Green", "#16a34a"),
+("Gray", "#6b7280")
+};
 
-    protected override void OnInitialized()
+    private List<string> sizes = new() { "S", "M", "L", "XL", "2XL" };
+
+    private List<(string Name, string ImageUrl)> stylePresets = new()
+{
+("Cyberpunk",
+"https://lh3.googleusercontent.com/aida-public/AB6AXuBt2m-dKuGB-CEJj4W_lHKWekTbX9OOmwOC0f_0p28i41m0HjEQ4phkFzQBp8VYSMc8v4-IiSOh1ZxVQmOl3_gRvVigwqbraeMe-4-qOTYlMjrNuYvUTax6R6-hz4rWcLtWPsjuv7_eEUkIT7Z0WpIH73Xmyn5-WH5f-JtjFpPHwbj6HXlueDf_CzocZnQ4yrl2xV363qsX4Jyaw2TaB12p2dqNmMvhDdy_9Q4XBIukZcR-WS6ygHQgzUd5eTqXue_mTsQzi_aiemg1"),
+("Anime",
+"https://lh3.googleusercontent.com/aida-public/AB6AXuBgl2jxxhI84gRWsIEF6rbRSo-fRow5hIs77L-Vs5mG7NTUcbxqlbR1fKrTmcZyzIPW1p8O_xDQ5xrtpQr77qacRcsDF0P4vege7ldXkAkfTT_AMBHc6dymiYQpEsS2z9hr5NiFrGgQcDBM7FXIk-RkLw_oQ7mLcSS5joJ9-pEC8kU-Ki2Pio-teAjY6cJdXoiqZHKxaz2-vFN2kVwzuYbzJm22EirlBcLmAoHhyqdl2fDPeXplWM8N4Rw9xio1SOV0bo0yFyX-Bwx_"),
+("Minimalism",
+"https://lh3.googleusercontent.com/aida-public/AB6AXuCK3cVoEYBECT9OxiQaMjP-45ftq1x6dQOdwIYdhdccxECTIffUwfqHmqISBQEGF0DQO2SS12S-2lqUKVV-JIOEBOUY105YTyMz8TbndASp1npKFKmdh8QQ9KmmhngAt0rH-HjUl0Qe5YrmGPmgZ1705JR_A977OoBQzdobEVgfQCPH00GPv6W4yclQTGQsEj5TBwaJrlvXaFyx7SXNMijP62IYvZkHUhqlwRnJr_g2RVGbD01ykaFt6e9hP9ie_tGUCa7loOdVBbFl"),
+("Oil Paint",
+"https://lh3.googleusercontent.com/aida-public/AB6AXuDFKat-1ZrTQ1GdsYrQZ1qLU_SaT3XCg0Psg4oqPG6yh4rmxDpIf4KXHAYBAB_ZXEzR16JqV9pYtKoQMVaOygHDBVp1xCSRqntmjAVYAqjyhcp668d-DO1VY4XkR-4sJZwk1YBejJfKNkt9LegDPTXlS5r9-1tBHbx2J2FvnKNhq0XYnK574c2VRXhVpM9orIgY9HxO6LJACrOHbQcovtAn5KYBDLD7jZWF_Xqy37o_5wvjFEqia_Tu-VGS5aNk9t2ETOaeb0NgGcd9")
+};
+
+    private void RotateLeft()
     {
-        if (!Auth.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/login");
-            return;
-        }
-
-        var currentUser = Auth.CurrentUser;
-        design.Username = currentUser!.Username;
-        design.UserAvatar = currentUser.AvatarUrl;
-
-        if (!string.IsNullOrEmpty(PromptParam))
-        {
-            promptText = Uri.UnescapeDataString(PromptParam);
-        }
-    }
-
-    private async Task GenerateDesign()
-    {
-        isGenerating = true;
-        isError = false;
-        isContentBlocked = false;
-        statusMessage = "Generating your design...";
-        StateHasChanged();
-
-        var request = new DesignRequestDto
-        {
-            Prompt = promptText,
-            ClothingType = design.ClothingType,
-            Color = design.Color,
-            PrintPosition = design.PrintPosition
-        };
-
-        var response = await AIService.GenerateDesign(request);
-
-        if (response.Success)
-        {
-            design.Prompt = promptText;
-            design.GeneratedImageUrl = response.ImageUrl;
-            design.FinalImageUrl = response.ImageUrl;
-            statusMessage = "Design generated successfully! ✨";
-            isError = false;
-        }
-        else
-        {
-            statusMessage = response.Message;
-            isError = !response.IsContentBlocked;
-            isContentBlocked = response.IsContentBlocked;
-        }
-
-        isGenerating = false;
+        rotationAngle -= 90;
         StateHasChanged();
     }
 
-    private void SaveDesign()
+    private void RotateRight()
     {
-        design.IsShared = false;
-        DataService.AddDesign(design);
-        statusMessage = "Design saved! 💾";
-        ResetForm();
+        rotationAngle += 90;
+        StateHasChanged();
     }
 
-    private void ShareDesign()
+    private void GenerateAIArt()
     {
-        design.IsShared = true;
-        DataService.AddDesign(design);
-        DataService.ShareDesign(design.Id);
-        Navigation.NavigateTo("/feed");
+        // TODO: Implement AI art generation
     }
 
-    private void DiscardDesign()
+    private void EnhancePrompt()
     {
-        ResetForm();
-    }
-
-    private void ResetForm()
-    {
-        design = new Design
-        {
-            Username =Auth.CurrentUser!.Username,
-            UserAvatar = Auth.CurrentUser!.AvatarUrl
-        };
-        promptText = string.Empty;
-        statusMessage = string.Empty;
+        // TODO: Implement prompt enhancement
     }
 }

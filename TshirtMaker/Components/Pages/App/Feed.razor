@@ -1,195 +1,213 @@
 @page "/feed"
-@layout PublicLayout
-@using TshirtMaker.Components.ui.common
-@using TshirtMaker.Models
-@using TshirtMaker.Services
+@layout MainLayout
 @inject TestDataService DataService
-@inject IJSRuntime JS
-@implements IAsyncDisposable
+@inject NavigationManager Nav
 
-<PageTitle>Feed - TshirtMaker</PageTitle>
+<PageTitle>TshirtMaker - Community Feed</PageTitle>
 
-<div class="container py-4 fade-in">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="fw-bold mb-3">Community Designs 🎨</h1>
-            <p class="text-muted">Discover amazing designs from our creative community</p>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="btn-group w-100" role="group">
-                <button type="button"
-                    class="btn @(currentFilter == "likes" ? "btn-custom-primary" : "btn-custom-secondary")"
-                    @onclick='() => ChangeFilter("likes")'>
-                    🔥 Most Liked
+<main class="feed-main">
+    <div class="feed-container">
+        <div class="feed-header">
+            <div class="feed-header-content">
+                <h2 class="feed-title">Community Feed</h2>
+                <p class="feed-subtitle">Discover the latest AI-generated fashion trends.</p>
+            </div>
+            <div class="feed-filters">
+                <button class="feed-filter-btn @(activeFilter == "trending" ? "active" : "")"
+                    @onclick="SetTrendingFilter">
+                    Trending
                 </button>
-                <button type="button"
-                    class="btn @(currentFilter == "latest" ? "btn-custom-primary" : "btn-custom-secondary")"
-                    @onclick='() => ChangeFilter("latest")'>
-                    ⏰ Latest
+                <button class="feed-filter-btn @(activeFilter == "new" ? "active" : "")" @onclick="SetNewFilter">
+                    New
+                </button>
+                <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
+                    @onclick="SetFeaturedFilter">
+                    Featured Artists
                 </button>
             </div>
         </div>
-    </div>
 
-    <div class="row g-4">
-        @foreach (var design in displayedDesigns)
-        {
-            <div class="col-lg-4 col-md-6">
-                <DesignCard Design="@design" OnLikeClicked="HandleLike" OnCopyPromptClicked="HandleCopyPrompt" />
+        <div class="feed-grid">
+            @foreach (var design in feedDesigns)
+            {
+                <div class="feed-card">
+                    <div class="feed-card-image">
+                        <div class="feed-card-image-bg" style="background-image: url('@design.FinalImageUrl')"></div>
+                        <div class="feed-card-actions">
+                            <button class="feed-action-btn" title="Bookmark">
+                                <span class="material-symbols-outlined">bookmark</span>
+                            </button>
+                            <button class="feed-action-btn" title="Share">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
+                        @if (design.Likes > 1000)
+                        {
+                            <div class="feed-badge">Best of Week</div>
+                        }
+                    </div>
+                    <div class="feed-card-body">
+                        <div class="feed-card-header">
+                            <div class="feed-user-info">
+                                <div class="feed-user-avatar" style="background-image: url('@design.UserAvatar')"></div>
+                                <div>
+                                    <p class="feed-username">@design.Username</p>
+                                    <p class="feed-user-badge">@GetUserBadge(design)</p>
+                                </div>
+                            </div>
+                            <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(design.Id))">
+                                <span class="material-symbols-outlined">bolt</span>
+                                Remix
+                            </button>
+                        </div>
+                        <div class="feed-prompt-box">
+                            <p class="feed-prompt-text">"@design.Prompt"</p>
+                        </div>
+                        <div class="feed-card-footer">
+                            <div class="feed-stats">
+                                <div class="feed-stat-item">
+                                    <span class="material-symbols-outlined feed-stat-icon">favorite</span>
+                                    <span class="feed-stat-value">@FormatNumber(design.Likes)</span>
+                                </div>
+                                <div class="feed-stat-item">
+                                    <span class="material-symbols-outlined feed-stat-icon">cyclone</span>
+                                    <span class="feed-stat-value">@FormatNumber(design.Likes / 3)</span>
+                                </div>
+                                <div class="feed-stat-item">
+                                    <span class="material-symbols-outlined feed-stat-icon">chat</span>
+                                    <span class="feed-stat-value">@FormatNumber(design.Likes / 20)</span>
+                                </div>
+                            </div>
+                            <span class="feed-timestamp">@GetTimeAgo(design.CreatedAt)</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="feed-loader">
+            <div class="feed-loader-dots">
+                <div class="feed-loader-dot"></div>
+                <div class="feed-loader-dot"></div>
+                <div class="feed-loader-dot"></div>
             </div>
-        }
+            <span class="feed-loader-text">Loading Inspiration</span>
+        </div>
     </div>
 
-    @if (isLoading)
-    {
-        <LoadingSpinner />
-    }
-
-    @if (!hasMoreDesigns && displayedDesigns.Any())
-    {
-        <div class="text-center py-4">
-            <p class="text-muted">You've reached the end! 🎉</p>
-        </div>
-    }
-
-    @if (!displayedDesigns.Any() && !isLoading)
-    {
-        <div class="text-center py-5">
-            <div style="font-size: 4rem; opacity: 0.5;">📭</div>
-            <h3 class="fw-semibold mt-3">No designs yet</h3>
-            <p class="text-muted">Be the first to create and share!</p>
-            <a href="/create" class="btn btn-custom-primary mt-3">Create Design</a>
-        </div>
-    }
-</div>
+    <div class="feed-fab">
+        <button class="feed-fab-btn" @onclick="NavigateToCreate" title="Create New Design">
+            <span class="material-symbols-outlined">add</span>
+            <div class="feed-fab-tooltip">Create New Design</div>
+        </button>
+    </div>
+</main>
 
 @code {
-    private List<Design> displayedDesigns = new();
-    private string currentFilter = "likes";
-    private int currentPage = 0;
-    private const int PageSize = 10;
-    private bool isLoading = true;
-    private bool hasMoreDesigns = true;
-    private global::System.Timers.Timer? scrollCheckTimer;
+    private List<Design> feedDesigns = new();
+    private string activeFilter = "trending";
 
-    [SupplyParameterFromQuery(Name = "filter")]
-    public string? FilterParam { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        if (!string.IsNullOrEmpty(FilterParam))
-        {
-            currentFilter = FilterParam;
-        }
-        await LoadMoreDesigns();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await LoadScrollCheckScript();
-            InitializeScrollCheck();
-        }
-    }
-
-    private Task LoadScrollCheckScript()
-    {
-        return Task.CompletedTask;
-    }
-
-    private void InitializeScrollCheck()
-    {
-        scrollCheckTimer = new global::System.Timers.Timer(300);
-        scrollCheckTimer.Elapsed += async (sender, e) => await CheckScrollAndLoad();
-        scrollCheckTimer.AutoReset = true;
-        scrollCheckTimer.Start();
-    }
-
-    private async Task CheckScrollAndLoad()
-    {
-        if (isLoading || !hasMoreDesigns)
-            return;
-
         try
         {
-            var scrollInfo = await JS.InvokeAsync<ScrollInfo>("getScrollInfo");
+            LoadFeedData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in Feed.OnInitialized: {ex.Message}");
+            feedDesigns = new List<Design>();
+        }
+    }
 
-            if (scrollInfo.IsNearBottom)
+    private void LoadFeedData()
+    {
+        try
+        {
+            if (DataService == null)
             {
-                await LoadMoreDesigns();
+                feedDesigns = new List<Design>();
+                return;
             }
+
+            var allDesigns = DataService.GetAllDesigns() ?? new List<Design>();
+
+            feedDesigns = activeFilter switch
+            {
+                "trending" => allDesigns.OrderByDescending(d => d.Likes).Take(12).ToList(),
+                "new" => allDesigns.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
+                "featured" => allDesigns.Where(d => d.Likes > 500).OrderByDescending(d => d.Likes).Take(12).ToList(),
+                _ => allDesigns.OrderByDescending(d => d.Likes).Take(12).ToList()
+            };
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error in Feed.LoadFeedData: {ex.Message}");
+            feedDesigns = new List<Design>();
         }
     }
 
-    private async Task LoadMoreDesigns()
+    private void SetFilter(string filter)
     {
-        isLoading = true;
-        StateHasChanged();
-
-        await Task.Delay(300);
-
-        var newDesigns = DataService.GetDesignsByFilter(currentFilter, currentPage * PageSize, PageSize);
-
-        if (newDesigns.Count < PageSize)
-        {
-            hasMoreDesigns = false;
-        }
-
-        displayedDesigns.AddRange(newDesigns);
-        currentPage++;
-        isLoading = false;
-        StateHasChanged();
-    }
-
-    private async Task ChangeFilter(string filter)
-    {
-        if (currentFilter != filter)
-        {
-            currentFilter = filter;
-            displayedDesigns.Clear();
-            currentPage = 0;
-            hasMoreDesigns = true;
-            await LoadMoreDesigns();
-        }
-    }
-
-    private void HandleLike(Design design)
-    {
-        DataService.LikeDesign(design.Id);
-        design.Likes++;
+        activeFilter = filter;
+        LoadFeedData();
         StateHasChanged();
     }
 
-    private async Task HandleCopyPrompt(string prompt)
+    private void SetTrendingFilter()
     {
-        try
-        {
-            await JS.InvokeVoidAsync("navigator.clipboard.writeText", prompt);
-        }
-        catch
-        {
-        }
+        SetFilter("trending");
     }
 
-    public ValueTask DisposeAsync()
+    private void SetNewFilter()
     {
-        if (scrollCheckTimer != null)
-        {
-            scrollCheckTimer.Stop();
-            scrollCheckTimer.Dispose();
-        }
-        return ValueTask.CompletedTask;
+        SetFilter("new");
     }
 
-    private class ScrollInfo
+    private void SetFeaturedFilter()
     {
-        public bool IsNearBottom { get; set; }
+        SetFilter("featured");
+    }
+
+    private string GetUserBadge(Design design)
+    {
+        if (design.Likes > 2000)
+            return "Verified Creator";
+        if (design.Likes > 1000)
+            return "Top Artist";
+        if (design.Likes > 500)
+            return "Featured Artist";
+        return "New Creator";
+    }
+
+    private string FormatNumber(int number)
+    {
+        if (number >= 1000)
+            return $"{number / 1000.0:F1}k";
+        return number.ToString();
+    }
+
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+
+        if (timeSpan.TotalDays >= 1)
+            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays > 1 ? "s" : "")} ago";
+        if (timeSpan.TotalHours >= 1)
+            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours > 1 ? "s" : "")} ago";
+        if (timeSpan.TotalMinutes >= 1)
+            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes > 1 ? "s" : "")} ago";
+
+        return "Just now";
+    }
+
+    private void NavigateToCreate()
+    {
+        Nav.NavigateTo("/create");
+    }
+
+    private void NavigateToRemix(string designId)
+    {
+        Nav.NavigateTo($"/create?remix={designId}");
     }
 }
