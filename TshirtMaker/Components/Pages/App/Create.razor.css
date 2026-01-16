@@ -290,6 +290,102 @@
     align-items: center;
     justify-content: center;
     padding: 5rem 1.25rem;
+    position: relative;
+    overflow: visible;
+}
+
+.create-step-nav {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.create-step-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    min-width: 6rem;
+    z-index: 1001;
+    user-select: none;
+}
+
+    .create-step-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(127, 19, 236, 0.5);
+        transform: translateX(4px);
+    }
+
+    .create-step-btn.active {
+        background: rgba(127, 19, 236, 0.15);
+        border-color: var(--custom-primary-core);
+        box-shadow: 0 0 20px rgba(127, 19, 236, 0.3);
+    }
+
+        .create-step-btn.active .create-step-indicator {
+            background: var(--custom-primary-core);
+            box-shadow: 0 0 12px rgba(127, 19, 236, 0.6);
+        }
+
+        .create-step-btn.active .create-step-label {
+            color: var(--custom-primary-core);
+            font-weight: 700;
+        }
+
+.create-step-indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.create-step-btn:hover .create-step-indicator {
+    background: rgba(127, 19, 236, 0.6);
+    transform: scale(1.2);
+}
+
+.create-step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--custom-text-core);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.create-step-btn:hover .create-step-label {
+    opacity: 1;
+    color: var(--custom-text-core);
+}
+
+.create-step-connector {
+    width: 1px;
+    height: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    margin-left: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.create-step-btn.active + .create-step-connector,
+.create-step-btn:hover + .create-step-connector {
+    background: rgba(127, 19, 236, 0.4);
 }
 
 .create-preview-wrapper {
@@ -300,6 +396,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
 }
 
 .create-preview-glow {

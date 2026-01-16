@@ -1,4 +1,6 @@
 @page "/create"
+@rendermode InteractiveServer
+@using TshirtMaker.Components.ui.creation
 @layout MainLayout
 @inject NavigationManager Nav
 
@@ -88,36 +90,75 @@
         <!-- Center: 3D Preview Viewport -->
         <section class="create-viewport">
             <!-- Viewport Tools -->
-            <div class="create-viewport-tools">
-                <button class="create-tool-btn" title="View in AR">
-                    <span class="material-symbols-outlined">view_in_ar</span>
+            @if (currentWindow == "setup")
+            {
+                <div class="create-viewport-tools">
+                    <button class="create-tool-btn" title="View in AR">
+                        <span class="material-symbols-outlined">view_in_ar</span>
+                    </button>
+                    <button class="create-tool-btn" title="Fullscreen">
+                        <span class="material-symbols-outlined">fullscreen</span>
+                    </button>
+                </div>
+            }
+
+
+            <!-- Step Navigation Buttons -->
+            <div class="create-step-nav">
+                <button type="button" class="create-step-btn @(currentWindow == "setup" ? "active" : "")"
+                        @onclick="SetWindowToSetup">
+                    <div class="create-step-indicator"></div>
+                    <span class="create-step-label">Setup</span>
                 </button>
-                <button class="create-tool-btn" title="Fullscreen">
-                    <span class="material-symbols-outlined">fullscreen</span>
+                <div class="create-step-connector"></div>
+                <button type="button" class="create-step-btn @(currentWindow == "creation" ? "active" : "")"
+                        @onclick="SetWindowToCreation">
+                    <div class="create-step-indicator"></div>
+                    <span class="create-step-label">Creation</span>
+                </button>
+                <div class="create-step-connector"></div>
+                <button type="button" class="create-step-btn @(currentWindow == "finalization" ? "active" : "")"
+                        @onclick="SetWindowToFinalization">
+                    <div class="create-step-indicator"></div>
+                    <span class="create-step-label">Finalization</span>
                 </button>
             </div>
 
             <!-- Main 3D Model Placeholder -->
             <div class="create-preview-container">
-                <div class="create-preview-wrapper">
-                    <!-- Glow effect behind the shirt -->
-                    <div class="create-preview-glow"></div>
-                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmEMtTaAHkxTj9AB6Ss4qgOA8YWdxcJmfQ93v4sRpK3lKF4AlD2p8mYvfAc5aqxBVPbkv_2VB-CuL8JQkmcqqgULm-g4ENnm0ZDG4jNXNfUpHxeC9Oa2oLzT2t8udhTGMCqmcN5FOi-Fa6I7JGBR0Z19uxmarFqH6lZloRePqQqa-or30w29Sspg7_njVzZbZR6Nbf7FfNWDu0sQ4ArkSZHwCDMfrV2OxBhNWT7Yhva3gge5G1FmRnBpSePC5l5GU-i-sRWbT3JomV"
-                         alt="Interactive 3D preview" class="create-preview-image" />
+                @* hon habilai *@
+                @if (currentWindow == "setup")
+                {
+                    <div class="create-preview-wrapper">
+                        <!-- Glow effect behind the shirt -->
+                        <div class="create-preview-glow"></div>
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmEMtTaAHkxTj9AB6Ss4qgOA8YWdxcJmfQ93v4sRpK3lKF4AlD2p8mYvfAc5aqxBVPbkv_2VB-CuL8JQkmcqqgULm-g4ENnm0ZDG4jNXNfUpHxeC9Oa2oLzT2t8udhTGMCqmcN5FOi-Fa6I7JGBR0Z19uxmarFqH6lZloRePqQqa-or30w29Sspg7_njVzZbZR6Nbf7FfNWDu0sQ4ArkSZHwCDMfrV2OxBhNWT7Yhva3gge5G1FmRnBpSePC5l5GU-i-sRWbT3JomV"
+                             alt="Interactive 3D preview" class="create-preview-image" />
 
-                    <!-- Floating rotation controls -->
-                    <div class="create-rotation-controls">
-                        <button class="create-rotation-btn" @onclick="RotateLeft">
-                            <span class="material-symbols-outlined">rotate_left</span>
-                        </button>
-                        <div class="create-rotation-divider"></div>
-                        <span class="create-rotation-label">FRONT VIEW</span>
-                        <div class="create-rotation-divider"></div>
-                        <button class="create-rotation-btn" @onclick="RotateRight">
-                            <span class="material-symbols-outlined">rotate_right</span>
-                        </button>
+                        <!-- Floating rotation controls -->
+                        <div class="create-rotation-controls">
+                            <button class="create-rotation-btn" @onclick="RotateLeft">
+                                <span class="material-symbols-outlined">rotate_left</span>
+                            </button>
+                            <div class="create-rotation-divider"></div>
+                            <span class="create-rotation-label">FRONT VIEW</span>
+                            <div class="create-rotation-divider"></div>
+                            <button class="create-rotation-btn" @onclick="RotateRight">
+                                <span class="material-symbols-outlined">rotate_right</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                }
+                @if (currentWindow == "creation")
+                {
+                    <Creation />
+
+                }
+                @if (currentWindow == "finalization")
+                {
+                    <Finalization />
+                }
             </div>
 
             <!-- Bottom Action Bar -->
@@ -215,6 +256,7 @@
 </main>
 
 @code {
+    private string currentWindow = "setup";
     private string selectedApparelType = "T-shirt";
     private string selectedColor = "#FFFFFF";
     private string selectedSize = "M";
@@ -224,7 +266,6 @@
     private string negativePrompt = string.Empty;
     private string selectedResolution = "2K";
     private int rotationAngle = 0;
-
     private List<(string Name, string Value)> baseColors = new()
 {
 ("White", "#FFFFFF"),
@@ -270,4 +311,15 @@
     {
         // TODO: Implement prompt enhancement
     }
+
+    private string ChangeWindow(string window)
+    {
+        currentWindow = window;
+        StateHasChanged();
+        return currentWindow;
+    }
+
+    private void SetWindowToSetup() => ChangeWindow("setup");
+    private void SetWindowToCreation() => ChangeWindow("creation");
+    private void SetWindowToFinalization() => ChangeWindow("finalization");
 }
