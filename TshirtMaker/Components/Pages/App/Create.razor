@@ -1,6 +1,7 @@
 @page "/create"
 @rendermode InteractiveServer
 @using TshirtMaker.Components.ui.creation
+@using TshirtMaker.Components.ui.common
 @layout MainLayout
 @inject NavigationManager Nav
 
@@ -21,20 +22,20 @@
                                 <label class="create-radio-label @(selectedApparelType == "T-shirt" ? "active" : "")">
                                     <span>T-shirt</span>
                                     <input type="radio" name="apparel-type" value="T-shirt"
-                                           checked="@(selectedApparelType == "T-shirt")"
-                                           @onchange="@(() => selectedApparelType = "T-shirt")" />
+                                        checked="@(selectedApparelType == "T-shirt")"
+                                        @onchange="@(() => selectedApparelType = "T-shirt")" />
                                 </label>
                                 <label class="create-radio-label @(selectedApparelType == "Hoodie" ? "active" : "")">
                                     <span>Hoodie</span>
                                     <input type="radio" name="apparel-type" value="Hoodie"
-                                           checked="@(selectedApparelType == "Hoodie")"
-                                           @onchange="@(() => selectedApparelType = "Hoodie")" />
+                                        checked="@(selectedApparelType == "Hoodie")"
+                                        @onchange="@(() => selectedApparelType = "Hoodie")" />
                                 </label>
                                 <label class="create-radio-label @(selectedApparelType == "Sweat" ? "active" : "")">
                                     <span>Sweat</span>
                                     <input type="radio" name="apparel-type" value="Sweat"
-                                           checked="@(selectedApparelType == "Sweat")"
-                                           @onchange="@(() => selectedApparelType = "Sweat")" />
+                                        checked="@(selectedApparelType == "Sweat")"
+                                        @onchange="@(() => selectedApparelType = "Sweat")" />
                                 </label>
                             </div>
                         </div>
@@ -46,8 +47,8 @@
                                 @foreach (var color in baseColors)
                                 {
                                     <button class="create-color-btn @(selectedColor == color.Value ? "active" : "")"
-                                            style="background-color: @color.Value"
-                                            @onclick="@(() => selectedColor = color.Value)" title="@color.Name"></button>
+                                        style="background-color: @color.Value"
+                                        @onclick="@(() => selectedColor = color.Value)" title="@color.Name"></button>
                                 }
                             </div>
                         </div>
@@ -59,7 +60,7 @@
                                 @foreach (var size in sizes)
                                 {
                                     <button class="create-size-btn @(selectedSize == size ? "active" : "")"
-                                            @onclick="@(() => selectedSize = size)">
+                                        @onclick="@(() => selectedSize = size)">
                                         @size
                                     </button>
                                 }
@@ -73,12 +74,12 @@
                     <h4 class="create-subsection-title">Fabric Texture</h4>
                     <div class="create-material-grid">
                         <div class="create-material-card @(selectedMaterial == "Heavy Cotton" ? "active" : "")"
-                             @onclick="@(() => selectedMaterial = "Heavy Cotton")">
+                            @onclick="@(() => selectedMaterial = "Heavy Cotton")">
                             <div class="create-material-preview create-material-cotton"></div>
                             <span>Heavy Cotton</span>
                         </div>
                         <div class="create-material-card @(selectedMaterial == "Polyester" ? "active" : "")"
-                             @onclick="@(() => selectedMaterial = "Polyester")">
+                            @onclick="@(() => selectedMaterial = "Polyester")">
                             <div class="create-material-preview create-material-polyester"></div>
                             <span>Polyester</span>
                         </div>
@@ -105,20 +106,23 @@
 
             <!-- Step Navigation Buttons -->
             <div class="create-step-nav">
-                <button type="button" class="create-step-btn @(currentWindow == "setup" ? "active" : "")"
-                        @onclick="SetWindowToSetup">
+                <button type="button"
+                    class="create-step-btn @(currentWindow == "setup" ? "active" : "") @(!CanNavigateToStep("setup") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("setup"))" disabled="@(!CanNavigateToStep("setup"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Setup</span>
                 </button>
                 <div class="create-step-connector"></div>
-                <button type="button" class="create-step-btn @(currentWindow == "creation" ? "active" : "")"
-                        @onclick="SetWindowToCreation">
+                <button type="button"
+                    class="create-step-btn @(currentWindow == "creation" ? "active" : "") @(!CanNavigateToStep("creation") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("creation"))" disabled="@(!CanNavigateToStep("creation"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Creation</span>
                 </button>
                 <div class="create-step-connector"></div>
-                <button type="button" class="create-step-btn @(currentWindow == "finalization" ? "active" : "")"
-                        @onclick="SetWindowToFinalization">
+                <button type="button"
+                    class="create-step-btn @(currentWindow == "finalization" ? "active" : "") @(!CanNavigateToStep("finalization") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("finalization"))" disabled="@(!CanNavigateToStep("finalization"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Finalization</span>
                 </button>
@@ -130,29 +134,40 @@
                 @if (currentWindow == "setup")
                 {
                     <div class="create-preview-wrapper">
-                        <!-- Glow effect behind the shirt -->
-                        <div class="create-preview-glow"></div>
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmEMtTaAHkxTj9AB6Ss4qgOA8YWdxcJmfQ93v4sRpK3lKF4AlD2p8mYvfAc5aqxBVPbkv_2VB-CuL8JQkmcqqgULm-g4ENnm0ZDG4jNXNfUpHxeC9Oa2oLzT2t8udhTGMCqmcN5FOi-Fa6I7JGBR0Z19uxmarFqH6lZloRePqQqa-or30w29Sspg7_njVzZbZR6Nbf7FfNWDu0sQ4ArkSZHwCDMfrV2OxBhNWT7Yhva3gge5G1FmRnBpSePC5l5GU-i-sRWbT3JomV"
-                             alt="Interactive 3D preview" class="create-preview-image" />
+                        <!-- Background content that gets blurred -->
+                        <div class="create-preview-background @(isGenerating ? "blurred" : "")">
+                            <!-- Glow effect behind the shirt -->
+                            <div class="create-preview-glow"></div>
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmEMtTaAHkxTj9AB6Ss4qgOA8YWdxcJmfQ93v4sRpK3lKF4AlD2p8mYvfAc5aqxBVPbkv_2VB-CuL8JQkmcqqgULm-g4ENnm0ZDG4jNXNfUpHxeC9Oa2oLzT2t8udhTGMCqmcN5FOi-Fa6I7JGBR0Z19uxmarFqH6lZloRePqQqa-or30w29Sspg7_njVzZbZR6Nbf7FfNWDu0sQ4ArkSZHwCDMfrV2OxBhNWT7Yhva3gge5G1FmRnBpSePC5l5GU-i-sRWbT3JomV"
+                                alt="Interactive 3D preview" class="create-preview-image" />
 
-                        <!-- Floating rotation controls -->
-                        <div class="create-rotation-controls">
-                            <button class="create-rotation-btn" @onclick="RotateLeft">
-                                <span class="material-symbols-outlined">rotate_left</span>
-                            </button>
-                            <div class="create-rotation-divider"></div>
-                            <span class="create-rotation-label">FRONT VIEW</span>
-                            <div class="create-rotation-divider"></div>
-                            <button class="create-rotation-btn" @onclick="RotateRight">
-                                <span class="material-symbols-outlined">rotate_right</span>
-                            </button>
+                            <!-- Floating rotation controls -->
+                            <div class="create-rotation-controls">
+                                <button class="create-rotation-btn" @onclick="RotateLeft">
+                                    <span class="material-symbols-outlined">rotate_left</span>
+                                </button>
+                                <div class="create-rotation-divider"></div>
+                                <span class="create-rotation-label">FRONT VIEW</span>
+                                <div class="create-rotation-divider"></div>
+                                <button class="create-rotation-btn" @onclick="RotateRight">
+                                    <span class="material-symbols-outlined">rotate_right</span>
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- Generating Loader Overlay (not blurred) -->
+                        @if (isGenerating)
+                        {
+                            <div class="create-loader-overlay">
+                                <GeneratingLoader />
+                            </div>
+                        }
                     </div>
 
                 }
                 @if (currentWindow == "creation")
                 {
-                    <Creation />
+                    <Creation ImageUrls="generatedImageUrls" OnImageSelected="HandleImageSelected" />
 
                 }
                 @if (currentWindow == "finalization")
@@ -163,10 +178,28 @@
 
             <!-- Bottom Action Bar -->
             <div class="create-action-bar">
-                <button class="create-generate-btn" @onclick="GenerateAIArt">
-                    <span class="material-symbols-outlined">auto_awesome</span>
-                    GENERATE AI ART
-                </button>
+                @if (currentWindow == "setup")
+                {
+                    <button class="create-generate-btn @(isGenerating ? "generating" : "")" @onclick="GenerateAIArt"
+                        disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        @if (isGenerating)
+                        {
+                            <span>GENERATING...</span>
+                        }
+                        else
+                        {
+                            <span>GENERATE AI ART</span>
+                        }
+                    </button>
+                }
+                @if (currentWindow == "creation")
+                {
+                    <button class="create-generate-btn" @onclick="SelectImage" disabled="@(!imageSelected)">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <span>SELECT</span>
+                    </button>
+                }
             </div>
         </section>
 
@@ -185,7 +218,7 @@
                                 @foreach (var preset in stylePresets)
                                 {
                                     <div class="create-preset-card @(selectedPreset == preset.Name ? "active" : "")"
-                                         @onclick="@(() => selectedPreset = preset.Name)">
+                                        @onclick="@(() => selectedPreset = preset.Name)">
                                         <div class="create-preset-overlay"></div>
                                         <img src="@preset.ImageUrl" alt="@preset.Name" />
                                         <div class="create-preset-label">
@@ -213,8 +246,10 @@
                             </div>
                             <div class="create-textarea-wrapper">
                                 <textarea class="create-textarea"
-                                          placeholder="Describe the artwork you want to generate on the center of the garment..."
-                                          @bind="promptText" @bind:event="oninput" maxlength="500"></textarea>
+                                    placeholder="Describe the artwork you want to generate on the center of the garment..."
+                                    value="@promptText"
+                                    @oninput="@((ChangeEventArgs e) => { promptText = e.Value?.ToString() ?? string.Empty; OnPromptTextChanged(); })"
+                                    maxlength="500"></textarea>
                                 <div class="create-char-count">@promptText.Length / 500</div>
                             </div>
                         </div>
@@ -230,17 +265,19 @@
                                     <div class="create-advanced-field">
                                         <p class="create-advanced-label">Negative Prompt</p>
                                         <input class="create-advanced-input" type="text"
-                                               placeholder="What to exclude (e.g. text, blur)" @bind="negativePrompt" />
+                                            placeholder="What to exclude (e.g. text, blur)" @bind="negativePrompt" />
                                     </div>
                                     <div class="create-advanced-field">
                                         <p class="create-advanced-label">Upscale Resolution</p>
                                         <div class="create-resolution-buttons">
-                                            <button class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
-                                                    @onclick="@(() => selectedResolution = "2K")">
+                                            <button
+                                                class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
+                                                @onclick="@(() => selectedResolution = "2K")">
                                                 2K
                                             </button>
-                                            <button class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
-                                                    @onclick="@(() => selectedResolution = "4K")">
+                                            <button
+                                                class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
+                                                @onclick="@(() => selectedResolution = "4K")">
                                                 4K
                                             </button>
                                         </div>
@@ -257,6 +294,12 @@
 
 @code {
     private string currentWindow = "setup";
+    private bool setupFinalized = false;
+    private bool promptEntered = false;
+    private bool isGenerating = false;
+    private bool creationCompleted = false;
+    private bool imageSelected = false;
+    private string? selectedImageUrl = null;
     private string selectedApparelType = "T-shirt";
     private string selectedColor = "#FFFFFF";
     private string selectedSize = "M";
@@ -278,6 +321,16 @@
 
     private List<string> sizes = new() { "S", "M", "L", "XL", "2XL" };
 
+    private List<string> generatedImageUrls = new()
+{
+"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
+"https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=800&q=80",
+"https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&q=80",
+"https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80",
+"https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&q=80"
+};
+
     private List<(string Name, string ImageUrl)> stylePresets = new()
 {
 ("Cyberpunk",
@@ -289,6 +342,13 @@
 ("Oil Paint",
 "https://lh3.googleusercontent.com/aida-public/AB6AXuDFKat-1ZrTQ1GdsYrQZ1qLU_SaT3XCg0Psg4oqPG6yh4rmxDpIf4KXHAYBAB_ZXEzR16JqV9pYtKoQMVaOygHDBVp1xCSRqntmjAVYAqjyhcp668d-DO1VY4XkR-4sJZwk1YBejJfKNkt9LegDPTXlS5r9-1tBHbx2J2FvnKNhq0XYnK574c2VRXhVpM9orIgY9HxO6LJACrOHbQcovtAn5KYBDLD7jZWF_Xqy37o_5wvjFEqia_Tu-VGS5aNk9t2ETOaeb0NgGcd9")
 };
+
+
+    protected override void OnInitialized()
+    {
+        currentWindow = "setup";
+        base.OnInitialized();
+    }
 
     private void RotateLeft()
     {
@@ -302,9 +362,33 @@
         StateHasChanged();
     }
 
-    private void GenerateAIArt()
+    private bool CanNavigateToStep(string step)
     {
-        // TODO: Implement AI art generation
+        return step switch
+        {
+            "setup" => true, // Always allow going back to setup
+            "creation" => promptEntered, // Can go to creation only if prompt is entered
+            "finalization" => imageSelected, // Can go to finalization only if image is selected
+            _ => false
+        };
+    }
+
+    private async Task GenerateAIArt()
+    {
+        if (string.IsNullOrWhiteSpace(promptText) || isGenerating)
+            return;
+
+        isGenerating = true;
+        StateHasChanged();
+
+        // Simulate generation with 3 second delay
+        await Task.Delay(3000);
+
+        isGenerating = false;
+        creationCompleted = true;
+
+        // Automatically move to next step
+        ChangeWindow("creation");
     }
 
     private void EnhancePrompt()
@@ -314,12 +398,38 @@
 
     private string ChangeWindow(string window)
     {
+        if (!CanNavigateToStep(window))
+            return currentWindow;
+
         currentWindow = window;
         StateHasChanged();
         return currentWindow;
     }
 
-    private void SetWindowToSetup() => ChangeWindow("setup");
-    private void SetWindowToCreation() => ChangeWindow("creation");
-    private void SetWindowToFinalization() => ChangeWindow("finalization");
+    private void OnPromptTextChanged()
+    {
+        promptEntered = !string.IsNullOrWhiteSpace(promptText);
+        StateHasChanged();
+    }
+
+    private void HandleImageSelected(string imageUrl)
+    {
+        selectedImageUrl = imageUrl;
+        imageSelected = true;
+        StateHasChanged();
+    }
+
+    private void SelectImage()
+    {
+        // Image selection is already handled by HandleImageSelected
+        // This method is for the button click to confirm selection
+        if (imageSelected && !string.IsNullOrEmpty(selectedImageUrl))
+        {
+            // You can use selectedImageUrl here for future work
+            // For now, just move to finalization
+            ChangeWindow("finalization");
+        }
+    }
+
+
 }
