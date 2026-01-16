@@ -1,0 +1,36 @@
+﻿using System.ComponentModel.DataAnnotations;
+using TshirtMaker.Models.Core;
+
+namespace TshirtMaker.Models.Social
+{
+    public class Post : BaseEntity
+    {
+        [Required]
+        public Guid PosterId { get; set; }
+
+        [Required]
+        public Guid DesignId { get; set; }
+
+        [MaxLength(1000)]
+        public string? Description { get; set; }
+
+        public int LikesCount { get; set; } = 0;
+
+        public int CommentsCount { get; set; } = 0;
+
+        public int BookmarksCount { get; set; } = 0;
+
+        public int RemixCount { get; set; } = 0;
+
+        public bool AllowRemix { get; set; } = true;
+
+        public virtual ICollection<Like>? Likes { get; set; }
+
+        public virtual ICollection<Comment>? Comments { get; set; }
+
+        public virtual ICollection<Bookmark>? Bookmarks { get; set; }
+
+        public virtual User? Poster { get; set; }
+        public virtual Design? Design { get; set; }
+    }
+}

@@ -1,4 +1,4 @@
-﻿namespace TshirtMaker.Models
+namespace TshirtMaker.Models.Core
 {
     public abstract class BaseEntity
     {
@@ -7,3 +7,4 @@
         public DateTime? UpdatedAt { get; set; }
     }
 }
+

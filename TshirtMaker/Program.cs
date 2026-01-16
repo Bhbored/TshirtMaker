@@ -14,11 +14,10 @@ namespace TshirtMaker
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            builder.Services.AddSingleton<TestDataService>();
-            builder.Services.AddScoped<AuthService>();
             //builder.Services.AddScoped<SupabaseAuthService>();
             //builder.Services.AddScoped<SupabaseDbService>();
             //builder.Services.AddHttpClient<AIDesignService>();
+            builder.Services.RegisterDependencies();
 
             var app = builder.Build();
 
