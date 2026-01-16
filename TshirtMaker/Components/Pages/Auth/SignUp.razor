@@ -103,13 +103,13 @@
                         <label class="form-label">Password</label>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">lock</span>
-                            <InputText type="password" @bind-Value="NewUser.Password" class="login-input"
+                            <InputText type="password" @bind-Value="NewUser.PasswordHash" class="login-input"
                                 placeholder="••••••••"
                                 style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages)
                         {
-                            <ValidationMessage For="@(() => NewUser.Password)" />
+                            <ValidationMessage For="@(() => NewUser.PasswordHash)" />
                         }
                     </div>
 
@@ -149,7 +149,7 @@
 
         try
         {
-            var user = await Auth.SignUp(NewUser.Email, NewUser.Username, NewUser.Password);
+            var user = await Auth.SignUp(NewUser.Email, NewUser.Username, NewUser.PasswordHash);
             if (user is null)
             {
                 error = "Email already exists";

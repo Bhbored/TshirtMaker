@@ -1,4 +1,5 @@
 using TshirtMaker.Models;
+using TshirtMaker.Models.Core;
 
 namespace TshirtMaker.Services;
 
@@ -34,7 +35,7 @@ public class AuthService
         {
             var user = _dataService.GetAllUsers().FirstOrDefault(x =>
                 x.Email.Equals(email, StringComparison.OrdinalIgnoreCase) &&
-                x.Password == password);
+                x.PasswordHash == password);
 
             if (user is not null)
             {
@@ -68,7 +69,7 @@ public class AuthService
         var newUser = new User
         {
             Username = username,
-            Password = password,
+            PasswordHash = password,
             Email = email,
             AvatarUrl = $"https://api.dicebear.com/7.x/avataaars/svg?seed={username}"
         };

@@ -9,5 +9,6 @@ namespace TshirtMaker.Models.Enums
         XL,
         XXL,
         XXXL
+
     }
 }

@@ -1,7 +1,5 @@
 using TshirtMaker.Components;
 using TshirtMaker.Services;
-using TshirtMaker.Services.AI;
-using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker
 {

@@ -29,7 +29,7 @@ namespace TshirtMaker.Models.Core
         [Required]
         public string Color { get; set; } = "#FFFFFF";
 
-        public string? DisplayedColor { get; set; }
+        public string? DisplayedColor => ColorHelper.HexToColorName(Color);
 
         [Required]
         public ClothingSize Size { get; set; }

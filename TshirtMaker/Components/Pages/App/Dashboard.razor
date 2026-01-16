@@ -1,7 +1,9 @@
 @page "/dashboard"
 @layout MainLayout
+@inject ILogger<Dashboard> Logger
 @inject TestDataService DataService
 @inject NavigationManager Nav
+@inject AuthService AuthService
 
 <PageTitle>TshirtMaker - Dashboard</PageTitle>
 
@@ -55,7 +57,7 @@
                                     <div class="dashboard-hero-meta">
                                         <span class="dashboard-hero-meta-item">
                                             <span class="material-symbols-outlined">favorite</span>
-                                            <span>@design.Likes</span>
+                                            <span>@currentUser!.TotalLikes</span>
                                         </span>
                                         <span class="dashboard-hero-meta-item">
                                             <span class="material-symbols-outlined">schedule</span>
@@ -184,28 +186,28 @@
                 </div>
                 <div class="dashboard-actions-grid">
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                        @onclick="NavigateToCreate">
+                            @onclick="NavigateToCreate">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">add_circle</span>
                         </div>
                         <span>Create New Design</span>
                     </button>
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                        @onclick="NavigateToCollections">
+                            @onclick="NavigateToCollections">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">collections</span>
                         </div>
                         <span>View Collections</span>
                     </button>
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                        @onclick="NavigateToFeed">
+                            @onclick="NavigateToFeed">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">explore</span>
                         </div>
                         <span>Explore Feed</span>
                     </button>
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                        @onclick="NavigateToOrders">
+                            @onclick="NavigateToOrders">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">receipt</span>
                         </div>
@@ -221,6 +223,7 @@
     private Design? latestDesign;
     private List<Design> recentDesigns = new();
     private List<Design> latestDesigns = new();
+    private User? currentUser;
     private int totalDesigns;
     private int totalLikes;
     private int recentDesignsCount;
@@ -234,7 +237,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Dashboard.OnInitialized: {ex.Message}");
+            Logger.LogInformation($"Error in Dashboard.OnInitialized: {ex.Message}");
             latestDesign = null;
             latestDesigns = new List<Design>();
             recentDesigns = new List<Design>();
@@ -245,7 +248,9 @@
     {
         try
         {
-            if (DataService == null)
+
+            currentUser = AuthService.CurrentUser;
+            if (DataService.GetAllDesigns() == null)
             {
                 latestDesign = null;
                 latestDesigns = new List<Design>();
@@ -256,8 +261,7 @@
                 sharedDesigns = 0;
                 return;
             }
-
-            var allDesigns = DataService.GetAllDesigns() ?? new List<Design>();
+            var allDesigns = DataService.GetUserDesigns(currentUser!.Id) ?? new List<Design>();
 
             if (allDesigns.Any())
             {
@@ -267,13 +271,13 @@
             }
 
             totalDesigns = allDesigns.Count;
-            totalLikes = allDesigns.Sum(d => d.Likes);
+            totalLikes = currentUser.TotalLikes;
             recentDesignsCount = allDesigns.Count(d => d.CreatedAt >= DateTime.UtcNow.AddDays(-7));
-            sharedDesigns = allDesigns.Count(d => d.IsShared);
+            sharedDesigns = 12;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Dashboard.LoadDashboardData: {ex.Message}");
+            Logger.LogInformation($"Error in Dashboard.LoadDashboardData: {ex.Message}");
             latestDesign = null;
             latestDesigns = new List<Design>();
             recentDesigns = new List<Design>();
