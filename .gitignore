@@ -366,3 +366,5 @@ FodyWeavers.xsd
 
 # Cursor IDE
 .cursor/
+/TshirtMaker/Models/MODEL_DOCUMENTATION.md
+/TshirtMaker/Models/MODELS_SUMMARY.md
