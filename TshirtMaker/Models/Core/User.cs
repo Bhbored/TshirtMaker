@@ -45,13 +45,15 @@ namespace TshirtMaker.Models.Core
 
         public DateTime? LastLoginAt { get; set; }
 
-        public virtual ICollection<Design>? Designs { get; set; }
-        public virtual ICollection<Post>? Posts { get; set; }
-        public virtual ICollection<Like>? LikesGiven { get; set; }
-        public virtual ICollection<Comment>? Comments { get; set; }
-        public virtual ICollection<Bookmark>? Bookmarks { get; set; }
-        public virtual ICollection<Follower>? Followers { get; set; }
-        public virtual ICollection<Notification>? Notifications { get; set; }
+        public virtual ICollection<Design>? Designs { get; set; } = [];
+        public virtual ICollection<Post>? Posts { get; set; } = [];
+        public virtual ICollection<Like>? LikesGiven { get; set; } = [];
+        public virtual ICollection<Like>? LikesTaken { get; set; } = [];
+
+        public virtual ICollection<Comment>? Comments { get; set; } = [];
+        public virtual ICollection<Bookmark>? Bookmarks { get; set; } = [];
+        public virtual ICollection<Follower>? Followers { get; set; } = [];
+        public virtual ICollection<Notification>? Notifications { get; set; } = [];
     }
 }
 

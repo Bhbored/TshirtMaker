@@ -17,14 +17,14 @@
             </div>
             <div class="feed-filters">
                 <button class="feed-filter-btn @(activeFilter == "trending" ? "active" : "")"
-                    @onclick="SetTrendingFilter">
+                        @onclick="SetTrendingFilter">
                     Trending
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "new" ? "active" : "")" @onclick="SetNewFilter">
                     New
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
-                    @onclick="SetFeaturedFilter">
+                        @onclick="SetFeaturedFilter">
                     My Posts
                 </button>
             </div>
@@ -65,7 +65,10 @@
                         <div class="feed-card-footer">
                             <div class="feed-stats">
                                 <div class="feed-stat-item">
-                                    <span class="material-symbols-outlined feed-stat-icon">favorite</span>
+                                    <button class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
+                                            type="button" @onclick="() => LikePost(x)">
+                                        favorite
+                                    </button>
                                     <span class="feed-stat-value">@FormatNumber(x.LikesCount)</span>
                                 </div>
                                 <div class="feed-stat-item">
@@ -208,5 +211,56 @@
     private void NavigateToRemix(Guid Id)
     {
         Nav.NavigateTo($"/create?remix={Id}");
+    }
+
+    private bool IsPostLiked(Post post)
+    {
+        if (currentUser == null || currentUser.Id == Guid.Empty)
+            return false;
+
+        if (currentUser.LikesGiven == null)
+            return false;
+
+        return currentUser.LikesGiven.Any((x) => x.PostId == post.Id);
+    }
+
+    private void LikePost(Post post)
+    {
+        if (currentUser == null || currentUser.Id == Guid.Empty)
+            return;
+
+        var alreadyLiked = IsPostLiked(post);
+
+
+
+        if (alreadyLiked)
+        {
+            var likeToRemove = post.Likes!
+            .FirstOrDefault(x => x.UserId == currentUser.Id);
+            if (likeToRemove != null)
+            {
+                post.Likes!.Remove(likeToRemove);
+                currentUser.LikesGiven!
+                .Remove(likeToRemove);
+            }
+        }
+        else
+        {
+            var newLike = new Like
+            {
+                UserId = currentUser.Id,
+                PostId = post.Id,
+                User = currentUser,
+                Post = post,
+                LikedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            post.Likes!.Add(newLike);
+            currentUser.LikesGiven!
+            .Add(newLike);
+        }
+
+        StateHasChanged();
     }
 }

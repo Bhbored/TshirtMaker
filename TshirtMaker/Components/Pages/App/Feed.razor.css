@@ -302,6 +302,16 @@
 .feed-stat-icon {
     font-size: 1.25rem;
     color: var(--custom-primary-core);
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.feed-stat-icon.feed-liked {
+    font-variation-settings: 'FILL' 1;
+    color: #ff1744;
 }
 
 .feed-stat-icon:first-child {
