@@ -48,8 +48,8 @@
                             <div class="dropdown">
                                 <button class="btn btn-secondary dropdown-toggle create-apparel-dropdown" type="button"
                                         id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="color-preview" style="background-color: @selectedColor;"></span>
-                                    @ColorHelper.HexToColorName(selectedColor)
+                                    <span class="color-preview" style="background-color: @(selectedColor ?? "#FFFFFF");"></span>
+                                    @ColorHelper.HexToColorName(selectedColor!)
                                 </button>
                                 <ul class="dropdown-menu create-dropdown-menu" aria-labelledby="colorDropdown">
                                     @foreach (var color in baseColors)
@@ -57,7 +57,7 @@
                                         <li>
                                             <a class="dropdown-item @(selectedColor == color.Value ? "active" : "")"
                                                @onclick="@(() => selectedColor = color.Value)">
-                                                <span class="color-preview" style="background-color: @color.Value;"></span>
+                                                <span class="color-preview" style="background-color: @(color.Value ?? "#FFFFFF");"></span>
                                                 @color.Name
                                             </a>
                                         </li>

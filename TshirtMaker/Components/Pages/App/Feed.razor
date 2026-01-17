@@ -1,6 +1,9 @@
-@* @page "/feed"
+@page "/feed"
 @layout MainLayout
 @inject TestDataService DataService
+@rendermode InteractiveServer
+@inject AuthService Auth
+@inject ILogger<Feed> Logger
 @inject NavigationManager Nav
 
 <PageTitle>TshirtMaker - Community Feed</PageTitle>
@@ -22,17 +25,17 @@
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
                     @onclick="SetFeaturedFilter">
-                    Featured Artists
+                    My Posts
                 </button>
             </div>
         </div>
 
         <div class="feed-grid">
-            @foreach (var design in feedDesigns)
+            @foreach (var x in feedPost)
             {
                 <div class="feed-card">
                     <div class="feed-card-image">
-                        <div class="feed-card-image-bg" style="background-image: url('@design.FinalImageUrl')"></div>
+                        <div class="feed-card-image-bg" style="background-image: url('@x.Design!.FinalImageUrl')"></div>
                         <div class="feed-card-actions">
                             <button class="feed-action-btn" title="Bookmark">
                                 <span class="material-symbols-outlined">bookmark</span>
@@ -41,44 +44,40 @@
                                 <span class="material-symbols-outlined">share</span>
                             </button>
                         </div>
-                        @if (design.Likes > 1000)
-                        {
-                            <div class="feed-badge">Best of Week</div>
-                        }
+
                     </div>
                     <div class="feed-card-body">
                         <div class="feed-card-header">
                             <div class="feed-user-info">
-                                <div class="feed-user-avatar" style="background-image: url('@design.UserAvatar')"></div>
+                                <div class="feed-user-avatar" style="background-image: url('@x.Poster!.AvatarUrl')"></div>
                                 <div>
-                                    <p class="feed-username">@design.Username</p>
-                                    <p class="feed-user-badge">@GetUserBadge(design)</p>
+                                    <p class="feed-username">@x.Poster!.Username</p>
                                 </div>
                             </div>
-                            <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(design.Id))">
+                            <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x.PosterId))">
                                 <span class="material-symbols-outlined">bolt</span>
                                 Remix
                             </button>
                         </div>
                         <div class="feed-prompt-box">
-                            <p class="feed-prompt-text">"@design.Prompt"</p>
+                            <p class="feed-prompt-text">"@x.Description"</p>
                         </div>
                         <div class="feed-card-footer">
                             <div class="feed-stats">
                                 <div class="feed-stat-item">
                                     <span class="material-symbols-outlined feed-stat-icon">favorite</span>
-                                    <span class="feed-stat-value">@FormatNumber(design.Likes)</span>
+                                    <span class="feed-stat-value">@FormatNumber(x.LikesCount)</span>
                                 </div>
                                 <div class="feed-stat-item">
                                     <span class="material-symbols-outlined feed-stat-icon">cyclone</span>
-                                    <span class="feed-stat-value">@FormatNumber(design.Likes / 3)</span>
+                                    <span class="feed-stat-value">@FormatNumber(x.LikesCount / 3)</span>
                                 </div>
                                 <div class="feed-stat-item">
                                     <span class="material-symbols-outlined feed-stat-icon">chat</span>
-                                    <span class="feed-stat-value">@FormatNumber(design.Likes / 20)</span>
+                                    <span class="feed-stat-value">@FormatNumber(x.LikesCount / 20)</span>
                                 </div>
                             </div>
-                            <span class="feed-timestamp">@GetTimeAgo(design.CreatedAt)</span>
+                            <span class="feed-timestamp">@GetTimeAgo(x.CreatedAt)</span>
                         </div>
                     </div>
                 </div>
@@ -96,27 +95,31 @@
     </div>
 
     <div class="feed-fab">
-        <button class="feed-fab-btn" @onclick="NavigateToCreate" title="Create New Design">
+        <button class="feed-fab-btn" @onclick="NavigateToCreate" title="Create New x">
             <span class="material-symbols-outlined">add</span>
-            <div class="feed-fab-tooltip">Create New Design</div>
+            <div class="feed-fab-tooltip">Create New x</div>
         </button>
     </div>
 </main>
 
 @code {
-    private List<Design> feedDesigns = new();
+    private List<Post> feedPost = new();
     private string activeFilter = "trending";
+    private User currentUser = new();
+    private List<Post> userPosts = [];
 
     protected override void OnInitialized()
     {
         try
         {
+            currentUser = Auth.CurrentUser ?? new();
+            userPosts = DataService.GetUserPosts(currentUser.Id) ?? [];
             LoadFeedData();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Feed.OnInitialized: {ex.Message}");
-            feedDesigns = new List<Design>();
+            Logger.LogInformation($"Error in Feed.OnInitialized: {ex.Message}");
+            feedPost = new List<Post>();
         }
     }
 
@@ -126,24 +129,24 @@
         {
             if (DataService == null)
             {
-                feedDesigns = new List<Design>();
+                feedPost = new List<Post>();
                 return;
             }
 
-            var allDesigns = DataService.GetAllDesigns() ?? new List<Design>();
+            var allPosts = DataService.GetAllPosts() ?? new List<Post>();
 
-            feedDesigns = activeFilter switch
+            feedPost = activeFilter switch
             {
-                "trending" => allDesigns.OrderByDescending(d => d.Likes).Take(12).ToList(),
-                "new" => allDesigns.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
-                "featured" => allDesigns.Where(d => d.Likes > 500).OrderByDescending(d => d.Likes).Take(12).ToList(),
-                _ => allDesigns.OrderByDescending(d => d.Likes).Take(12).ToList()
+                "trending" => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList(),
+                "new" => allPosts.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
+                "featured" => userPosts,
+                _ => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList()
             };
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Feed.LoadFeedData: {ex.Message}");
-            feedDesigns = new List<Design>();
+            Logger.LogInformation($"Error in Feed.LoadFeedData: {ex.Message}");
+            feedPost = [];
         }
     }
 
@@ -157,28 +160,24 @@
     private void SetTrendingFilter()
     {
         SetFilter("trending");
+        StateHasChanged();
     }
 
     private void SetNewFilter()
     {
         SetFilter("new");
+        StateHasChanged();
+
     }
 
     private void SetFeaturedFilter()
     {
         SetFilter("featured");
+        StateHasChanged();
+
     }
 
-    private string GetUserBadge(Design design)
-    {
-        if (design.Likes > 2000)
-            return "Verified Creator";
-        if (design.Likes > 1000)
-            return "Top Artist";
-        if (design.Likes > 500)
-            return "Featured Artist";
-        return "New Creator";
-    }
+
 
     private string FormatNumber(int number)
     {
@@ -206,8 +205,8 @@
         Nav.NavigateTo("/create");
     }
 
-    private void NavigateToRemix(string designId)
+    private void NavigateToRemix(Guid Id)
     {
-        Nav.NavigateTo($"/create?remix={designId}");
+        Nav.NavigateTo($"/create?remix={Id}");
     }
-} *@
+}
