@@ -1,0 +1,57 @@
+﻿@if (IsVisible)
+{
+    <div class="image-preview-overlay" @onclick="Close">
+        <img src="@ImageUrl" alt="Preview" class="image-preview-content"  />
+        <button class="close-button" @onclick="Close">&times;</button>
+    </div>
+}
+
+<style>
+    .image-preview-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .image-preview-content {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    .close-button {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        font-size: 40px;
+        color: white;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 1001;
+    }
+
+        .close-button:hover {
+            opacity: 0.7;
+        }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public string ImageUrl { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private void Close()
+    {
+        IsVisible = false;
+        OnClose.InvokeAsync();
+    }
+}
