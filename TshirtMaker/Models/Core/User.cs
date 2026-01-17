@@ -36,6 +36,8 @@ namespace TshirtMaker.Models.Core
         public int TotalDesigns { get; set; } = 0;
 
         public int TotalLikes { get; set; } = 0;
+        public int TotalPosts { get; set; } = 0;
+        public int TotalShares { get; set; } = 0;
 
         public int FollowersCount { get; set; } = 0;
 

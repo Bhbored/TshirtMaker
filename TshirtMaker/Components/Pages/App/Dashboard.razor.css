@@ -823,3 +823,22 @@ body.js-loaded .scroll-fade-in:not(.visible) {
 .dashboard-hero-card:hover:after {
     transform: translateX(100%);
 }
+
+.hero-gradient-text {
+    background: linear-gradient(135deg, #ffffff 0%, var(--custom-primary-core) 50%, #ffffff 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}

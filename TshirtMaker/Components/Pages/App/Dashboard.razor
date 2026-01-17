@@ -1,6 +1,7 @@
 @page "/dashboard"
 @layout MainLayout
 @inject ILogger<Dashboard> Logger
+@rendermode InteractiveServer
 @inject TestDataService DataService
 @inject NavigationManager Nav
 @inject AuthService AuthService
@@ -12,7 +13,9 @@
         <section class="dashboard-content">
             <div class="dashboard-header">
                 <div>
-                    <h1 class="dashboard-title">Welcome Back!</h1>
+                    <h1 class="dashboard-title">
+                        Welcome Back! <span class="hero-gradient-text">@currentUser?.Username</span>
+                    </h1>
                     <p class="dashboard-subtitle">Here's what's happening with your designs</p>
                 </div>
                 <button class="dashboard-create-btn" @onclick="NavigateToCreate">
@@ -53,7 +56,7 @@
                                 <div class="dashboard-hero-content">
                                     <div class="dashboard-hero-badge">LATEST</div>
                                     <p class="dashboard-hero-title">@design.Prompt</p>
-                                    <p class="dashboard-hero-para">@design.ClothingType • @GetColorName(design.Color)</p>
+                                    <p class="dashboard-hero-para">@design.ClothingType • @design.DisplayedColor</p>
                                     <div class="dashboard-hero-meta">
                                         <span class="dashboard-hero-meta-item">
                                             <span class="material-symbols-outlined">favorite</span>
@@ -186,28 +189,28 @@
                 </div>
                 <div class="dashboard-actions-grid">
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                            @onclick="NavigateToCreate">
+                        @onclick="NavigateToCreate">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">add_circle</span>
                         </div>
                         <span>Create New Design</span>
                     </button>
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                            @onclick="NavigateToCollections">
+                        @onclick="NavigateToCollections">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">collections</span>
                         </div>
                         <span>View Collections</span>
                     </button>
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                            @onclick="NavigateToFeed">
+                        @onclick="NavigateToFeed">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">explore</span>
                         </div>
                         <span>Explore Feed</span>
                     </button>
                     <button class="dashboard-quick-action-btn modern-action-card scroll-fade-in"
-                            @onclick="NavigateToOrders">
+                        @onclick="NavigateToOrders">
                         <div class="dashboard-action-icon-wrapper">
                             <span class="material-symbols-outlined">receipt</span>
                         </div>
@@ -239,8 +242,8 @@
         {
             Logger.LogInformation($"Error in Dashboard.OnInitialized: {ex.Message}");
             latestDesign = null;
-            latestDesigns = new List<Design>();
-            recentDesigns = new List<Design>();
+            latestDesigns = new();
+            recentDesigns = new();
         }
     }
 
@@ -270,17 +273,17 @@
                 recentDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(6).ToList();
             }
 
-            totalDesigns = allDesigns.Count;
+            totalDesigns = currentUser.TotalDesigns;
             totalLikes = currentUser.TotalLikes;
             recentDesignsCount = allDesigns.Count(d => d.CreatedAt >= DateTime.UtcNow.AddDays(-7));
-            sharedDesigns = 12;
+            sharedDesigns = currentUser.TotalShares;
         }
         catch (Exception ex)
         {
             Logger.LogInformation($"Error in Dashboard.LoadDashboardData: {ex.Message}");
             latestDesign = null;
-            latestDesigns = new List<Design>();
-            recentDesigns = new List<Design>();
+            latestDesigns = new();
+            recentDesigns = new();
             totalDesigns = 0;
             totalLikes = 0;
             recentDesignsCount = 0;
@@ -308,21 +311,6 @@
         Nav.NavigateTo("/orders");
     }
 
-    private string GetColorName(string color)
-    {
-        return color switch
-        {
-            "#FFFFFF" => "White",
-            "#000000" => "Black",
-            "#FF5733" => "Red",
-            "#3357FF" => "Blue",
-            "#33FF57" => "Green",
-            "#FF00FF" => "Magenta",
-            "#00FFFF" => "Cyan",
-            "#FFFF00" => "Yellow",
-            _ => "Custom"
-        };
-    }
 
     private string GetTimeAgo(DateTime dateTime)
     {
