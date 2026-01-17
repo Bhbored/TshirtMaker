@@ -44,7 +44,6 @@ namespace TshirtMaker.Models.Core
 
         public DateTime? GeneratedAt { get; set; }
 
-        [NotMapped]
         public decimal Price => PriceCalculator.CalculatePrice(ClothingType, Material);
 
         public virtual User? User { get; set; }

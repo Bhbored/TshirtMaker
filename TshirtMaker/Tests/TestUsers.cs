@@ -34,9 +34,6 @@ namespace TshirtMaker.Tests
                 CoverImageUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=400&fit=crop",
                 Location = "Tokyo, Japan",
                 WebsiteUrl = "https://cyberartist.design",
-                TotalDesigns = 3,
-                TotalLikes = 45,
-                FollowersCount = 2,
                 FollowingCount = 1,
                 LastLoginAt = DateTime.UtcNow.AddHours(-2),
                 CreatedAt = DateTime.UtcNow.AddMonths(-6)
@@ -53,9 +50,6 @@ namespace TshirtMaker.Tests
                 CoverImageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=400&fit=crop",
                 Location = "Copenhagen, Denmark",
                 WebsiteUrl = "https://minimalmaven.art",
-                TotalDesigns = 3,
-                TotalLikes = 38,
-                FollowersCount = 2,
                 FollowingCount = 2,
                 LastLoginAt = DateTime.UtcNow.AddHours(-1),
                 CreatedAt = DateTime.UtcNow.AddMonths(-4)
@@ -71,9 +65,6 @@ namespace TshirtMaker.Tests
                 AvatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=VintageVibe",
                 CoverImageUrl = "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=1200&h=400&fit=crop",
                 Location = "Austin, Texas",
-                TotalDesigns = 3,
-                TotalLikes = 29,
-                FollowersCount = 1,
                 FollowingCount = 2,
                 LastLoginAt = DateTime.UtcNow.AddMinutes(-30),
                 CreatedAt = DateTime.UtcNow.AddMonths(-3)
@@ -257,8 +248,7 @@ namespace TshirtMaker.Tests
                 Design = design1_1,
                 DesignId = design1_1.Id,
                 Description = "My latest cyberpunk creation! What do you think? 🐯⚡",
-                CommentsCount = 5,
-                BookmarksCount = 8,
+
                 RemixCount = 2,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-5)
@@ -271,8 +261,6 @@ namespace TshirtMaker.Tests
                 Design = design1_2,
                 DesignId = design1_2.Id,
                 Description = "Samurai meets cyberpunk. Print on the back for maximum impact! 🗡️",
-                CommentsCount = 3,
-                BookmarksCount = 6,
                 RemixCount = 1,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-10)
@@ -285,8 +273,7 @@ namespace TshirtMaker.Tests
                 Design = design1_3,
                 DesignId = design1_3.Id,
                 Description = "Glitch in the matrix 💚 Love how this turned out on green!",
-                CommentsCount = 1,
-                BookmarksCount = 2,
+
                 RemixCount = 0,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-2)
@@ -300,8 +287,7 @@ namespace TshirtMaker.Tests
                 Design = design2_1,
                 DesignId = design2_1.Id,
                 Description = "Sometimes one line is all you need 🏔️",
-                CommentsCount = 4,
-                BookmarksCount = 7,
+
                 RemixCount = 0,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-7)
@@ -314,8 +300,7 @@ namespace TshirtMaker.Tests
                 Design = design2_2,
                 DesignId = design2_2.Id,
                 Description = "Finding beauty in simplicity ⚪",
-                CommentsCount = 2,
-                BookmarksCount = 5,
+
                 RemixCount = 1,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-12)
@@ -328,8 +313,7 @@ namespace TshirtMaker.Tests
                 Design = design2_3,
                 DesignId = design2_3.Id,
                 Description = "Circle study - perfect for subtle chest placement 🎯",
-                CommentsCount = 1,
-                BookmarksCount = 1,
+
                 RemixCount = 0,
                 AllowRemix = false,
                 CreatedAt = DateTime.UtcNow.AddDays(-3)
@@ -343,8 +327,7 @@ namespace TshirtMaker.Tests
                 Design = design3_1,
                 DesignId = design3_1.Id,
                 Description = "Back to the 80s! This sunset wave on a jacket is pure nostalgia 🌴✨",
-                CommentsCount = 3,
-                BookmarksCount = 4,
+
                 RemixCount = 0,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-8)
@@ -357,8 +340,7 @@ namespace TshirtMaker.Tests
                 Design = design3_2,
                 DesignId = design3_2.Id,
                 Description = "Classic badge design for those who appreciate the vintage aesthetic 🎩",
-                CommentsCount = 2,
-                BookmarksCount = 3,
+
                 RemixCount = 0,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-14)
@@ -371,8 +353,7 @@ namespace TshirtMaker.Tests
                 Design = design3_3,
                 DesignId = design3_3.Id,
                 Description = "Remember cassette tapes? Now on your favorite sweatshirt 📼",
-                CommentsCount = 0,
-                BookmarksCount = 1,
+
                 RemixCount = 0,
                 AllowRemix = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-4)

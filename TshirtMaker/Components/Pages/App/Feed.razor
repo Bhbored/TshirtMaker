@@ -17,14 +17,14 @@
             </div>
             <div class="feed-filters">
                 <button class="feed-filter-btn @(activeFilter == "trending" ? "active" : "")"
-                        @onclick="SetTrendingFilter">
+                    @onclick="SetTrendingFilter">
                     Trending
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "new" ? "active" : "")" @onclick="SetNewFilter">
                     New
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
-                        @onclick="SetFeaturedFilter">
+                    @onclick="SetFeaturedFilter">
                     My Posts
                 </button>
             </div>
@@ -37,11 +37,9 @@
                     <div class="feed-card-image">
                         <div class="feed-card-image-bg" style="background-image: url('@x.Design!.FinalImageUrl')"></div>
                         <div class="feed-card-actions">
-                            <button class="feed-action-btn" title="Bookmark">
-                                <span class="material-symbols-outlined">bookmark</span>
-                            </button>
-                            <button class="feed-action-btn" title="Share">
-                                <span class="material-symbols-outlined">share</span>
+                            <button class="feed-action-btn @(IsDesignInCollection(x.Design!) ? "feed-saved" : "")"
+                                title="Save To Collection" @onclick="() => SaveToCollection(x.Design!)">
+                                <span class="material-symbols-outlined">save</span>
                             </button>
                         </div>
 
@@ -54,10 +52,16 @@
                                     <p class="feed-username">@x.Poster!.Username</p>
                                 </div>
                             </div>
-                            <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x.PosterId))">
-                                <span class="material-symbols-outlined">bolt</span>
-                                Remix
-                            </button>
+
+                            @* logic laterrrr  *@
+                            @if (x.AllowRemix)
+                            {
+                                <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x.PosterId))">
+                                    <span class="material-symbols-outlined">bolt</span>
+                                    Remix
+                                </button>
+                            }
+
                         </div>
                         <div class="feed-prompt-box">
                             <p class="feed-prompt-text">"@x.Description"</p>
@@ -65,19 +69,27 @@
                         <div class="feed-card-footer">
                             <div class="feed-stats">
                                 <div class="feed-stat-item">
-                                    <button class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
-                                            type="button" @onclick="() => LikePost(x)">
+                                    <button
+                                        class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
+                                        type="button" @onclick="() => LikePost(x)">
                                         favorite
                                     </button>
                                     <span class="feed-stat-value">@FormatNumber(x.LikesCount)</span>
                                 </div>
                                 <div class="feed-stat-item">
-                                    <span class="material-symbols-outlined feed-stat-icon">cyclone</span>
-                                    <span class="feed-stat-value">@FormatNumber(x.LikesCount / 3)</span>
+                                    <button
+                                        class="material-symbols-outlined feed-stat-icon @(IsPostBookmarked(x) ? "feed-bookmarked" : "")"
+                                        type="button" @onclick="() => BookmarkPost(x)">
+                                        cyclone
+                                    </button>
+                                    <span class="feed-stat-value">@FormatNumber(x.BookmarksCount)</span>
                                 </div>
                                 <div class="feed-stat-item">
-                                    <span class="material-symbols-outlined feed-stat-icon">chat</span>
-                                    <span class="feed-stat-value">@FormatNumber(x.LikesCount / 20)</span>
+                                    <button class="material-symbols-outlined feed-stat-icon" type="button"
+                                        @onclick="() => OpenCommentPopup(x)">
+                                        chat
+                                    </button>
+                                    <span class="feed-stat-value">@FormatNumber(x.CommentsCount)</span>
                                 </div>
                             </div>
                             <span class="feed-timestamp">@GetTimeAgo(x.CreatedAt)</span>
@@ -98,18 +110,28 @@
     </div>
 
     <div class="feed-fab">
-        <button class="feed-fab-btn" @onclick="NavigateToCreate" title="Create New x">
+        <button class="feed-fab-btn" @onclick="OpenCreatePostPopup" title="Create New Post">
             <span class="material-symbols-outlined">add</span>
-            <div class="feed-fab-tooltip">Create New x</div>
+            <div class="feed-fab-tooltip">Create New Post</div>
         </button>
     </div>
 </main>
+
+<CommentPopup Post="@selectedPostForComments" CurrentUser="@currentUser" IsOpen="@isCommentPopupOpen"
+    OnClose="CloseCommentPopup" OnAddComment="AddComment" />
+
+<CreatePostPopup Designs="@userDesigns" IsOpen="@isCreatePostPopupOpen" OnClose="CloseCreatePostPopup" />
+
 
 @code {
     private List<Post> feedPost = new();
     private string activeFilter = "trending";
     private User currentUser = new();
     private List<Post> userPosts = [];
+    private List<Design> userDesigns = [];
+    private bool isCommentPopupOpen = false;
+    private bool isCreatePostPopupOpen = false;
+    private Post? selectedPostForComments;
 
     protected override void OnInitialized()
     {
@@ -117,6 +139,7 @@
         {
             currentUser = Auth.CurrentUser ?? new();
             userPosts = DataService.GetUserPosts(currentUser.Id) ?? [];
+            userDesigns = DataService.GetUserDesigns(currentUser.Id) ?? [];
             LoadFeedData();
         }
         catch (Exception ex)
@@ -152,6 +175,7 @@
             feedPost = [];
         }
     }
+    #region ui controllers
 
     private void SetFilter(string filter)
     {
@@ -203,15 +227,24 @@
         return "Just now";
     }
 
-    private void NavigateToCreate()
+    private void OpenCreatePostPopup()
     {
-        Nav.NavigateTo("/create");
+        isCreatePostPopupOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseCreatePostPopup()
+    {
+        isCreatePostPopupOpen = false;
+        StateHasChanged();
     }
 
     private void NavigateToRemix(Guid Id)
     {
         Nav.NavigateTo($"/create?remix={Id}");
     }
+    #endregion
+
 
     private bool IsPostLiked(Post post)
     {
@@ -228,25 +261,24 @@
     {
         if (currentUser == null || currentUser.Id == Guid.Empty)
             return;
-
+        var parentUser = DataService.GetAllUsers().Where((x) => x.Id == post.PosterId).FirstOrDefault() ?? new User();
         var alreadyLiked = IsPostLiked(post);
-
-
 
         if (alreadyLiked)
         {
-            var likeToRemove = post.Likes!
+            var likeToRemove = post.Likes
             .FirstOrDefault(x => x.UserId == currentUser.Id);
             if (likeToRemove != null)
             {
                 post.Likes!.Remove(likeToRemove);
-                currentUser.LikesGiven!
+                currentUser.LikesGiven
                 .Remove(likeToRemove);
+                parentUser.LikesTaken!.Remove(likeToRemove);
             }
         }
         else
         {
-            var newLike = new Like
+            var newlike = new Like
             {
                 UserId = currentUser.Id,
                 PostId = post.Id,
@@ -256,11 +288,117 @@
                 CreatedAt = DateTime.UtcNow
             };
 
-            post.Likes!.Add(newLike);
+            post.Likes!.Add(newlike);
+            parentUser.LikesTaken!.Add(newlike);
             currentUser.LikesGiven!
-            .Add(newLike);
+            .Add(newlike);
         }
 
+        StateHasChanged();
+    }
+
+    private bool IsPostBookmarked(Post post)
+    {
+        if (currentUser == null || currentUser.Id == Guid.Empty)
+            return false;
+
+        if (currentUser.Bookmarks == null)
+            return false;
+
+        return currentUser.Bookmarks.Any((x) => x.PostId == post.Id);
+    }
+
+    private void BookmarkPost(Post post)
+    {
+        if (currentUser == null || currentUser.Id == Guid.Empty)
+            return;
+        var alreadyBookmarked = IsPostBookmarked(post);
+        if (alreadyBookmarked)
+        {
+            var bookmarkToRemove = post.Bookmarks
+            .FirstOrDefault(x => x.UserId == currentUser.Id);
+            if (bookmarkToRemove != null)
+            {
+                post.Bookmarks.Remove(bookmarkToRemove);
+
+            }
+        }
+        else
+        {
+            var newBookmark = new Bookmark
+            {
+                UserId = currentUser.Id,
+                PostId = post.Id,
+                User = currentUser,
+                Post = post,
+            };
+
+            post.Bookmarks!.Add(newBookmark);
+            currentUser.Bookmarks!
+            .Add(newBookmark);
+        }
+
+        StateHasChanged();
+    }
+
+    private bool IsDesignInCollection(Design design)
+    {
+        if (currentUser == null || currentUser.Id == Guid.Empty)
+            return false;
+
+        if (currentUser.Collections == null)
+            return false;
+        return currentUser.Collections.Any((x) => x.CopiedDesignId == design.Id);
+    }
+
+    private void SaveToCollection(Design design)
+    {
+        if (currentUser == null || currentUser.Id == Guid.Empty)
+            return;
+
+        var alreadySaved = IsDesignInCollection(design);
+        if (alreadySaved)
+        {
+            var collectionToRemove = currentUser.Collections
+            .FirstOrDefault(x => x.CopiedDesignId == design.Id);
+            if (collectionToRemove != null)
+            {
+                currentUser.Collections.Remove(collectionToRemove);
+
+            }
+        }
+        else
+        {
+            var newCollection = new Collection
+            {
+                UserId = currentUser.Id,
+                CopiedDesignId = design.Id,
+                User = currentUser,
+                CopiedDesign = design
+            };
+
+            currentUser.Collections.Add(newCollection);
+        }
+
+        StateHasChanged();
+    }
+
+    private void OpenCommentPopup(Post post)
+    {
+        selectedPostForComments = post;
+        isCommentPopupOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseCommentPopup()
+    {
+        isCommentPopupOpen = false;
+        selectedPostForComments = null;
+        StateHasChanged();
+    }
+
+    private void AddComment(Post post)
+    {
         StateHasChanged();
     }
 }

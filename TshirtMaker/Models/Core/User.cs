@@ -5,6 +5,8 @@ namespace TshirtMaker.Models.Core
 {
     public class User : BaseEntity
     {
+        private int followersCount;
+
         [Required]
         [MaxLength(50)]
         public string Username { get; set; } = string.Empty;
@@ -33,27 +35,36 @@ namespace TshirtMaker.Models.Core
         [MaxLength(2048)]
         public string? WebsiteUrl { get; set; }
 
-        public int TotalDesigns { get; set; } = 0;
-
-        public int TotalLikes { get; set; } = 0;
-        public int TotalPosts { get; set; } = 0;
+        public int TotalDesigns => Designs.Count;
+        public int TotalLikes => LikesTaken.Count;
+        public int TotalLikesGiven => LikesGiven.Count;
+        public int TotalPosts => Posts.Count;
+        public int TotalCollection => Collections.Count;
         public int TotalShares { get; set; } = 0;
 
-        public int FollowersCount { get; set; } = 0;
+        public int FollowersCount
+        {
+            get
+            {
+                return Followers
+                    .ToList().Count;
+            }
+        }
 
         public int FollowingCount { get; set; } = 0;
 
         public DateTime? LastLoginAt { get; set; }
 
-        public virtual ICollection<Design>? Designs { get; set; } = [];
-        public virtual ICollection<Post>? Posts { get; set; } = [];
-        public virtual ICollection<Like>? LikesGiven { get; set; } = [];
-        public virtual ICollection<Like>? LikesTaken { get; set; } = [];
+        public virtual ICollection<Design> Designs { get; set; } = [];
+        public virtual ICollection<Post> Posts { get; set; } = [];
+        public virtual ICollection<Like> LikesGiven { get; set; } = [];
+        public virtual ICollection<Like> LikesTaken { get; set; } = [];
 
-        public virtual ICollection<Comment>? Comments { get; set; } = [];
-        public virtual ICollection<Bookmark>? Bookmarks { get; set; } = [];
-        public virtual ICollection<Follower>? Followers { get; set; } = [];
-        public virtual ICollection<Notification>? Notifications { get; set; } = [];
+        public virtual ICollection<Comment> Comments { get; set; } = [];
+        public virtual ICollection<Bookmark> Bookmarks { get; set; } = [];
+        public virtual ICollection<Follower> Followers { get; set; } = [];
+        public virtual ICollection<Notification> Notifications { get; set; } = [];
+        public virtual ICollection<Collection> Collections { get; set; } = [];
     }
 }
 
