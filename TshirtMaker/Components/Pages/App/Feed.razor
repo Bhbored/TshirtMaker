@@ -17,14 +17,14 @@
             </div>
             <div class="feed-filters">
                 <button class="feed-filter-btn @(activeFilter == "trending" ? "active" : "")"
-                    @onclick="SetTrendingFilter">
+                        @onclick="SetTrendingFilter">
                     Trending
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "new" ? "active" : "")" @onclick="SetNewFilter">
                     New
                 </button>
                 <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
-                    @onclick="SetFeaturedFilter">
+                        @onclick="SetFeaturedFilter">
                     My Posts
                 </button>
             </div>
@@ -38,7 +38,7 @@
                         <div class="feed-card-image-bg" style="background-image: url('@x.Design!.FinalImageUrl')"></div>
                         <div class="feed-card-actions">
                             <button class="feed-action-btn @(IsDesignInCollection(x.Design!) ? "feed-saved" : "")"
-                                title="Save To Collection" @onclick="() => SaveToCollection(x.Design!)">
+                                    title="Save To Collection" @onclick="() => SaveToCollection(x.Design!)">
                                 <span class="material-symbols-outlined">save</span>
                             </button>
                         </div>
@@ -69,24 +69,22 @@
                         <div class="feed-card-footer">
                             <div class="feed-stats">
                                 <div class="feed-stat-item">
-                                    <button
-                                        class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
-                                        type="button" @onclick="() => LikePost(x)">
+                                    <button class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
+                                            type="button" @onclick="() => LikePost(x)">
                                         favorite
                                     </button>
                                     <span class="feed-stat-value">@FormatNumber(x.LikesCount)</span>
                                 </div>
                                 <div class="feed-stat-item">
-                                    <button
-                                        class="material-symbols-outlined feed-stat-icon @(IsPostBookmarked(x) ? "feed-bookmarked" : "")"
-                                        type="button" @onclick="() => BookmarkPost(x)">
+                                    <button class="material-symbols-outlined feed-stat-icon @(IsPostBookmarked(x) ? "feed-bookmarked" : "")"
+                                            type="button" @onclick="() => BookmarkPost(x)">
                                         cyclone
                                     </button>
                                     <span class="feed-stat-value">@FormatNumber(x.BookmarksCount)</span>
                                 </div>
                                 <div class="feed-stat-item">
                                     <button class="material-symbols-outlined feed-stat-icon" type="button"
-                                        @onclick="() => OpenCommentPopup(x)">
+                                            @onclick="() => OpenCommentPopup(x)">
                                         chat
                                     </button>
                                     <span class="feed-stat-value">@FormatNumber(x.CommentsCount)</span>
@@ -118,9 +116,10 @@
 </main>
 
 <CommentPopup Post="@selectedPostForComments" CurrentUser="@currentUser" IsOpen="@isCommentPopupOpen"
-    OnClose="CloseCommentPopup" OnAddComment="AddComment" />
+              OnClose="CloseCommentPopup" OnAddComment="AddComment" />
 
-<CreatePostPopup Designs="@userDesigns" IsOpen="@isCreatePostPopupOpen" OnClose="CloseCreatePostPopup" />
+<CreatePostPopup Designs="@userDesigns" IsOpen="@isCreatePostPopupOpen" OnClose="CloseCreatePostPopup"
+                 CurrentUser="currentUser" OnPost="ConfirmPost" />
 
 
 @code {
@@ -400,5 +399,12 @@
     private void AddComment(Post post)
     {
         StateHasChanged();
+    }
+    async Task ConfirmPost()
+    {
+        await Task.Delay(300);
+        LoadFeedData();//later async
+        StateHasChanged();
+
     }
 }

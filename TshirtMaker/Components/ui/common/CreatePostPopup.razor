@@ -1,6 +1,5 @@
 @using TshirtMaker.Models.Core
-@inject TestDataService TestData
-@inject AuthService AuthService
+@using TshirtMaker.Tests
 <div class="create-post-overlay @(IsOpen ? "create-post-open" : "")" @onclick="ClosePopup">
     <div class="create-post-container" @onclick:stopPropagation="true">
         <div class="create-post-header">
@@ -15,7 +14,7 @@
                 <div class="create-post-field">
                     <label class="create-post-label">Title <span class="required">*</span></label>
                     <input type="text" class="create-post-input @(titleError ? "error" : "")"
-                           placeholder="Enter post title..." @bind="postTitle" @bind:event="oninput" />
+                        placeholder="Enter post title..." @bind="postTitle" @bind:event="oninput" />
                     @if (titleError)
                     {
                         <span class="create-post-error">Title is required</span>
@@ -30,9 +29,13 @@
                             @foreach (var design in Designs.Take(6))
                             {
                                 <div class="create-post-design-card @(selectedDesign?.Id == design.Id ? "selected" : "")"
-                                     @onclick="() => SelectDesign(design)">
+                                    @onclick="() => SelectDesign(design)">
                                     <div class="create-post-design-image"
-                                         style="background-image: url('@design.FinalImageUrl')"></div>
+                                        style="background-image: url('@design.FinalImageUrl')">
+                                        <div class="create-post-design-title-overlay">
+                                            <span class="create-post-design-title-text">@design.Title</span>
+                                        </div>
+                                    </div>
                                     <div class="create-post-design-info">
                                         <div class="create-post-design-color" style="background-color: @design.Color"></div>
                                         <span class="create-post-design-size">@design.Size</span>
@@ -73,6 +76,8 @@
     [Parameter] public List<Design>? Designs { get; set; }
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter, EditorRequired] public User CurrentUser { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnPost { get; set; }
 
     private string postTitle = string.Empty;
     private Design? selectedDesign;
@@ -99,25 +104,25 @@
 
     private async Task HandlePost()
     {
-        var currentUser = AuthService.CurrentUser;
         ValidateTitle();
 
         if (!IsValid || selectedDesign == null)
             return;
-        if (currentUser == null)
+        if (CurrentUser == null)
             return;
 
         var newPost = new Post
         {
-            PosterId = currentUser.Id,
+            PosterId = CurrentUser.Id,
             DesignId = selectedDesign.Id,
             Design = selectedDesign,
             Description = postTitle,
             AllowRemix = allowRemix,
-            Poster = currentUser,
+            Poster = CurrentUser,
         };
-        TestData.GetAllPosts().Add(newPost);
-        currentUser.Posts.Add(newPost);
+        TestUsers.Posts.Add(newPost);
+        CurrentUser.Posts.Add(newPost);
+        await OnPost.InvokeAsync();
         ResetForm();
         await ClosePopup();
     }
