@@ -145,6 +145,10 @@
     opacity: 1;
 }
 
+.feed-card-actions:has(.feed-my-post-badge) {
+    opacity: 1;
+}
+
 .feed-action-btn {
     width: 2.5rem;
     height: 2.5rem;
@@ -175,6 +179,21 @@
 
 .feed-action-btn .material-symbols-outlined {
     font-size: 1.25rem;
+}
+
+.feed-my-post-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    background: rgba(127, 19, 236, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    box-shadow: 0 2px 8px rgba(127, 19, 236, 0.3);
+    opacity: 1;
+    white-space: nowrap;
 }
 
 .feed-badge {

@@ -1,5 +1,11 @@
 @page "/collections"
 @layout MainLayout
+@inject AuthService AuthService
+@inject TestDataService TestData
+@using TshirtMaker.Components.ui.common
+@using TshirtMaker.Models.Enums
+@rendermode InteractiveServer
+
 
 <PageTitle>TshirtMaker - My Collection</PageTitle>
 
@@ -38,45 +44,43 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="collections-divider"></div>
-            
+
             <div class="collections-filter-section">
                 <h2 class="collections-filter-section-title">Apparel Type</h2>
                 <div class="collections-checkbox-group">
-                    <label class="collections-checkbox-label">
-                        <input type="checkbox" checked class="collections-checkbox" />
-                        <span>Tees (12)</span>
-                    </label>
-                    <label class="collections-checkbox-label">
-                        <input type="checkbox" class="collections-checkbox" />
-                        <span>Hoodies (8)</span>
-                    </label>
-                    <label class="collections-checkbox-label">
-                        <input type="checkbox" class="collections-checkbox" />
-                        <span>Crewnecks (4)</span>
-                    </label>
-                    <label class="collections-checkbox-label">
-                        <input type="checkbox" class="collections-checkbox" />
-                        <span>Accessories (15)</span>
-                    </label>
+                    @foreach (var clothingType in clothingTypes)
+                    {
+                        var count = GetDesignCountByType(clothingType);
+                        var isChecked = activeTypes.Contains(clothingType);
+                        <label class="collections-checkbox-label">
+                            <input type="checkbox" checked="@isChecked" class="collections-checkbox"
+                                @onchange="@(() => ToggleClothingType(clothingType))" />
+                            <span>@clothingType.ToString() (@count)</span>
+                        </label>
+                    }
                 </div>
             </div>
-            
+
             <div class="collections-divider"></div>
-            
+
             <div class="collections-filter-section">
                 <h2 class="collections-filter-section-title">Styles</h2>
-                <div class="collections-tags">
-                    <span class="collections-tag">Cyberpunk</span>
-                    <span class="collections-tag">Minimalist</span>
-                    <span class="collections-tag">Vintage</span>
-                    <span class="collections-tag">Gothic</span>
-                    <span class="collections-tag">Streetwear</span>
+                <div class="collections-style-buttons">
+                    @foreach (var styleType in styleTypes)
+                    {
+                        var count = GetDesignCountByStyle(styleType);
+                        var isActive = selectedStyle == styleType;
+                        <button class="collections-style-button @(isActive ? "active" : "")"
+                            @onclick="@(() => SelectStyleType(styleType))">
+                            @styleType.ToString() (@count)
+                        </button>
+                    }
                 </div>
             </div>
         </aside>
-        
+
         <section class="collections-content">
             <div class="collections-header">
                 <div>
@@ -88,173 +92,344 @@
                     New Design
                 </button>
             </div>
-            
+
             <div class="collections-tabs">
-                <a href="#" class="collections-tab active">My Creations</a>
-                <a href="#" class="collections-tab">Community Saves</a>
+                <button class="collections-tab @(activeTab == "creations" ? "active" : "")"
+                    @onclick="@(() => SwitchTab("creations"))">My Creations</button>
+                <button class="collections-tab @(activeTab == "saves" ? "active" : "")"
+                    @onclick="@(() => SwitchTab("saves"))">Community Saves</button>
             </div>
-            
-            <div class="collections-grid">
-                <div class="collections-card">
-                    <div class="collections-card-image">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnvNduohTLITZxeKnGY034qlmN9UsB3SKvXHwUpYQxqVu_PY8kbKw7RtZbcMAYZ_nea35MBI4UHBOC_BfhPATwK8QtdlClXqHr5vuBGP5C9cZr2-PQAgj7PDdzpR8U9KN6acoKdTvnktQax1hLyZchaEgi_69GCC3hwX-T3dXzudAMXtRihydLLkSGzUiWSTTtMhc1OGyuYfjMEP2VCsm57ntOnoKeI3Tggsmw0ukEkuoXHQSx1NYJz_vpk6gOjurhjpcOdxvXMZ6H" alt="Black tshirt mockup with neon cyberpunk graphic" />
-                        <div class="collections-card-overlay">
-                            <div class="collections-card-actions">
-                                <button class="collections-card-action-btn" title="Edit">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="collections-card-action-btn primary" title="Order">
-                                    <span class="material-symbols-outlined">shopping_bag</span>
-                                </button>
-                                <button class="collections-card-action-btn" title="Share">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
+
+            @if (activeTab == "creations")
+            {
+                @if (userDesigns.Count == 0)
+                {
+                    <div class="collections-empty">
+                        <span class="material-symbols-outlined">palette</span>
+                        <h3>No Designs Yet</h3>
+                        <p>Start creating your first design to see it here</p>
+                        <button class="collections-empty-btn" @onclick="@(() => { })">
+                            <span class="material-symbols-outlined">add</span>
+                            Create Design
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="collections-grid">
+                        @foreach (var design in userDesigns)
+                        {
+                            <div class="collections-card">
+                                <div class="collections-card-image">
+                                    <img src="@design.FinalImageUrl" alt="@design.Title" />
+                                    @if (showShareForDesign == design.Id)
+                                    {
+                                        <div class="collections-share-overlay">
+                                            <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
+                                                OnClose="@(() => ToggleShare(design.Id))" />
+                                        </div>
+                                    }
+                                    <div class="collections-card-overlay">
+                                        <div class="collections-card-actions">
+                                            <button class="collections-card-action-btn" title="Edit"
+                                                @onclick="@(() => OpenEditPopup(design))">
+                                                <span class="material-symbols-outlined">edit</span>
+                                            </button>
+                                            <button class="collections-card-action-btn primary" title="Order"
+                                                @onclick="@(() => OrderDesign(design))">
+                                                <span class="material-symbols-outlined">shopping_bag</span>
+                                            </button>
+                                            <button class="collections-card-action-btn" title="Share"
+                                                @onclick="@(() => ToggleShare(design.Id))">
+                                                <span class="material-symbols-outlined">share</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="collections-card-body">
+                                    <div class="collections-card-info">
+                                        <h3>@design.Title</h3>
+                                        <div class="collections-card-description">
+                                            <p>@($"{design.ClothingType.ToString()} • {design.DisplayedColor ?? "Unknown"}")</p>
+                                            <div class="collections-color-circle" style="background-color: @design.Color"></div>
+                                        </div>
+                                    </div>
+                                    <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                                </div>
                             </div>
-                        </div>
+                        }
                     </div>
-                    <div class="collections-card-body">
-                        <div class="collections-card-info">
-                            <h3>Neo Tokyo 2077</h3>
-                            <p>Oversized Tee • Black</p>
-                        </div>
-                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                }
+            }
+            else
+            {
+                @if (userCollections.Count == 0)
+                {
+                    <div class="collections-empty">
+                        <span class="material-symbols-outlined">bookmark_border</span>
+                        <h3>No Saved Designs</h3>
+                        <p>Start exploring and save designs you love from the community</p>
                     </div>
-                </div>
-                
-                <div class="collections-card">
-                    <div class="collections-card-image">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuARVOFPa-KRrUUd6NveHyeTTL3BVKbVZ7QJPMf_RCAkjvry10J-bnBLPIjXiqJURj6bKXBvETER4OVTNKZeGUWZtSq2xtCUSMeDiR2SooSW32DDjyfYGCNiOXQUyOtmJx3ipP84kNH2iWmZPtVHZab20rXh0dNigWbTrqfXG47T7koOxxDlLpoFYbdRZ07wk9nktLZfeqV_ilhLT2bVxjb4WpSdEfz1SaSCgWyaL2SXqif23_lL0QR_AzvdEgUuAFrtNk1MgignP3kM" alt="Minimalist grey hoodie mockup with white logo" />
-                        <div class="collections-card-overlay">
-                            <div class="collections-card-actions">
-                                <button class="collections-card-action-btn" title="Edit">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="collections-card-action-btn primary" title="Order">
-                                    <span class="material-symbols-outlined">shopping_bag</span>
-                                </button>
-                                <button class="collections-card-action-btn" title="Share">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
-                            </div>
-                        </div>
+                }
+                else
+                {
+                    <div class="collections-grid">
+                        @foreach (var collection in userCollections)
+                        {
+                            @if (collection.CopiedDesign != null)
+                            {
+                                var design = collection.CopiedDesign;
+                                <div class="collections-card">
+                                    <div class="collections-card-image">
+                                        <img src="@design.FinalImageUrl" alt="@design.Title" />
+                                        @if (showShareForDesign == design.Id)
+                                        {
+                                            <div class="collections-share-overlay">
+                                                <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
+                                                    OnClose="@(() => ToggleShare(design.Id))" />
+                                            </div>
+                                        }
+                                        <div class="collections-card-overlay">
+                                            <div class="collections-card-actions">
+                                                <button class="collections-card-action-btn primary" title="Order"
+                                                    @onclick="@(() => OrderDesign(design))">
+                                                    <span class="material-symbols-outlined">shopping_bag</span>
+                                                </button>
+                                                <button class="collections-card-action-btn" title="Share"
+                                                    @onclick="@(() => ToggleShare(design.Id))">
+                                                    <span class="material-symbols-outlined">share</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="collections-card-body">
+                                        <div class="collections-card-info">
+                                            <h3>@design.Title</h3>
+                                            <div class="collections-card-description">
+                                                <p>@($"{design.ClothingType.ToString()} • {design.DisplayedColor ?? "Unknown"}")</p>
+                                                <div class="collections-color-circle" style="background-color: @design.Color"></div>
+                                            </div>
+                                        </div>
+                                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
-                    <div class="collections-card-body">
-                        <div class="collections-card-info">
-                            <h3>Quiet Luxury V1</h3>
-                            <p>Heavyweight Hoodie • Sand</p>
-                        </div>
-                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
-                    </div>
-                </div>
-                
-                <div class="collections-card">
-                    <div class="collections-card-image">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDofSefLwkqS7m-jN2wSonCaJxjH2eiZFryMOsMhiQisyTqxNPPbME_z31fj-6RxoulV-piGc_rPR9VqU4kqiBEXqZiJsX8wPdHh4RArlXPNpH7HtvZ8fmCR5J9J6cyvSdZjnQZYmwMArddydats-R_ax1lsb6jsuYKURMx_kx7W2XjJGIUHidl-8iOMlqMbz1T_dpHd2rnRysBMVSL0YoYM3gtSVs5ASIMJ_Klp7i40SqN1UzAQMQuNYoVwY52_pmOAsanIlEf8I-_" alt="White t-shirt with retro floral design" />
-                        <div class="collections-card-overlay">
-                            <div class="collections-card-actions">
-                                <button class="collections-card-action-btn" title="Edit">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="collections-card-action-btn primary" title="Order">
-                                    <span class="material-symbols-outlined">shopping_bag</span>
-                                </button>
-                                <button class="collections-card-action-btn" title="Share">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="collections-card-body">
-                        <div class="collections-card-info">
-                            <h3>Summer Bloom</h3>
-                            <p>Boxy Tee • Cream</p>
-                        </div>
-                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
-                    </div>
-                </div>
-                
-                <div class="collections-card">
-                    <div class="collections-card-image">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRWmEuKvUFYHscMiIXCPRDqcK_3kO9jKe7YcklhWSRjPkcQ9G_IoZVHH_Rmsnqrm8JvuPwpoqLDucam2bgrArJlRdvxKaagCI9una_NVeWii492jUhpwEvBFMR9EHzTY_z7T5efrpuhF3LTbx28Q8PYiPfVajFC_eBsTBzz2P44vj1G_VmlT7iLxRt-pu0KW2JZW2uYejNH9LR9r7D8HOi8qT3p-v1w0iMWH5z6zEl6QMoYy6leOHQT-q2rvjto7OX3dLPzvq4fczc" alt="Black hoodie with intricate glitch art print" />
-                        <div class="collections-card-overlay">
-                            <div class="collections-card-actions">
-                                <button class="collections-card-action-btn" title="Edit">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="collections-card-action-btn primary" title="Order">
-                                    <span class="material-symbols-outlined">shopping_bag</span>
-                                </button>
-                                <button class="collections-card-action-btn" title="Share">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="collections-card-body">
-                        <div class="collections-card-info">
-                            <h3>Void Glitch</h3>
-                            <p>Zip Hoodie • Black</p>
-                        </div>
-                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
-                    </div>
-                </div>
-                
-                <div class="collections-card">
-                    <div class="collections-card-image">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9yUETGeEglgXguMjmAPiN1rriVpA7sYW2N6Xjp0za6JCw7pj3hVxy7s2J9-UH6MdzBf9ZDfThVjx-rrKkgRPjXryY6f1fvqwEgwP89vlIAHb6zO5aWjOQHMpFXYdwISwobeLc0XjavkF_sMDUWwxKF8WFyH2767RViVqGRUgYtdPbrY_ykTZeJyRVB7IYOav2h-vTosdnI2tcPv-Q0W_UR6vOjshruceT4iiPALp1h4CD3X_ZBIiVFc5USQmaNAbbhhMjlhWay6KY" alt="Tote bag with minimalist logo design" />
-                        <div class="collections-card-overlay">
-                            <div class="collections-card-actions">
-                                <button class="collections-card-action-btn" title="Edit">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="collections-card-action-btn primary" title="Order">
-                                    <span class="material-symbols-outlined">shopping_bag</span>
-                                </button>
-                                <button class="collections-card-action-btn" title="Share">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="collections-card-body">
-                        <div class="collections-card-info">
-                            <h3>Archival Tote</h3>
-                            <p>Canvas Bag • Ecru</p>
-                        </div>
-                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
-                    </div>
-                </div>
-                
-                <div class="collections-card">
-                    <div class="collections-card-image">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg-e72SmexYNrIV88jj4PyTL9o2cuD1gvOQSpO9satm1M4-x4nzt0K16nQ1h3TfYXv97Sl01zcSrCWW3y5j748I70mSGt1mmm7laf4vzti0n-4M_6OO9XCLmYpwl2RtWFD0SLGDXxI5Q-x9yLyi8df0JUq_nmufjE2kldk8iUBpD7Oc_QEOp9fQGqKtGaremwkCLmCQWJLPygnWgzkGLQQHA57BNJCkFutoLTyrbUaN7SlM9SpVvOIJGW8NmwRpQjigw3_Cj7U3THH" alt="White sweatshirt mockup with futuristic print" />
-                        <div class="collections-card-overlay">
-                            <div class="collections-card-actions">
-                                <button class="collections-card-action-btn" title="Edit">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="collections-card-action-btn primary" title="Order">
-                                    <span class="material-symbols-outlined">shopping_bag</span>
-                                </button>
-                                <button class="collections-card-action-btn" title="Share">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="collections-card-body">
-                        <div class="collections-card-info">
-                            <h3>Future Static</h3>
-                            <p>Crewneck • Heather Grey</p>
-                        </div>
-                        <span class="material-symbols-outlined collections-card-more">more_vert</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collections-load-more">
-                <button class="collections-load-more-btn">Load More Creations</button>
-            </div>
+                }
+            }
+
+            <EditDesignTitlePopup IsOpen="@editPopupOpen" Design="@selectedDesign" OnClose="CloseEditPopup"
+                OnSave="HandleDesignTitleSave" />
         </section>
     </div>
 </main>
+
+@code {
+    private User currentUser = new();
+
+    private List<Design> allUserDesigns = [];
+    private List<Design> userDesigns = [];
+    private List<Collection> allUserCollections = [];
+    private List<Collection> userCollections = [];
+    private List<ClothingType> clothingTypes = [];
+    private List<ClothingType> activeTypes = [];
+    private List<StylePresetType> styleTypes = [];
+    private StylePresetType? selectedStyle;
+    private string activeTab = "creations";
+    private bool editPopupOpen = false;
+    private Design? selectedDesign;
+    private Guid? showShareForDesign;
+
+    protected override Task OnInitializedAsync()
+    {
+        Task.Delay(300);
+        currentUser = AuthService.CurrentUser ?? new();
+        allUserDesigns = TestData.GetUserDesigns(currentUser.Id) ?? [];
+        userDesigns = allUserDesigns.ToList();
+        allUserCollections = currentUser.Collections?.ToList() ?? [];
+        userCollections = allUserCollections.ToList();
+        clothingTypes = Enum.GetValues<ClothingType>().ToList();
+        UpdateFiltersForTab();
+        return base.OnInitializedAsync();
+    }
+
+    void UpdateFiltersForTab()
+    {
+        if (activeTab == "creations")
+        {
+            activeTypes = allUserDesigns.Select(d => d.ClothingType).Distinct().ToList();
+            styleTypes = allUserDesigns
+            .Where(d => d.StylePreset.HasValue)
+            .Select(d => d.StylePreset!.Value)
+            .Distinct()
+            .ToList();
+        }
+        else
+        {
+            activeTypes = allUserCollections
+            .Where(c => c.CopiedDesign != null)
+            .Select(c => c.CopiedDesign!.ClothingType)
+            .Distinct()
+            .ToList();
+            styleTypes = allUserCollections
+            .Where(c => c.CopiedDesign != null && c.CopiedDesign.StylePreset.HasValue)
+            .Select(c => c.CopiedDesign!.StylePreset!.Value)
+            .Distinct()
+            .ToList();
+        }
+        selectedStyle = null;
+    }
+
+    void SwitchTab(string tab)
+    {
+        activeTab = tab;
+        UpdateFiltersForTab();
+        FilterDesigns();
+        StateHasChanged();
+    }
+
+    void ToggleClothingType(ClothingType type)
+    {
+        if (activeTypes.Contains(type))
+        {
+            activeTypes.Remove(type);
+        }
+        else
+        {
+            activeTypes.Add(type);
+        }
+        FilterDesigns();
+    }
+
+    void SelectStyleType(StylePresetType type)
+    {
+        if (selectedStyle == type)
+        {
+            selectedStyle = null;
+        }
+        else
+        {
+            selectedStyle = type;
+        }
+        FilterDesigns();
+    }
+
+    void FilterDesigns()
+    {
+        if (activeTab == "creations")
+        {
+            var filteredDesigns = allUserDesigns.AsEnumerable();
+
+            if (activeTypes.Count > 0)
+            {
+                filteredDesigns = filteredDesigns.Where(d => activeTypes.Contains(d.ClothingType));
+            }
+
+            if (selectedStyle.HasValue)
+            {
+                filteredDesigns = filteredDesigns.Where(d => d.StylePreset == selectedStyle);
+            }
+
+            if (activeTypes.Count == 0 && selectedStyle.HasValue == false)
+            {
+                userDesigns = [];
+            }
+            else
+            {
+                userDesigns = filteredDesigns.ToList();
+            }
+        }
+        else
+        {
+            var filteredCollections = allUserCollections.AsEnumerable();
+
+            if (activeTypes.Count > 0)
+            {
+                filteredCollections = filteredCollections.Where(c => c.CopiedDesign != null &&
+                activeTypes.Contains(c.CopiedDesign.ClothingType));
+            }
+
+            if (selectedStyle.HasValue)
+            {
+                filteredCollections = filteredCollections.Where(c => c.CopiedDesign != null &&
+                c.CopiedDesign.StylePreset == selectedStyle);
+            }
+
+            if (activeTypes.Count == 0 && selectedStyle.HasValue == false)
+            {
+                userCollections = [];
+            }
+            else
+            {
+                userCollections = filteredCollections.Where(c => c.CopiedDesign != null).ToList();
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    int GetDesignCountByType(ClothingType type)
+    {
+        if (activeTab == "creations")
+        {
+            return allUserDesigns.Count(d => d.ClothingType == type);
+        }
+        else
+        {
+            return allUserCollections.Count(c => c.CopiedDesign != null && c.CopiedDesign.ClothingType == type);
+        }
+    }
+
+    int GetDesignCountByStyle(StylePresetType type)
+    {
+        if (activeTab == "creations")
+        {
+            return allUserDesigns.Count(d => d.StylePreset == type);
+        }
+        else
+        {
+            return allUserCollections.Count(c => c.CopiedDesign != null && c.CopiedDesign.StylePreset == type);
+        }
+    }
+
+    void OpenEditPopup(Design design)
+    {
+        selectedDesign = design;
+        editPopupOpen = true;
+    }
+
+    void CloseEditPopup()
+    {
+        editPopupOpen = false;
+        selectedDesign = null;
+    }
+
+    void HandleDesignTitleSave(Design design)
+    {
+        var index = allUserDesigns.FindIndex(d => d.Id == design.Id);
+        if (index >= 0)
+        {
+            allUserDesigns[index] = design;
+        }
+        FilterDesigns();
+    }
+
+    void OrderDesign(Design design)
+    {
+    }
+
+    void ToggleShare(Guid designId)
+    {
+        if (showShareForDesign == designId)
+        {
+            showShareForDesign = null;
+        }
+        else
+        {
+            showShareForDesign = designId;
+        }
+        StateHasChanged();
+    }
+
+}
