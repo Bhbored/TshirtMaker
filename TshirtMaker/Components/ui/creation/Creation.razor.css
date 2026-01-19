@@ -9,10 +9,21 @@
 
 .creation-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    max-width: 1200px;
+    gap: 1.25rem;
+    max-width: 720px;
     width: 100%;
+}
+
+/* 4-image layout: 2 per row, 2x2, square cells */
+.creation-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    aspect-ratio: 1;
+    max-height: min(720px, 85vh);
+}
+
+.creation-grid-4 .creation-image-card {
+    min-height: 0;
 }
 
 .creation-image-card {
@@ -84,17 +95,12 @@
     font-size: 1.5rem;
 }
 
-@media (max-width: 1024px) {
-    .creation-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-}
-
 @media (max-width: 768px) {
-    .creation-grid {
+    .creation-grid-4 {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        grid-template-rows: repeat(4, auto);
+        aspect-ratio: auto;
+        max-height: none;
     }
 
     .creation-content {

@@ -5,147 +5,152 @@
 @inject AuthService Auth
 @inject ILogger<Feed> Logger
 @inject NavigationManager Nav
+@using TshirtMaker.Components.ui.Feed
+@using TshirtMaker.Tests
 
 <PageTitle>TshirtMaker - Community Feed</PageTitle>
 
 <main class="feed-main">
-    <div class="feed-container">
-        <div class="feed-header">
-            <div class="feed-header-content">
-                <h2 class="feed-title">Community Feed</h2>
-                <p class="feed-subtitle">Discover the latest AI-generated fashion trends.</p>
+    @if (isLoading)
+    {
+        <FeedLoader Message="Loading Inspiration" IsCentered="true" />
+    }
+    else
+    {
+        <div class="feed-container">
+            <div class="feed-header">
+                <div class="feed-header-content">
+                    <h2 class="feed-title">Community Feed</h2>
+                    <p class="feed-subtitle">Discover the latest AI-generated fashion trends.</p>
+                </div>
+                <div class="feed-filters">
+                    <button class="feed-filter-btn @(activeFilter == "trending" ? "active" : "")"
+                            @onclick="SetTrendingFilter">
+                        Trending
+                    </button>
+                    <button class="feed-filter-btn @(activeFilter == "new" ? "active" : "")" @onclick="SetNewFilter">
+                        New
+                    </button>
+                    <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
+                            @onclick="SetFeaturedFilter">
+                        My Posts
+                    </button>
+                </div>
             </div>
-            <div class="feed-filters">
-                <button class="feed-filter-btn @(activeFilter == "trending" ? "active" : "")"
-                    @onclick="SetTrendingFilter">
-                    Trending
-                </button>
-                <button class="feed-filter-btn @(activeFilter == "new" ? "active" : "")" @onclick="SetNewFilter">
-                    New
-                </button>
-                <button class="feed-filter-btn @(activeFilter == "featured" ? "active" : "")"
-                    @onclick="SetFeaturedFilter">
-                    My Posts
-                </button>
-            </div>
-        </div>
 
-        <div class="feed-grid">
-            @foreach (var x in feedPost)
-            {
-                var isMyPost = x.PosterId == currentUser.Id;
-                <div class="feed-card">
-                    <div class="feed-card-image">
-                        <div class="feed-card-image-bg" style="background-image: url('@x.Design!.FinalImageUrl')"></div>
-                        <div class="feed-card-actions">
-                            @if (isMyPost)
-                            {
-                                <div class="feed-my-post-badge">
-                                    <span>My Post</span>
-                                </div>
-                            }
-                            else
-                            {
-                                <button class="feed-action-btn @(IsDesignInCollection(x.Design!) ? "feed-saved" : "")"
-                                    title="Save To Collection" @onclick="() => SaveToCollection(x.Design!)">
-                                    <span class="material-symbols-outlined">save</span>
-                                </button>
-                            }
-                        </div>
-
-                    </div>
-                    <div class="feed-card-body">
-                        <div class="feed-card-header">
-                            <div class="feed-user-info">
-                                <div class="feed-user-avatar" style="background-image: url('@x.Poster!.AvatarUrl')"></div>
-                                <div>
-                                    <p class="feed-username">@x.Poster!.Username</p>
-                                </div>
+            <div class="feed-grid">
+                @foreach (var x in feedPost)
+                {
+                    var isMyPost = x.PosterId == currentUser.Id;
+                    <div class="feed-card">
+                        <div class="feed-card-image">
+                            <div class="feed-card-image-bg" style="background-image: url('@x.Design!.FinalImageUrl')">
                             </div>
-
-                            @if (!isMyPost && x.AllowRemix)
-                            {
-                                <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x.PosterId))">
-                                    <span class="material-symbols-outlined">bolt</span>
-                                    Remix
-                                </button>
-                            }
-
-                        </div>
-                        <div class="feed-prompt-box">
-                            <p class="feed-prompt-text">"@x.Description"</p>
-                        </div>
-                        <div class="feed-card-footer">
-                            <div class="feed-stats">
-                                <div class="feed-stat-item">
-                                    <button
-                                        class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
-                                        type="button" @onclick="() => LikePost(x)">
-                                        favorite
-                                    </button>
-                                    <span class="feed-stat-value">@FormatNumber(x.LikesCount)</span>
-                                </div>
-                                @if (!isMyPost)
-                                {
-                                    <div class="feed-stat-item">
-                                        <button
-                                            class="material-symbols-outlined feed-stat-icon @(IsPostBookmarked(x) ? "feed-bookmarked" : "")"
-                                            type="button" @onclick="() => BookmarkPost(x)">
-                                            cyclone
-                                        </button>
-                                        <span class="feed-stat-value">@FormatNumber(x.BookmarksCount)</span>
-                                    </div>
-                                }
-                                <div class="feed-stat-item">
-                                    <button class="material-symbols-outlined feed-stat-icon" type="button"
-                                        @onclick="() => OpenCommentPopup(x)">
-                                        chat
-                                    </button>
-                                    <span class="feed-stat-value">@FormatNumber(x.CommentsCount)</span>
-                                </div>
+                            <div class="feed-card-actions">
                                 @if (isMyPost)
                                 {
-                                    <div class="feed-stat-item">
-                                        <button class="material-symbols-outlined feed-stat-icon feed-delete-icon" type="button"
-                                            @onclick="() => OpenDeleteConfirmation(x.Id)">
-                                            delete
-                                        </button>
+                                    <div class="feed-my-post-badge">
+                                        <span>My Post</span>
                                     </div>
                                 }
+                                else
+                                {
+                                    <button class="feed-action-btn @(IsDesignInCollection(x.Design!) ? "feed-saved" : "")"
+                                            title="Save To Collection" @onclick="() => SaveToCollection(x.Design!)">
+                                        <span class="material-symbols-outlined">save</span>
+                                    </button>
+                                }
                             </div>
-                            <span class="feed-timestamp">@GetTimeAgo(x.CreatedAt)</span>
+
+                        </div>
+                        <div class="feed-card-body">
+                            <div class="feed-card-header">
+                                <div class="feed-user-info">
+                                    <div class="feed-user-avatar" style="background-image: url('@x.Poster!.AvatarUrl')">
+                                    </div>
+                                    <div>
+                                        <p class="feed-username">@x.Poster!.Username</p>
+                                    </div>
+                                </div>
+
+                                @if (!isMyPost && x.AllowRemix)
+                                {
+                                    <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x.PosterId))">
+                                        <span class="material-symbols-outlined">bolt</span>
+                                        Remix
+                                    </button>
+                                }
+
+                            </div>
+                            <div class="feed-prompt-box">
+                                <p class="feed-prompt-text">"@x.Description"</p>
+                            </div>
+                            <div class="feed-card-footer">
+                                <div class="feed-stats">
+                                    <div class="feed-stat-item">
+                                        <button class="material-symbols-outlined feed-stat-icon @(IsPostLiked(x) ? "feed-liked" : "")"
+                                                type="button" @onclick="() => LikePost(x)">
+                                            favorite
+                                        </button>
+                                        <span class="feed-stat-value">@FormatNumber(x.LikesCount)</span>
+                                    </div>
+                                    @if (!isMyPost)
+                                    {
+                                        <div class="feed-stat-item">
+                                            <button class="material-symbols-outlined feed-stat-icon @(IsPostBookmarked(x) ? "feed-bookmarked" : "")"
+                                                    type="button" @onclick="() => BookmarkPost(x)">
+                                                cyclone
+                                            </button>
+                                            <span class="feed-stat-value">@FormatNumber(x.BookmarksCount)</span>
+                                        </div>
+                                    }
+                                    <div class="feed-stat-item">
+                                        <button class="material-symbols-outlined feed-stat-icon" type="button"
+                                                @onclick="() => OpenCommentPopup(x)">
+                                            chat
+                                        </button>
+                                        <span class="feed-stat-value">@FormatNumber(x.CommentsCount)</span>
+                                    </div>
+                                    @if (isMyPost)
+                                    {
+                                        <div class="feed-stat-item">
+                                            <button class="material-symbols-outlined feed-stat-icon feed-delete-icon" type="button"
+                                                    @onclick="() => OpenDeleteConfirmation(x.Id)">
+                                                delete
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                                <span class="feed-timestamp">@GetTimeAgo(x.CreatedAt)</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
-
-        <div class="feed-loader">
-            <div class="feed-loader-dots">
-                <div class="feed-loader-dot"></div>
-                <div class="feed-loader-dot"></div>
-                <div class="feed-loader-dot"></div>
+                }
             </div>
-            <span class="feed-loader-text">Loading Inspiration</span>
-        </div>
-    </div>
 
-    <div class="feed-fab">
-        <button class="feed-fab-btn" @onclick="OpenCreatePostPopup" title="Create New Post">
-            <span class="material-symbols-outlined">add</span>
-            <div class="feed-fab-tooltip">Create New Post</div>
-        </button>
-    </div>
+            <FeedLoader Message="Loading Inspiration" />
+        </div>
+    }
+
+    @if (!isLoading)
+    {
+        <div class="feed-fab">
+            <button class="feed-fab-btn" @onclick="OpenCreatePostPopup" title="Create New Post">
+                <span class="material-symbols-outlined">add</span>
+                <div class="feed-fab-tooltip">Create New Post</div>
+            </button>
+        </div>
+    }
 </main>
 
 <CommentPopup Post="@selectedPostForComments" CurrentUser="@currentUser" IsOpen="@isCommentPopupOpen"
-    OnClose="CloseCommentPopup" OnAddComment="AddComment" />
+              OnClose="CloseCommentPopup" OnAddComment="AddComment" />
 
 <CreatePostPopup Designs="@userDesigns" IsOpen="@isCreatePostPopupOpen" OnClose="CloseCreatePostPopup"
-    CurrentUser="currentUser" OnPost="ConfirmPost" />
+                 CurrentUser="currentUser" OnPost="HandlePostCreation" />
 
 <ConfirmDeletePopup Message="@deleteConfirmationMessage" IsOpen="@isDeleteConfirmationOpen"
-    OnClose="CloseDeleteConfirmation" OnConfirm="HandleDeletePost" ItemId="@selectedPostIdForDelete" />
+                    OnClose="CloseDeleteConfirmation" OnConfirm="HandleDeletePost" ItemId="@selectedPostIdForDelete" />
 
 
 @code {
@@ -158,21 +163,47 @@
     private bool isCreatePostPopupOpen = false;
     private Post? selectedPostForComments;
     private bool isDeleteConfirmationOpen = false;
+    private bool isLoading = true;
     private Guid selectedPostIdForDelete = Guid.Empty;
     private string deleteConfirmationMessage = "Are you sure you want to delete this post? This action cannot be undone.";
 
-    protected override void OnInitialized()
+
+    protected override Task OnInitializedAsync()
     {
+
         try
         {
             currentUser = Auth.CurrentUser ?? new();
-            LoadFeedData();
-        }
-        catch (Exception ex)
+
+        }catch(Exception ex)
         {
-            Logger.LogInformation($"Error in Feed.OnInitialized: {ex.Message}");
-            feedPost = new List<Post>();
+        
+             Logger.LogInformation($"Error in Feed: {ex.Message}");
+
         }
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await Task.Delay(3000);
+                LoadFeedData();
+                isLoading = false;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogInformation($"Error in Feed.OnAfterRenderAsync: {ex.Message}");
+                feedPost = new List<Post>();
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private void LoadFeedData()
@@ -186,7 +217,10 @@
             }
 
             var allPosts = DataService.GetAllPosts() ?? new List<Post>();
-            userPosts = DataService.GetUserPosts(currentUser.Id) ?? [];
+            userPosts = DataService.GetUserPosts(currentUser.Id)
+            .OrderByDescending(d => d.CreatedAt)
+            .ToList() ?? [];
+
             userDesigns = DataService.GetUserDesigns(currentUser.Id) ?? [];
             feedPost = activeFilter switch
             {
@@ -270,6 +304,40 @@
     {
         Nav.NavigateTo($"/create?remix={Id}");
     }
+
+    private void OpenCommentPopup(Post post)
+    {
+        selectedPostForComments = post;
+        isCommentPopupOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseCommentPopup()
+    {
+        isCommentPopupOpen = false;
+        selectedPostForComments = null;
+        StateHasChanged();
+    }
+
+    private void AddComment(Post post)
+    {
+        StateHasChanged();
+    }
+
+    private void OpenDeleteConfirmation(Guid postId)
+    {
+        selectedPostIdForDelete = postId;
+        isDeleteConfirmationOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseDeleteConfirmation()
+    {
+        isDeleteConfirmationOpen = false;
+        selectedPostIdForDelete = Guid.Empty;
+        StateHasChanged();
+    }
+
     #endregion
 
 
@@ -410,45 +478,23 @@
         StateHasChanged();
     }
 
-    private void OpenCommentPopup(Post post)
+
+    async Task HandlePostCreation(Post newPost)
     {
-        selectedPostForComments = post;
-        isCommentPopupOpen = true;
+        TestUsers.Posts.Add(newPost);
+        currentUser.Posts.Add(newPost);
+        await Task.Delay(300);
+        LoadFeedData();
         StateHasChanged();
     }
 
-    private void CloseCommentPopup()
-    {
-        isCommentPopupOpen = false;
-        selectedPostForComments = null;
-        StateHasChanged();
-    }
-
-    private void AddComment(Post post)
-    {
-        StateHasChanged();
-    }
     async Task ConfirmPost()
     {
         await Task.Delay(300);
-        LoadFeedData();//later async
-        StateHasChanged();
-
-    }
-
-    private void OpenDeleteConfirmation(Guid postId)
-    {
-        selectedPostIdForDelete = postId;
-        isDeleteConfirmationOpen = true;
+        LoadFeedData();
         StateHasChanged();
     }
 
-    private void CloseDeleteConfirmation()
-    {
-        isDeleteConfirmationOpen = false;
-        selectedPostIdForDelete = Guid.Empty;
-        StateHasChanged();
-    }
 
     private void HandleDeletePost(Guid postId)
     {

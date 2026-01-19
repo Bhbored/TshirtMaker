@@ -12,7 +12,7 @@ namespace TshirtMaker.Models.Social
         [Required]
         public Guid DesignId { get; set; }
 
-        [MaxLength(1000)]
+        [MaxLength(100,ErrorMessage ="Title Exceeded The Lenght limit")]
         public string? Description { get; set; }
 
         public int LikesCount

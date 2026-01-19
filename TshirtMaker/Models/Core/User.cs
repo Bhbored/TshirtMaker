@@ -5,7 +5,6 @@ namespace TshirtMaker.Models.Core
 {
     public class User : BaseEntity
     {
-        private int followersCount;
 
         [Required]
         [MaxLength(50)]

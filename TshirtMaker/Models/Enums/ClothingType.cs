@@ -5,10 +5,11 @@ namespace TshirtMaker.Models.Enums
         TShirt,
         Hoodie,
         Sweat,
-        Tank,
+        PoloShirt,
         LongSleeve,
         Jacket,
         Hat,
+        Tank,
         ToteBag
     }
 }

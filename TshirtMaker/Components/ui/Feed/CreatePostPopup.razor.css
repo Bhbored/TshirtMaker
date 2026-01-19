@@ -94,6 +94,13 @@
     gap: 0.75rem;
 }
 
+.create-post-title-with-counter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .create-post-label {
     font-size: 0.875rem;
     font-weight: 700;
@@ -132,6 +139,12 @@
     font-size: 0.75rem;
     color: #ff1744;
     margin-top: -0.5rem;
+}
+
+.create-post-char-count {
+    font-size: 0.75rem;
+    color: var(--custom-text-core);
+    opacity: 0.7;
 }
 
 .create-post-designs-grid {

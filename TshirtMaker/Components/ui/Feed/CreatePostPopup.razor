@@ -12,9 +12,12 @@
         <div class="create-post-body">
             <div class="create-post-form">
                 <div class="create-post-field">
-                    <label class="create-post-label">Title <span class="required">*</span></label>
+                    <div class="create-post-title-with-counter">
+                        <label class="create-post-label">Title <span class="required">*</span></label>
+                        <span class="create-post-char-count">@(postTitle.Length)/100</span>
+                    </div>
                     <input type="text" class="create-post-input @(titleError ? "error" : "")"
-                        placeholder="Enter post title..." @bind="postTitle" @bind:event="oninput" />
+                        placeholder="Enter post title..." @bind="postTitle" @bind:event="oninput" maxlength="100" />
                     @if (titleError)
                     {
                         <span class="create-post-error">Title is required</span>
@@ -69,7 +72,7 @@
         <div class="create-post-footer">
             <button class="create-post-cancel-btn" @onclick="ClosePopup">Cancel</button>
             <button class="create-post-submit-btn" @onclick="HandlePost" disabled="@(!IsValid)">
-                Create Post
+                Post
             </button>
         </div>
     </div>
@@ -80,7 +83,7 @@
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter, EditorRequired] public User CurrentUser { get; set; }
-    [Parameter, EditorRequired] public EventCallback OnPost { get; set; }
+    [Parameter, EditorRequired] public EventCallback<Post> OnPost { get; set; }
 
     private string postTitle = string.Empty;
     private Design? selectedDesign;
@@ -114,6 +117,7 @@
         if (CurrentUser == null)
             return;
 
+        // Prepare the new post data
         var newPost = new Post
         {
             PosterId = CurrentUser.Id,
@@ -123,9 +127,9 @@
             AllowRemix = allowRemix,
             Poster = CurrentUser,
         };
-        TestUsers.Posts.Add(newPost);
-        CurrentUser.Posts.Add(newPost);
-        await OnPost.InvokeAsync();
+
+        // Pass the new post data to the parent component for processing
+        await OnPost.InvokeAsync(newPost);
         ResetForm();
         await ClosePopup();
     }

@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject AuthService AuthService
 @inject TestDataService TestData
+@inject ILogger<Feed> Logger
 @using TshirtMaker.Components.ui.common
 @using TshirtMaker.Models.Enums
 @rendermode InteractiveServer
@@ -82,107 +83,53 @@
         </aside>
 
         <section class="collections-content">
-            <div class="collections-header">
-                <div>
-                    <h2 class="collections-title">My Collection</h2>
-                    <p class="collections-subtitle">Manage 39 designs across all categories</p>
-                </div>
-                <button class="collections-new-btn">
-                    <span class="material-symbols-outlined">add</span>
-                    New Design
-                </button>
-            </div>
-
-            <div class="collections-tabs">
-                <button class="collections-tab @(activeTab == "creations" ? "active" : "")"
-                        @onclick="@(() => SwitchTab("creations"))">
-                    My Creations
-                </button>
-                <button class="collections-tab @(activeTab == "saves" ? "active" : "")"
-                        @onclick="@(() => SwitchTab("saves"))">
-                    Community Saves
-                </button>
-            </div>
-
-            @if (activeTab == "creations")
+            @if (isLoading)
             {
-                @if (userDesigns.Count == 0)
-                {
-                    <div class="collections-empty">
-                        <span class="material-symbols-outlined">palette</span>
-                        <h3>No Designs Yet</h3>
-                        <p>Start creating your first design to see it here</p>
-                        <button class="collections-empty-btn" @onclick="@(() => { })">
-                            <span class="material-symbols-outlined">add</span>
-                            Create Design
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    <div class="collections-grid">
-                        @foreach (var design in userDesigns)
-                        {
-                            <div class="collections-card">
-                                <div class="collections-card-image">
-                                    <img src="@design.FinalImageUrl" alt="@design.Title" />
-                                    @if (showShareForDesign == design.Id)
-                                    {
-                                        <div class="collections-share-overlay">
-                                            <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
-                                                                OnClose="@(() => ToggleShare(design.Id))" />
-                                        </div>
-                                    }
-                                    <div class="collections-card-overlay">
-                                        <div class="collections-card-actions">
-                                            <button class="collections-card-action-btn" title="Edit"
-                                                    @onclick="@(() => OpenEditPopup(design))">
-                                                <span class="material-symbols-outlined">edit</span>
-                                            </button>
-                                            <button class="collections-card-action-btn primary" title="Order"
-                                                    @onclick="@(() => OrderDesign(design))">
-                                                <span class="material-symbols-outlined">shopping_bag</span>
-                                            </button>
-                                            <button class="collections-card-action-btn" title="Share"
-                                                    @onclick="@(() => ToggleShare(design.Id))">
-                                                <span class="material-symbols-outlined">share</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="collections-card-body">
-                                    <div class="collections-card-info">
-                                        <h3>@design.Title</h3>
-                                        <div class="collections-card-description">
-                                            <p>@($"{design.ClothingType.ToString()} • {design.DisplayedColor ?? "Unknown"}")</p>
-                                            <div class="collections-color-circle" style="background-color: @design.Color"></div>
-                                        </div>
-                                    </div>
-                                    <span class="material-symbols-outlined collections-card-more">more_vert</span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
+                <FeedLoader Message="Loading Collection" IsCentered="true" />
             }
             else
             {
-                @if (userCollections.Count == 0)
-                {
-                    <div class="collections-empty">
-                        <span class="material-symbols-outlined">bookmark_border</span>
-                        <h3>No Saved Designs</h3>
-                        <p>Start exploring and save designs you love from the community</p>
+                <div class="collections-header">
+                    <div>
+                        <h2 class="collections-title">My Collection</h2>
+                        <p class="collections-subtitle">Manage 39 designs across all categories</p>
                     </div>
-                }
-                else
+                    <button class="collections-new-btn">
+                        <span class="material-symbols-outlined">add</span>
+                        New Design
+                    </button>
+                </div>
+
+                <div class="collections-tabs">
+                    <button class="collections-tab @(activeTab == "creations" ? "active" : "")"
+                            @onclick="@(() => SwitchTab("creations"))">
+                        My Creations
+                    </button>
+                    <button class="collections-tab @(activeTab == "saves" ? "active" : "")"
+                            @onclick="@(() => SwitchTab("saves"))">
+                        Community Saves
+                    </button>
+                </div>
+
+                @if (activeTab == "creations")
                 {
-                    <div class="collections-grid">
-                        @foreach (var collection in userCollections)
-                        {
-                            @if (collection.CopiedDesign != null)
+                    @if (userDesigns.Count == 0)
+                    {
+                        <div class="collections-empty">
+                            <span class="material-symbols-outlined">palette</span>
+                            <h3>No Designs Yet</h3>
+                            <p>Start creating your first design to see it here</p>
+                            <button class="collections-empty-btn" @onclick="@(() => { })">
+                                <span class="material-symbols-outlined">add</span>
+                                Create Design
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="collections-grid">
+                            @foreach (var design in userDesigns)
                             {
-                                var design = collection.CopiedDesign;
                                 <div class="collections-card">
                                     <div class="collections-card-image">
                                         <img src="@design.FinalImageUrl" alt="@design.Title" />
@@ -195,6 +142,10 @@
                                         }
                                         <div class="collections-card-overlay">
                                             <div class="collections-card-actions">
+                                                <button class="collections-card-action-btn" title="Edit"
+                                                        @onclick="@(() => OpenEditPopup(design))">
+                                                    <span class="material-symbols-outlined">edit</span>
+                                                </button>
                                                 <button class="collections-card-action-btn primary" title="Order"
                                                         @onclick="@(() => OrderDesign(design))">
                                                     <span class="material-symbols-outlined">shopping_bag</span>
@@ -218,13 +169,70 @@
                                     </div>
                                 </div>
                             }
-                        }
-                    </div>
+                        </div>
+                    }
                 }
-            }
+                else
+                {
+                    @if (userCollections.Count == 0)
+                    {
+                        <div class="collections-empty">
+                            <span class="material-symbols-outlined">bookmark_border</span>
+                            <h3>No Saved Designs</h3>
+                            <p>Start exploring and save designs you love from the community</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="collections-grid">
+                            @foreach (var collection in userCollections)
+                            {
+                                @if (collection.CopiedDesign != null)
+                                {
+                                    var design = collection.CopiedDesign;
+                                    <div class="collections-card">
+                                        <div class="collections-card-image">
+                                            <img src="@design.FinalImageUrl" alt="@design.Title" />
+                                            @if (showShareForDesign == design.Id)
+                                            {
+                                                <div class="collections-share-overlay">
+                                                    <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
+                                                                        OnClose="@(() => ToggleShare(design.Id))" />
+                                                </div>
+                                            }
+                                            <div class="collections-card-overlay">
+                                                <div class="collections-card-actions">
+                                                    <button class="collections-card-action-btn primary" title="Order"
+                                                            @onclick="@(() => OrderDesign(design))">
+                                                        <span class="material-symbols-outlined">shopping_bag</span>
+                                                    </button>
+                                                    <button class="collections-card-action-btn" title="Share"
+                                                            @onclick="@(() => ToggleShare(design.Id))">
+                                                        <span class="material-symbols-outlined">share</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="collections-card-body">
+                                            <div class="collections-card-info">
+                                                <h3>@design.Title</h3>
+                                                <div class="collections-card-description">
+                                                    <p>@($"{design.ClothingType.ToString()} • {design.DisplayedColor ?? "Unknown"}")</p>
+                                                    <div class="collections-color-circle" style="background-color: @design.Color"></div>
+                                                </div>
+                                            </div>
+                                            <span class="material-symbols-outlined collections-card-more">more_vert</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                }
 
-            <EditDesignTitlePopup IsOpen="@editPopupOpen" Design="@selectedDesign" OnClose="CloseEditPopup"
-                                  OnSave="HandleDesignTitleSave" />
+                <EditDesignTitlePopup IsOpen="@editPopupOpen" Design="@selectedDesign" OnClose="CloseEditPopup"
+                                      OnSave="HandleDesignTitleSave" />
+            }
         </section>
     </div>
 </main>
@@ -246,22 +254,55 @@
     private bool editPopupOpen = false;
     private Design? selectedDesign;
     private Guid? showShareForDesign;
+    private bool isLoading = true;
     #endregion
 
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        Task.Delay(300);
-        currentUser = AuthService.CurrentUser ?? new();
+        try
+        {
+            currentUser = AuthService.CurrentUser ?? new();
+            clothingTypes = Enum.GetValues<ClothingType>().ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogInformation($"Error in collection: {ex.Message}");
+
+        }
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Simulate loading delay (3 seconds)
+                await Task.Delay(3000);
+                await LoadData();
+                UpdateFiltersForTab();
+                isLoading = false;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogInformation($"Error in collection.OnAfterRenderAsync: {ex.Message}");
+                isLoading = false;
+                StateHasChanged();
+            }
+        } 
+        await base.OnAfterRenderAsync(firstRender);
+    }
+    async Task LoadData()
+    {
         allUserDesigns = TestData.GetUserDesigns(currentUser.Id) ?? [];
         userDesigns = allUserDesigns.ToList();
         allUserCollections = currentUser.Collections?.ToList() ?? [];
         userCollections = allUserCollections.ToList();
-        clothingTypes = Enum.GetValues<ClothingType>().ToList();
-        UpdateFiltersForTab();
-        return base.OnInitializedAsync();
+        
     }
-
     #region ui controllers
 
 
@@ -291,7 +332,7 @@
         }
         selectedStyle = null;
     }
-    void SwitchTab(string tab)
+    async Task SwitchTab(string tab)
     {
         activeTab = tab;
         UpdateFiltersForTab();
@@ -431,7 +472,7 @@
 
 
     //changed on backend
-    void HandleDesignTitleSave(Design design)
+    async Task HandleDesignTitleSave(Design design)
     {
         var index = allUserDesigns.FindIndex(d => d.Id == design.Id);
         if (index >= 0)
@@ -445,6 +486,6 @@
     {
     }
 
-  
+
 
 }

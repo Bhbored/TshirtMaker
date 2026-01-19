@@ -139,6 +139,17 @@
     justify-content: center;
 }
 
+.hero-image-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 32rem;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .hero-image {
     width: 100%;
     height: 100%;
@@ -148,18 +159,71 @@
     filter: hue-rotate(260deg) brightness(1.2) contrast(1.1);
     transition: transform 0.7s ease-out;
     transform: scale(1);
+    border-radius: 20px; /* From template */
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    place-content: center;
+    place-items: center;
 }
 
-.hero-image:hover {
-    transform: scale(1.05);
+.hero-image::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(180deg, rgb(0, 183, 255), rgb(255, 48, 255)); /* From template */
+    z-index: 1;
+    border-radius: 20px; /* Match container */
+    animation: rotBGimg 3s linear infinite; /* From template */
+    transition: all 0.2s linear; /* From template */
+    top: 0;
+    left: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 5% 5%, 95% 5%, 95% 95%, 5% 95%, 5% 5%);
+}
+
+.hero-image::after {
+    content: '';
+    position: absolute;
+    background: #0a0a0e; /* Match background color */
+    inset: 5px;
+    border-radius: 15px; /* From template */
+    z-index: 2;
+}
+
+.hero-image-inner {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: hue-rotate(260deg) brightness(1.2) contrast(1.1);
+}
+
+.hero-image:hover::before {
+    background-image: linear-gradient(180deg, rgb(81, 255, 0), purple); /* Hover effect from template */
+    animation: rotBGimg 3.5s linear infinite; /* Slower animation on hover */
 }
 
 .hero-overlay {
     position: absolute;
-    inset: 0;
+    inset: 5px; /* Inside the border */
     background: linear-gradient(to top right, rgba(127, 19, 236, 0.4), transparent, rgba(96, 165, 250, 0.2));
     mix-blend-mode: overlay;
-    border-radius: 0.75rem;
+    border-radius: 15px; /* Match the inner border */
+    z-index: 4; /* Above the ::after element */
+}
+
+@keyframes rotBGimg {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .visual-footer {

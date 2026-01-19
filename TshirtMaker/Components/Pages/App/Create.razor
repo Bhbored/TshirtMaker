@@ -4,9 +4,11 @@
 @using TshirtMaker.Components.ui.common
 @using TshirtMaker.PublicData
 @using TshirtMaker.Models.Enums
+@using TshirtMaker.Models.Core
 @using TshirtMaker.Utility
 @layout MainLayout
 @inject NavigationManager Nav
+@implements IDisposable
 
 <PageTitle>TshirtMaker - AI Creation Workspace</PageTitle>
 
@@ -25,7 +27,7 @@
                             <p class="create-label">Apparel Type</p>
                             <div class="dropdown">
                                 <button class="btn btn-secondary dropdown-toggle create-apparel-dropdown" type="button"
-                                        id="apparelTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    id="apparelTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                     @selectedApparelType.ToString()
                                 </button>
                                 <ul class="dropdown-menu create-dropdown-menu" aria-labelledby="apparelTypeDropdown">
@@ -33,7 +35,7 @@
                                     {
                                         <li>
                                             <a class="dropdown-item @(selectedApparelType == apparelType ? "active" : "")"
-                                               @onclick="@(() => selectedApparelType = apparelType)">
+                                                @onclick="@(() => switchApparel(apparelType))">
                                                 @apparelType.ToString()
                                             </a>
                                         </li>
@@ -47,8 +49,9 @@
                             <p class="create-label">Base Color</p>
                             <div class="dropdown">
                                 <button class="btn btn-secondary dropdown-toggle create-apparel-dropdown" type="button"
-                                        id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="color-preview" style="background-color: @(selectedColor ?? "#FFFFFF");"></span>
+                                    id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="color-preview"
+                                        style="background-color: @(selectedColor ?? "#FFFFFF");"></span>
                                     @ColorHelper.HexToColorName(selectedColor!)
                                 </button>
                                 <ul class="dropdown-menu create-dropdown-menu" aria-labelledby="colorDropdown">
@@ -56,8 +59,9 @@
                                     {
                                         <li>
                                             <a class="dropdown-item @(selectedColor == color.Value ? "active" : "")"
-                                               @onclick="@(() => selectedColor = color.Value)">
-                                                <span class="color-preview" style="background-color: @(color.Value ?? "#FFFFFF");"></span>
+                                                @onclick="@(() => UpdateColor(color.Value))">
+                                                <span class="color-preview"
+                                                    style="background-color: @(color.Value ?? "#FFFFFF");"></span>
                                                 @color.Name
                                             </a>
                                         </li>
@@ -73,7 +77,7 @@
                                 @foreach (var size in sizes)
                                 {
                                     <button class="create-size-btn @(selectedSize == size ? "active" : "")"
-                                            @onclick="@(() => selectedSize = size)">
+                                        @onclick="@(() => UpdateSize(size))">
                                         @size.ToString()
                                     </button>
                                 }
@@ -91,9 +95,9 @@
                             @foreach (var material in MaterialPrests)
                             {
                                 <div class="create-material-card @(selectedMaterial == material.Title ? "active" : "")"
-                                     @onclick="@(() => selectedMaterial = material.Title)">
+                                    @onclick="@(() => UpdateMaterial(material.Title))">
                                     <div class="create-material-preview"
-                                         style="background-image: url('@material.PreviewImageUrl'); background-size: cover; background-position: center;">
+                                        style="background-image: url('@material.PreviewImageUrl'); background-size: cover; background-position: center;">
                                     </div>
                                     <span>@material.Title</span>
                                 </div>
@@ -123,22 +127,22 @@
             <!-- Step Navigation Buttons -->
             <div class="create-step-nav">
                 <button type="button"
-                        class="create-step-btn @(currentWindow == "setup" ? "active" : "") @(!CanNavigateToStep("setup") ? "disabled" : "")"
-                        @onclick="@(() => ChangeWindow("setup"))" disabled="@(!CanNavigateToStep("setup"))">
+                    class="create-step-btn @(currentWindow == "setup" ? "active" : "") @(!CanNavigateToStep("setup") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("setup"))" disabled="@(!CanNavigateToStep("setup"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Setup</span>
                 </button>
                 <div class="create-step-connector"></div>
                 <button type="button"
-                        class="create-step-btn @(currentWindow == "creation" ? "active" : "") @(!CanNavigateToStep("creation") ? "disabled" : "")"
-                        @onclick="@(() => ChangeWindow("creation"))" disabled="@(!CanNavigateToStep("creation"))">
+                    class="create-step-btn @(currentWindow == "creation" ? "active" : "") @(!CanNavigateToStep("creation") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("creation"))" disabled="@(!CanNavigateToStep("creation"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Creation</span>
                 </button>
                 <div class="create-step-connector"></div>
                 <button type="button"
-                        class="create-step-btn @(currentWindow == "finalization" ? "active" : "") @(!CanNavigateToStep("finalization") ? "disabled" : "")"
-                        @onclick="@(() => ChangeWindow("finalization"))" disabled="@(!CanNavigateToStep("finalization"))">
+                    class="create-step-btn @(currentWindow == "finalization" ? "active" : "") @(!CanNavigateToStep("finalization") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("finalization"))" disabled="@(!CanNavigateToStep("finalization"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Finalization</span>
                 </button>
@@ -201,7 +205,7 @@
                 }
                 @if (currentWindow == "finalization")
                 {
-                    <Finalization SelectedImageUrl="selectedImageUrl" />
+                    <Finalization FinalDesignImage="@currentDesign?.FinalImageUrl" />
                 }
             </div>
 
@@ -210,7 +214,7 @@
                 @if (currentWindow == "setup")
                 {
                     <button class="create-generate-btn @(isGenerating ? "generating" : "")" @onclick="GenerateAIArt"
-                            disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
+                        disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
                         <span class="material-symbols-outlined">auto_awesome</span>
                         @if (isGenerating)
                         {
@@ -225,7 +229,7 @@
                 @if (currentWindow == "creation")
                 {
                     <button class="create-generate-btn @(isSelecting ? "generating" : "")" @onclick="SelectImage"
-                            disabled="@(!imageSelected || isSelecting)">
+                        disabled="@(!imageSelected || isSelecting)">
                         <span class="material-symbols-outlined">check_circle</span>
                         @if (isSelecting)
                         {
@@ -257,7 +261,7 @@
                                     @foreach (var preset in stylePresets)
                                     {
                                         <div class="create-preset-card @(selectedPreset == preset.Title ? "active" : "")"
-                                             @onclick="@(() => selectedPreset = preset.Title)">
+                                            @onclick="@(() => UpdatePreset(preset.Title))">
                                             <div class="create-preset-overlay"></div>
                                             <img src="@preset.PreviewImageUrl" alt="@preset.Title" />
                                             <div class="create-preset-label">
@@ -286,10 +290,10 @@
                             </div>
                             <div class="create-textarea-wrapper">
                                 <textarea class="create-textarea"
-                                          placeholder="Describe the artwork you want to generate on the center of the garment..."
-                                          value="@promptText"
-                                          @oninput="@((ChangeEventArgs e) => { promptText = e.Value?.ToString() ?? string.Empty; OnPromptTextChanged(); })"
-                                          maxlength="500"></textarea>
+                                    placeholder="Describe the artwork you want to generate on the center of the garment..."
+                                    value="@promptText"
+                                    @oninput="@((ChangeEventArgs e) => UpdatePrompt(e.Value?.ToString() ?? string.Empty))"
+                                    maxlength="500"></textarea>
                                 <div class="create-char-count">@promptText.Length / 500</div>
                             </div>
                         </div>
@@ -305,17 +309,20 @@
                                     <div class="create-advanced-field">
                                         <p class="create-advanced-label">Negative Prompt</p>
                                         <input class="create-advanced-input" type="text"
-                                               placeholder="What to exclude (e.g. text, blur)" @bind="negativePrompt" />
+                                            placeholder="What to exclude (e.g. text, blur)" value="@negativePrompt"
+                                            @oninput="@((ChangeEventArgs e) => UpdateNegativePrompt(e.Value?.ToString() ?? string.Empty))" />
                                     </div>
                                     <div class="create-advanced-field">
                                         <p class="create-advanced-label">Upscale Resolution</p>
                                         <div class="create-resolution-buttons">
-                                            <button class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
-                                                    @onclick="@(() => selectedResolution = "2K")">
+                                            <button
+                                                class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
+                                                @onclick="@(() => UpdateResolution("2K"))">
                                                 2K
                                             </button>
-                                            <button class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
-                                                    @onclick="@(() => selectedResolution = "4K")">
+                                            <button
+                                                class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
+                                                @onclick="@(() => UpdateResolution("4K"))">
                                                 4K
                                             </button>
                                         </div>
@@ -345,7 +352,7 @@
     private bool isPreviewing = false;
     //initial data
     private string? clothImage;
-    private string? selectedImageUrl = null;
+    private string? selectedImageUrl = null; // Tracks which AI-generated image was selected from the 4 options
     private ClothingType selectedApparelType = ClothingType.TShirt;
     private string selectedColor = "#FFFFFF";
     private ClothingSize selectedSize = ClothingSize.M;
@@ -355,8 +362,10 @@
     private string negativePrompt = string.Empty;
     private string selectedResolution = "2K";
 
+    private Design? currentDesign = null;
 
     #endregion
+
 
 
     #region lists
@@ -364,6 +373,7 @@
     private List<MaterialPreview> MaterialPrests = [];
     private List<ClothingType> apparelTypes = [];
     private List<ClothingSize> sizes = [];
+    private List<Resolution> resolutions = [];
 
     #endregion
 
@@ -402,26 +412,38 @@
 "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
 "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
 "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=800&q=80",
-"https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&q=80",
-"https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80",
-"https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&q=80"
+"https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&q=80"
 };
 
     #endregion
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         currentWindow = "setup";
         stylePresets = PublicPresets.StylePresetPreviews;
         MaterialPrests = PublicPresets.MaterialPresets;
         apparelTypes = Enum.GetValues<ClothingType>().ToList();
         sizes = Enum.GetValues<ClothingSize>().ToList();
+        resolutions = Enum.GetValues<Resolution>().ToList();
         clothImage = "images/t-shirt_front.png";
         isPreviewing = false;
-        base.OnInitialized();
+
+        currentDesign = new Design
+        {
+            ClothingType = selectedApparelType,
+            Color = selectedColor,
+            Size = selectedSize,
+            Material = GetMaterialEnum(selectedMaterial),
+            StylePreset = GetStylePresetEnum(selectedPreset),
+            Title = "Untitled Design",
+            Resolution = Resolution.TwoK
+        };
+
+        await base.OnInitializedAsync();
     }
 
+    #region ui handlers
 
     private async Task ShowPreview()
     {
@@ -437,15 +459,55 @@
     }
     private void RotateLeft()
     {
-        clothImage = "images/t-shirt_back_view.png";
-        position = "BACK VIEW";
+        if (clothImage!.Equals("images/t-shirt_front.png", StringComparison.OrdinalIgnoreCase))
+        {
+            clothImage = "images/t-shirt_back_view.png";
+            position = "BACK VIEW";
+        }
+        if (clothImage!.Equals("images/polo_shirt_front.png", StringComparison.OrdinalIgnoreCase))
+        {
+            clothImage = "images/polo_shirt_back.png";
+            position = "BACK VIEW";
+        }
         StateHasChanged();
+
+
     }
 
     private void RotateRight()
     {
-        clothImage = "images/t-shirt_front.png";
-        position = "FRONT VIEW";
+        if (clothImage!.Equals("images/t-shirt_back_view.png", StringComparison.OrdinalIgnoreCase))
+        {
+            clothImage = "images/t-shirt_front.png";
+            position = "FRONT VIEW";
+        }
+        if (clothImage!.Equals("images/polo_shirt_back.png", StringComparison.OrdinalIgnoreCase))
+        {
+            clothImage = "images/polo_shirt_front.png";
+            position = "FRONT VIEW";
+
+        }
+        StateHasChanged();
+
+
+    }
+
+    void switchApparel(ClothingType type)
+    {
+        selectedApparelType = type;
+        clothImage = selectedApparelType switch
+        {
+            ClothingType.TShirt => "images/t-shirt_front.png",
+            ClothingType.Hoodie => "images/hoodie.png",
+            ClothingType.PoloShirt => "images/polo_shirt_front.png",
+            _ => "images/t-shirt_front.png",
+        };
+
+        if (currentDesign != null)
+        {
+            currentDesign.ClothingType = selectedApparelType;
+        }
+
         StateHasChanged();
     }
 
@@ -459,6 +521,9 @@
             _ => false
         };
     }
+    #endregion
+
+
 
     private async Task GenerateAIArt()
     {
@@ -468,19 +533,17 @@
         isGenerating = true;
         StateHasChanged();
 
-        // Simulate generation with 3 second delay
         await Task.Delay(3000);
 
         isGenerating = false;
         creationCompleted = true;
 
-        // Automatically move to next step
         ChangeWindow("creation");
     }
 
     private void EnhancePrompt()
     {
-        // TODO: Implement prompt enhancement
+        // ma eli 5la2 a3mla...momkin ba3dain
     }
 
     private string ChangeWindow(string window)
@@ -508,21 +571,128 @@
 
     private async Task SelectImage()
     {
-        // Image selection is already handled by HandleImageSelected
-        // This method is for the button click to confirm selection
+
         if (imageSelected && !string.IsNullOrEmpty(selectedImageUrl) && !isSelecting)
         {
             isSelecting = true;
             StateHasChanged();
 
-            // Simulate selection with 3 second delay
             await Task.Delay(3000);
 
             isSelecting = false;
 
-            // Move to finalization after selection completes
+            // Set final design image (this would be the merged t-shirt + design, using dummy for now)
+            // selectedImageUrl contains the AI-generated design that was picked
+            if (currentDesign != null)
+            {
+                currentDesign.FinalImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80";
+            }
+
             ChangeWindow("finalization");
         }
     }
+
+    #region Update Methods
+
+    private void UpdateColor(string color)
+    {
+        selectedColor = color;
+        if (currentDesign != null)
+        {
+            currentDesign.Color = color;
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateSize(ClothingSize size)
+    {
+        selectedSize = size;
+        if (currentDesign != null)
+        {
+            currentDesign.Size = size;
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateMaterial(string materialTitle)
+    {
+        selectedMaterial = materialTitle;
+        if (currentDesign != null)
+        {
+            currentDesign.Material = GetMaterialEnum(materialTitle);
+        }
+        StateHasChanged();
+    }
+
+    private void UpdatePreset(string presetTitle)
+    {
+        selectedPreset = presetTitle;
+        if (currentDesign != null)
+        {
+            currentDesign.StylePreset = GetStylePresetEnum(presetTitle);
+        }
+        StateHasChanged();
+    }
+
+    private void UpdatePrompt(string prompt)
+    {
+        promptText = prompt;
+        if (currentDesign != null)
+        {
+            currentDesign.Prompt = prompt;
+        }
+        OnPromptTextChanged();
+    }
+
+    private void UpdateNegativePrompt(string negativePromptValue)
+    {
+        negativePrompt = negativePromptValue;
+        if (currentDesign != null)
+        {
+            currentDesign.NegativePrompt = negativePromptValue;
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateResolution(string resolution)
+    {
+        selectedResolution = resolution;
+        if (currentDesign != null)
+        {
+            currentDesign.Resolution = resolution == "4K" ? Resolution.FourK : Resolution.TwoK;
+        }
+        StateHasChanged();
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private Material GetMaterialEnum(string materialTitle)
+    {
+        var materialPreview = MaterialPrests.FirstOrDefault(m => m.Title == materialTitle);
+        if (materialPreview != null && Enum.TryParse<Material>(materialPreview.Material, out var material))
+        {
+            return material;
+        }
+        return Material.HeavyCotton;
+    }
+
+    private StylePresetType? GetStylePresetEnum(string presetTitle)
+    {
+        var stylePreview = stylePresets?.FirstOrDefault(s => s.Title == presetTitle);
+        return stylePreview?.StylePreset;
+    }
+
+    #endregion
+
+
+
+    public void Dispose()
+    {
+        currentDesign = null;
+    }
+
+
 
 }

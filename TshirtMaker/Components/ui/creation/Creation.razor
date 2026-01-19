@@ -1,5 +1,5 @@
 <div class="creation-content">
-    <div class="creation-grid">
+    <div class="creation-grid creation-grid-4">
         @if (ImageUrls != null && ImageUrls.Count > 0)
         {
             @foreach (var imageUrl in ImageUrls)
@@ -14,7 +14,7 @@
                             </div>
                         }
                     </div>
-                    <img src="@imageUrl" alt="Generated Design" class="creation-image" />
+                    <img src="@imageUrl" alt="Generated Design" class="creation-image" loading="lazy" />
                 </div>
             }
         }
