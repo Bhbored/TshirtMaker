@@ -13,6 +13,6 @@ namespace TshirtMaker.Models.Enums
         Abstract,
         Photorealistic,
         PixelArt,
-        Graffiti
+        Graffiti,
     }
 }

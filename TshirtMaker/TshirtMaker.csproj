@@ -13,6 +13,9 @@
     <Folder Include="Components\ui\Feed\" />
     <Folder Include="Models\AI\" />
     <Folder Include="Models\Enums\" />
+    <Folder Include="Services\AI\" />
+    <Folder Include="wwwroot\userImages\final\" />
+    <Folder Include="wwwroot\userImages\temp\" />
   </ItemGroup>
 
 </Project>

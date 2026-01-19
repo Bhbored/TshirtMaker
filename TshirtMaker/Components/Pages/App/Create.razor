@@ -7,6 +7,7 @@
 @using TshirtMaker.Models.Core
 @using TshirtMaker.Utility
 @layout MainLayout
+@inject IAIDesignService Gemini
 @inject AuthService AuthService
 @implements IDisposable
 
@@ -150,6 +151,13 @@
 
             <!-- Main 3D Model Placeholder -->
             <div class="create-preview-container">
+                @if (apiError)
+                {
+                    <div class="alert alert-danger mb-3" role="alert">
+                        @Gemini.ErrorMessage
+                        <button type="button" class="btn btn-danger ms-3" @onclick="RefreshPage">Reset</button>
+                    </div>
+                }
                 @* hon habilai *@
                 @if (currentWindow == "setup")
                 {
@@ -339,6 +347,27 @@
 @code {
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #region fields
 
     //ui controllers
@@ -351,6 +380,7 @@
     private bool imageSelected = false;
     private bool selectionConfirmed = false; // true only after user clicks the SELECT button
     private string position = "FRONT VIEW";
+    private bool apiError = false;
     private bool isPreviewing = false;
 
     //initial data
@@ -411,14 +441,10 @@
 ("Violet", "#EE82EE")
 };
 
+
+
     #region test image urls
-    private List<string> generatedImageUrls = new()
-{
-"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
-"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
-"https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=800&q=80",
-"https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&q=80"
-};
+    private List<string> generatedImageUrls = [];
 
     #endregion
 
@@ -439,7 +465,7 @@
         resolutions = Enum.GetValues<Resolution>().ToList();
         clothImage = "images/t-shirt_front.png";
         isPreviewing = false;
-
+        apiError = false;
         currentDesign = new Design
         {
             ClothingType = selectedApparelType,
@@ -542,8 +568,11 @@
         isGenerating = true;
         StateHasChanged();
 
-        await Task.Delay(3000);
 
+
+        generatedImageUrls = await Gemini.GenerateInitialDesignsAsync(currentDesign!.Prompt, currentDesign.NegativePrompt, currentDesign.StylePreset);
+
+        apiError = !string.IsNullOrEmpty(Gemini.ErrorMessage);
         isGenerating = false;
         creationCompleted = true;
         imageSelected = false;
