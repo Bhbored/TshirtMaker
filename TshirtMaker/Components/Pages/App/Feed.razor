@@ -103,6 +103,15 @@
                                     </button>
                                     <span class="feed-stat-value">@FormatNumber(x.CommentsCount)</span>
                                 </div>
+                                @if (isMyPost)
+                                {
+                                    <div class="feed-stat-item">
+                                        <button class="material-symbols-outlined feed-stat-icon feed-delete-icon" type="button"
+                                            @onclick="() => OpenDeleteConfirmation(x.Id)">
+                                            delete
+                                        </button>
+                                    </div>
+                                }
                             </div>
                             <span class="feed-timestamp">@GetTimeAgo(x.CreatedAt)</span>
                         </div>
@@ -135,6 +144,9 @@
 <CreatePostPopup Designs="@userDesigns" IsOpen="@isCreatePostPopupOpen" OnClose="CloseCreatePostPopup"
     CurrentUser="currentUser" OnPost="ConfirmPost" />
 
+<ConfirmDeletePopup Message="@deleteConfirmationMessage" IsOpen="@isDeleteConfirmationOpen"
+    OnClose="CloseDeleteConfirmation" OnConfirm="HandleDeletePost" ItemId="@selectedPostIdForDelete" />
+
 
 @code {
     private List<Post> feedPost = new();
@@ -145,14 +157,15 @@
     private bool isCommentPopupOpen = false;
     private bool isCreatePostPopupOpen = false;
     private Post? selectedPostForComments;
+    private bool isDeleteConfirmationOpen = false;
+    private Guid selectedPostIdForDelete = Guid.Empty;
+    private string deleteConfirmationMessage = "Are you sure you want to delete this post? This action cannot be undone.";
 
     protected override void OnInitialized()
     {
         try
         {
             currentUser = Auth.CurrentUser ?? new();
-            userPosts = DataService.GetUserPosts(currentUser.Id) ?? [];
-            userDesigns = DataService.GetUserDesigns(currentUser.Id) ?? [];
             LoadFeedData();
         }
         catch (Exception ex)
@@ -173,7 +186,8 @@
             }
 
             var allPosts = DataService.GetAllPosts() ?? new List<Post>();
-
+            userPosts = DataService.GetUserPosts(currentUser.Id) ?? [];
+            userDesigns = DataService.GetUserDesigns(currentUser.Id) ?? [];
             feedPost = activeFilter switch
             {
                 "trending" => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList(),
@@ -420,5 +434,26 @@
         LoadFeedData();//later async
         StateHasChanged();
 
+    }
+
+    private void OpenDeleteConfirmation(Guid postId)
+    {
+        selectedPostIdForDelete = postId;
+        isDeleteConfirmationOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseDeleteConfirmation()
+    {
+        isDeleteConfirmationOpen = false;
+        selectedPostIdForDelete = Guid.Empty;
+        StateHasChanged();
+    }
+
+    private void HandleDeletePost(Guid postId)
+    {
+        DataService.DeletePost(postId);
+        LoadFeedData();
+        StateHasChanged();
     }
 }

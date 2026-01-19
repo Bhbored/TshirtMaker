@@ -18,7 +18,12 @@ public class TestDataService
 
     public List<Post> GetAllPosts() => TestUsers.Posts;
     public List<Post> GetUserPosts(Guid id) => TestUsers.Posts.Where(x => x.PosterId == id).ToList();
+    public void DeletePost(Guid id)
+    {
+        var postToBeRemoved = TestUsers.Posts.FirstOrDefault((x) => x.Id == id) ?? new();
+        TestUsers.Posts.Remove(postToBeRemoved);
+    }
 
-    
+
 
 }

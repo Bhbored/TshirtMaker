@@ -56,7 +56,7 @@
                         var isChecked = activeTypes.Contains(clothingType);
                         <label class="collections-checkbox-label">
                             <input type="checkbox" checked="@isChecked" class="collections-checkbox"
-                                @onchange="@(() => ToggleClothingType(clothingType))" />
+                                   @onchange="@(() => ToggleClothingType(clothingType))" />
                             <span>@clothingType.ToString() (@count)</span>
                         </label>
                     }
@@ -73,7 +73,7 @@
                         var count = GetDesignCountByStyle(styleType);
                         var isActive = selectedStyle == styleType;
                         <button class="collections-style-button @(isActive ? "active" : "")"
-                            @onclick="@(() => SelectStyleType(styleType))">
+                                @onclick="@(() => SelectStyleType(styleType))">
                             @styleType.ToString() (@count)
                         </button>
                     }
@@ -95,9 +95,13 @@
 
             <div class="collections-tabs">
                 <button class="collections-tab @(activeTab == "creations" ? "active" : "")"
-                    @onclick="@(() => SwitchTab("creations"))">My Creations</button>
+                        @onclick="@(() => SwitchTab("creations"))">
+                    My Creations
+                </button>
                 <button class="collections-tab @(activeTab == "saves" ? "active" : "")"
-                    @onclick="@(() => SwitchTab("saves"))">Community Saves</button>
+                        @onclick="@(() => SwitchTab("saves"))">
+                    Community Saves
+                </button>
             </div>
 
             @if (activeTab == "creations")
@@ -126,21 +130,21 @@
                                     {
                                         <div class="collections-share-overlay">
                                             <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
-                                                OnClose="@(() => ToggleShare(design.Id))" />
+                                                                OnClose="@(() => ToggleShare(design.Id))" />
                                         </div>
                                     }
                                     <div class="collections-card-overlay">
                                         <div class="collections-card-actions">
                                             <button class="collections-card-action-btn" title="Edit"
-                                                @onclick="@(() => OpenEditPopup(design))">
+                                                    @onclick="@(() => OpenEditPopup(design))">
                                                 <span class="material-symbols-outlined">edit</span>
                                             </button>
                                             <button class="collections-card-action-btn primary" title="Order"
-                                                @onclick="@(() => OrderDesign(design))">
+                                                    @onclick="@(() => OrderDesign(design))">
                                                 <span class="material-symbols-outlined">shopping_bag</span>
                                             </button>
                                             <button class="collections-card-action-btn" title="Share"
-                                                @onclick="@(() => ToggleShare(design.Id))">
+                                                    @onclick="@(() => ToggleShare(design.Id))">
                                                 <span class="material-symbols-outlined">share</span>
                                             </button>
                                         </div>
@@ -186,17 +190,17 @@
                                         {
                                             <div class="collections-share-overlay">
                                                 <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
-                                                    OnClose="@(() => ToggleShare(design.Id))" />
+                                                                    OnClose="@(() => ToggleShare(design.Id))" />
                                             </div>
                                         }
                                         <div class="collections-card-overlay">
                                             <div class="collections-card-actions">
                                                 <button class="collections-card-action-btn primary" title="Order"
-                                                    @onclick="@(() => OrderDesign(design))">
+                                                        @onclick="@(() => OrderDesign(design))">
                                                     <span class="material-symbols-outlined">shopping_bag</span>
                                                 </button>
                                                 <button class="collections-card-action-btn" title="Share"
-                                                    @onclick="@(() => ToggleShare(design.Id))">
+                                                        @onclick="@(() => ToggleShare(design.Id))">
                                                     <span class="material-symbols-outlined">share</span>
                                                 </button>
                                             </div>
@@ -220,14 +224,16 @@
             }
 
             <EditDesignTitlePopup IsOpen="@editPopupOpen" Design="@selectedDesign" OnClose="CloseEditPopup"
-                OnSave="HandleDesignTitleSave" />
+                                  OnSave="HandleDesignTitleSave" />
         </section>
     </div>
 </main>
 
 @code {
-    private User currentUser = new();
 
+    #region fields
+
+    private User currentUser = new();
     private List<Design> allUserDesigns = [];
     private List<Design> userDesigns = [];
     private List<Collection> allUserCollections = [];
@@ -240,6 +246,8 @@
     private bool editPopupOpen = false;
     private Design? selectedDesign;
     private Guid? showShareForDesign;
+    #endregion
+
 
     protected override Task OnInitializedAsync()
     {
@@ -253,6 +261,9 @@
         UpdateFiltersForTab();
         return base.OnInitializedAsync();
     }
+
+    #region ui controllers
+
 
     void UpdateFiltersForTab()
     {
@@ -280,7 +291,6 @@
         }
         selectedStyle = null;
     }
-
     void SwitchTab(string tab)
     {
         activeTab = tab;
@@ -405,6 +415,22 @@
         selectedDesign = null;
     }
 
+    void ToggleShare(Guid designId)
+    {
+        if (showShareForDesign == designId)
+        {
+            showShareForDesign = null;
+        }
+        else
+        {
+            showShareForDesign = designId;
+        }
+        StateHasChanged();
+    }
+    #endregion
+
+
+    //changed on backend
     void HandleDesignTitleSave(Design design)
     {
         var index = allUserDesigns.FindIndex(d => d.Id == design.Id);
@@ -419,17 +445,6 @@
     {
     }
 
-    void ToggleShare(Guid designId)
-    {
-        if (showShareForDesign == designId)
-        {
-            showShareForDesign = null;
-        }
-        else
-        {
-            showShareForDesign = designId;
-        }
-        StateHasChanged();
-    }
+  
 
 }

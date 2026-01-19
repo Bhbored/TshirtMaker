@@ -363,6 +363,16 @@
     font-weight: 500;
 }
 
+.feed-delete-icon {
+    color: #ff1744 !important;
+    opacity: 0.6;
+}
+
+.feed-delete-icon:hover {
+    opacity: 1;
+    color: #ff1744 !important;
+}
+
 .feed-loader {
     display: flex;
     justify-content: center;
