@@ -368,3 +368,5 @@ FodyWeavers.xsd
 .cursor/
 /TshirtMaker/Models/MODEL_DOCUMENTATION.md
 /TshirtMaker/Models/MODELS_SUMMARY.md
+/TshirtMaker/TshirtMaker/appsettings.json
+/TshirtMaker/appsettings.json
