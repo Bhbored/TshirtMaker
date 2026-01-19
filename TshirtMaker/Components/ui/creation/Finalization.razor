@@ -3,8 +3,8 @@
 <div class="finalization-content">
     @{
         var finalDesignImage = string.IsNullOrEmpty(FinalDesignImage)
-            ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80"
-            : FinalDesignImage;
+        ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80"
+        : FinalDesignImage;
     }
     <div class="finalization-card">
         <div class="finalization-image-container">
@@ -19,6 +19,15 @@
                     </svg>
                 </div>
             </div>
+            @if (showShare)
+            {
+                <div class="finalization-share-overlay">
+                    <ShareSocial ImageUrl="@finalDesignImage" CustomText="@shareText" />
+                    <button class="finalization-share-close" @onclick="ToggleShare" title="Close">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            }
         </div>
     </div>
 
@@ -37,19 +46,25 @@
         </button>
     </div>
 
-    @if (showShare)
-    {
-        <div class="finalization-share-container">
-            <ShareSocial ImageUrl="@finalDesignImage" CustomText="@shareText" />
-        </div>
-    }
+    <SaveDesignPopup IsOpen="@showSavePopup" InitialTitle="@Design?.Title" OnClose="CloseSavePopup" OnSave="HandleSave"
+        OnDiscard="HandleDiscard" />
 </div>
 
 @code {
     [Parameter]
     public string? FinalDesignImage { get; set; }
 
+    [Parameter]
+    public Design? Design { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnDiscard { get; set; }
+
     private bool showShare = false;
+    private bool showSavePopup = false;
     private string shareText = "Check out my custom design on ClothIQ!";
 
     private void ToggleShare()
@@ -59,7 +74,24 @@
 
     private void SaveDesign()
     {
-        // TODO: Implement save functionality
+        showSavePopup = true;
+    }
+
+    private void CloseSavePopup()
+    {
+        showSavePopup = false;
+    }
+
+    private async Task HandleSave(string title)
+    {
+        await OnSave.InvokeAsync(title);
+        showSavePopup = false;
+    }
+
+    private async Task HandleDiscard()
+    {
+        await OnDiscard.InvokeAsync();
+        showSavePopup = false;
     }
 
     private void OrderDesign()

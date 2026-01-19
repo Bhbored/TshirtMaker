@@ -42,8 +42,6 @@ namespace TshirtMaker.Models.Core
         [MaxLength(2048)]
         public string FinalImageUrl { get; set; } = string.Empty;
 
-        public DateTime? GeneratedAt { get; set; }
-
         public decimal Price => PriceCalculator.CalculatePrice(ClothingType, Material);
 
         public virtual User? User { get; set; }

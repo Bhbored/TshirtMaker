@@ -88,7 +88,6 @@ namespace TshirtMaker.Tests
                 Material = Material.HeavyCotton,
                 PrintPosition = PrintPosition.Front,
                 FinalImageUrl = "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-5),
                 CreatedAt = DateTime.UtcNow.AddDays(-5)
             };
 
@@ -106,7 +105,6 @@ namespace TshirtMaker.Tests
                 Material = Material.Fleece,
                 PrintPosition = PrintPosition.Back,
                 FinalImageUrl = "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-10),
                 CreatedAt = DateTime.UtcNow.AddDays(-10)
             };
 
@@ -124,7 +122,6 @@ namespace TshirtMaker.Tests
                 Material = Material.CottonPolyesterBlend,
                 PrintPosition = PrintPosition.Front,
                 FinalImageUrl = "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-2),
                 CreatedAt = DateTime.UtcNow.AddDays(-2)
             };
 
@@ -143,7 +140,6 @@ namespace TshirtMaker.Tests
                 Material = Material.HeavyCotton,
                 PrintPosition = PrintPosition.Front,
                 FinalImageUrl = "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-7),
                 CreatedAt = DateTime.UtcNow.AddDays(-7)
             };
 
@@ -161,7 +157,6 @@ namespace TshirtMaker.Tests
                 Material = Material.Polyester,
                 PrintPosition = PrintPosition.Front,
                 FinalImageUrl = "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-12),
                 CreatedAt = DateTime.UtcNow.AddDays(-12)
             };
 
@@ -179,7 +174,6 @@ namespace TshirtMaker.Tests
                 Material = Material.CottonPolyesterBlend,
                 PrintPosition = PrintPosition.LeftChest,
                 FinalImageUrl = "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-3),
                 CreatedAt = DateTime.UtcNow.AddDays(-3)
             };
 
@@ -198,7 +192,6 @@ namespace TshirtMaker.Tests
                 Material = Material.Polyester,
                 PrintPosition = PrintPosition.Back,
                 FinalImageUrl = "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-8),
                 CreatedAt = DateTime.UtcNow.AddDays(-8)
             };
 
@@ -216,7 +209,6 @@ namespace TshirtMaker.Tests
                 Material = Material.CottonPolyesterBlend,
                 PrintPosition = PrintPosition.Front,
                 FinalImageUrl = "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedAt = DateTime.UtcNow.AddDays(-14)
             };
 
@@ -234,7 +226,6 @@ namespace TshirtMaker.Tests
                 Material = Material.Fleece,
                 PrintPosition = PrintPosition.Front,
                 FinalImageUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=800&fit=crop",
-                GeneratedAt = DateTime.UtcNow.AddDays(-4),
                 CreatedAt = DateTime.UtcNow.AddDays(-4)
             };
 
