@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using TshirtMaker.Models.Core;
 using TshirtMaker.Models.Enums;
 
-namespace TshirtMaker.Models.AI
+namespace TshirtMaker.PublicData
 {
     public class StylePreset : BaseEntity
     {

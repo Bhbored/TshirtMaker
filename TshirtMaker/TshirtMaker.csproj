@@ -11,6 +11,7 @@
     <Folder Include="Components\Pages\UserInterface\" />
     <Folder Include="Components\ui\creation\" />
     <Folder Include="Components\ui\Feed\" />
+    <Folder Include="Models\AI\" />
     <Folder Include="Models\Enums\" />
   </ItemGroup>
 
