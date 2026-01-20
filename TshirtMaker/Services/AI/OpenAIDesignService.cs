@@ -167,7 +167,6 @@ namespace TshirtMaker.Services
 
             try
             {
-                // 1. Download design image (Phase 1) locally
                 var designResponse = await _httpClient.GetAsync(selectedDesignUrl, cancellationToken);
                 if (!designResponse.IsSuccessStatusCode)
                 {

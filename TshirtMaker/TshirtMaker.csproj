@@ -8,7 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Pages\UserInterface\" />
+    <Compile Remove="Components\Pages\UserInterface\**" />
+    <Content Remove="Components\Pages\UserInterface\**" />
+    <EmbeddedResource Remove="Components\Pages\UserInterface\**" />
+    <None Remove="Components\Pages\UserInterface\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Components\ui\creation\" />
     <Folder Include="Components\ui\Feed\" />
     <Folder Include="Models\AI\" />
