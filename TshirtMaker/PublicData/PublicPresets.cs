@@ -51,7 +51,7 @@ namespace TshirtMaker.PublicData
             {
                 Title = "Cyberpunk",
                 StylePreset = StylePresetType.Cyberpunk,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Cyberpunk.jpg"
             },
             new StylePresetPreview
             {
@@ -75,7 +75,7 @@ namespace TshirtMaker.PublicData
             {
                 Title = "Watercolor",
                 StylePreset = StylePresetType.Watercolor,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1579783902614-a53fb6c2b9c1?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Watercolor.jpg"
             },
             new StylePresetPreview
             {
@@ -87,7 +87,7 @@ namespace TshirtMaker.PublicData
             {
                 Title = "Gothic",
                 StylePreset = StylePresetType.Gothic,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Gothic.jpg"
             },
             new StylePresetPreview
             {

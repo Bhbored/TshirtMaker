@@ -62,8 +62,11 @@ namespace TshirtMaker.Services
 
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
-            services.AddScoped<IAIDesignService, GeminiAIBananaService>();
-            services.AddHttpClient();
+            services.AddScoped<IAIDesignService, OpenAIDesignService>();
+            services.AddHttpClient<OpenAIDesignService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(5); 
+            });
             return services;
         }
 
