@@ -346,6 +346,7 @@
 
 @code {
 
+
     #region fields
 
     //ui controllers
@@ -356,7 +357,7 @@
     private bool isSelecting = false;
     private bool creationCompleted = false;
     private bool imageSelected = false;
-    private bool selectionConfirmed = false; 
+    private bool selectionConfirmed = false;
     private string position = "FRONT VIEW";
     private bool apiError = false;
     private bool isPreviewing = false;
@@ -365,7 +366,7 @@
 
     private User currentUser = new();
     private string? clothImage;
-    private string? selectedImageUrl = null; 
+    private string? selectedImageUrl = null;
     private ClothingType selectedApparelType = ClothingType.TShirt;
     private string selectedColor = "#FFFFFF";
     private ClothingSize selectedSize = ClothingSize.M;
@@ -427,7 +428,7 @@
     "public/stylePresets/Cyberpunk.jpg",
     "public/stylePresets/Watercolor.jpg",
     "public/stylePresets/Gothic.jpg",
-    "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&h=600&fit=crop",
+
 ];
 
     #endregion
@@ -600,16 +601,13 @@
         {
             isSelecting = true;
             StateHasChanged();
-
             await Task.Delay(3000);
-
             isSelecting = false;
-
-            // Set final design image (this would be the merged t-shirt + design, using dummy for now)
-            // selectedImageUrl contains the AI-generated design that was picked
+            // var finalDesign = await Gemini.FinalizeDesignAsync(generatedImageUrls[3], clothImage!, currentDesign!.Id, currentDesign.Color);
+            // currentDesign.FinalImageUrl = finalDesign;
             if (currentDesign != null)
             {
-                currentDesign.FinalImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80";
+                currentDesign.FinalImageUrl = "";
             }
 
             selectionConfirmed = true;
