@@ -12,10 +12,18 @@ namespace TshirtMaker
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            //builder.Services.AddScoped<SupabaseAuthService>();
-            //builder.Services.AddScoped<SupabaseDbService>();
-            //builder.Services.AddHttpClient<AIDesignService>();
-            builder.Services.RegisterDependencies();
+            // Add distributed memory cache (required for session)
+            builder.Services.AddDistributedMemoryCache();
+
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.IdleTimeout = TimeSpan.FromHours(24);
+            });
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.RegisterDependencies(builder.Configuration);
 
             var app = builder.Build();
 
@@ -29,7 +37,7 @@ namespace TshirtMaker
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
-
+            app.UseSession();
             app.UseAntiforgery();
 
             app.MapStaticAssets();

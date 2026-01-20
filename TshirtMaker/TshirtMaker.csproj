@@ -18,4 +18,8 @@
     <Folder Include="wwwroot\userImages\temp\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Supabase" Version="1.1.1" />
+  </ItemGroup>
+
 </Project>
