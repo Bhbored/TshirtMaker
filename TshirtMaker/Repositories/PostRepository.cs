@@ -4,11 +4,33 @@ using TshirtMaker.Repositories.Interfaces;
 
 namespace TshirtMaker.Repositories
 {
+    /// <summary>
+    /// PostRepository inherits from BaseRepository&lt;PostDto&gt;, which provides:
+    /// - GetAllAsync(pageNumber, pageSize) — fetches ALL posts from the posts table (paginated, ordered by created_at desc)
+    /// - GetByIdAsync(id)
+    /// - CreateAsync(entity) — add
+    /// - UpdateAsync(entity) — update
+    /// - DeleteAsync(id) — delete
+    /// </summary>
     public class PostRepository : BaseRepository<PostDto>, IPostRepository
     {
-        public PostRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey) 
+        public PostRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey)
             : base(supabaseClient, "posts", supabaseUrl, supabaseKey)
         {
+        }
+
+        public async Task<IEnumerable<PostDto>> GetAllPostsAsync()
+        {
+            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?select=*&order=created_at.desc");
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new List<PostDto>();
+
+            return items;
         }
 
         public async Task<IEnumerable<PostDto>> GetByPosterIdAsync(Guid posterId, int pageNumber = 1, int pageSize = 10)
@@ -116,7 +138,6 @@ namespace TshirtMaker.Repositories
 
             return items.Count;
         }
-
         public async Task<bool> ToggleAllowRemixAsync(Guid postId, bool allowRemix)
         {
             var post = await GetByIdAsync(postId);
