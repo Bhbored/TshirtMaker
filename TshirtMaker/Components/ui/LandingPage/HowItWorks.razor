@@ -111,6 +111,32 @@ Type = "TShirt"
 },
 new ProductItem
 {
+Title = "Retro Print Tee",
+Material = "Soft Jersey Cotton",
+Price = 27,
+ImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600",
+Artwork = "Vintage Waves",
+Colors = new List<string> { "#fef3c7", "#1e3a8a", "#FFFFFF" },
+Sizes = new List<string> { "S", "M", "L", "XL" },
+SelectedSize = "M",
+Type = "TShirt"
+},
+new ProductItem
+{
+Title = "Artist Graphic Tee",
+Material = "Combed Cotton",
+Price = 32,
+ImageUrl = "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600",
+Artwork = "Street Art #12",
+Badge = "New",
+BadgeClass = "badge-new",
+Colors = new List<string> { "#000000", "#dc2626", "#4b5563" },
+Sizes = new List<string> { "S", "M", "L", "XL" },
+SelectedSize = "L",
+Type = "TShirt"
+},
+new ProductItem
+{
 Title = "Cozy Hoodie",
 Material = "Heavyweight Fleece",
 Price = 59,
@@ -120,6 +146,18 @@ Artwork = "Neon Cityscape",
 Colors = new List<string> { "#6b7280", "#312e81" },
 Sizes = new List<string> { "S", "M", "L", "XL" },
 SelectedSize = "L",
+Type = "Hoodie"
+},
+new ProductItem
+{
+Title = "Pullover Hoodie",
+Material = "Brushed Back Fleece",
+Price = 54,
+ImageUrl = "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600",
+Artwork = "Mountain Sunset",
+Colors = new List<string> { "#1f2937", "#7c2d12", "#1e3a8a" },
+Sizes = new List<string> { "S", "M", "L", "XL" },
+SelectedSize = "M",
 Type = "Hoodie"
 },
 new ProductItem
@@ -136,9 +174,61 @@ Colors = new List<string> { "#14532d", "#000000" },
 Sizes = new List<string> { "M", "L", "XL" },
 SelectedSize = "XL",
 Type = "Jacket"
+},
+new ProductItem
+{
+Title = "Denim Jacket",
+Material = "Premium Denim",
+Price = 79,
+ImageUrl = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600",
+Artwork = "Urban Script",
+Colors = new List<string> { "#1e3a5f", "#374151", "#78350f" },
+Sizes = new List<string> { "S", "M", "L", "XL" },
+SelectedSize = "L",
+Type = "Jacket"
+},
+new ProductItem
+{
+Title = "Camp Cap",
+Material = "Cotton Twill",
+Price = 24,
+ImageUrl = "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600",
+Artwork = "Minimal Logo",
+Colors = new List<string> { "#000000", "#FFFFFF", "#dc2626", "#1e40af" },
+Sizes = new List<string> { "One Size" },
+SelectedSize = "One Size",
+Type = "Accessories"
+},
+new ProductItem
+{
+Title = "Tote Bag",
+Material = "Canvas",
+Price = 22,
+ImageUrl = "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=600",
+Artwork = "Botanical Print",
+Badge = "Eco",
+BadgeClass = "badge-bestseller",
+Colors = new List<string> { "#fef3c7", "#1f2937", "#fecdd3" },
+Sizes = new List<string> { "One Size" },
+SelectedSize = "One Size",
+Type = "Accessories"
+},
+new ProductItem
+{
+Title = "Dad Cap",
+Material = "Washed Cotton",
+Price = 26,
+ImageUrl = "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600",
+Artwork = "Retro Badge",
+Badge = "New",
+BadgeClass = "badge-new",
+Colors = new List<string> { "#44403c", "#1c1917", "#166534" },
+Sizes = new List<string> { "One Size" },
+SelectedSize = "One Size",
+Type = "Accessories"
 }
 };
-        filteredItems = allItems;
+        filteredItems = PickRandom(allItems, 3);
     }
 
     private void SetFilter(string? filter)
@@ -146,13 +236,18 @@ Type = "Jacket"
         selectedFilter = filter;
         if (string.IsNullOrEmpty(filter))
         {
-            filteredItems = allItems;
+            filteredItems = PickRandom(allItems, 3);
         }
         else
         {
             filteredItems = allItems.Where(i => i.Type == filter).ToList();
         }
         StateHasChanged();
+    }
+
+    private static List<ProductItem> PickRandom(List<ProductItem> source, int count)
+    {
+        return source.OrderBy(_ => Random.Shared.Next()).Take(count).ToList();
     }
 
     private void SelectColor(ProductItem item, string color)

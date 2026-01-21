@@ -8,6 +8,7 @@ namespace TshirtMaker.Services.Supabase
     public class SupabaseStorageService
     {
         private readonly global::Supabase.Client _supabase;
+        private readonly string  bucketName = "Design images";
 
         public SupabaseStorageService(global::Supabase.Client supabase)
         {
@@ -16,7 +17,6 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<string> UploadToUserTempFolderAsync(byte[] imageBytes, string fileName, Guid userId, CancellationToken cancellationToken = default)
         {
-            var bucketName = "Design images";
             var filePath = $"{userId}/temp/{fileName}";
 
             var storage = _supabase.Storage.From(bucketName);
@@ -32,7 +32,6 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<string> UploadToUserFinalFolderAsync(byte[] imageBytes, string fileName, Guid userId, CancellationToken cancellationToken = default)
         {
-            var bucketName = "Design images";
             var filePath = $"{userId}/final/{fileName}";
 
             var storage = _supabase.Storage.From(bucketName);
@@ -48,7 +47,6 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<List<string>> GetUserTempImagesAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            var bucketName = "Design images";
             var folderPath = $"{userId}/temp";
 
             var storage = _supabase.Storage.From(bucketName);
@@ -73,7 +71,6 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<List<string>> GetUserFinalImagesAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            var bucketName = "Design images";
             var folderPath = $"{userId}/final";
 
             var storage = _supabase.Storage.From(bucketName);
@@ -98,7 +95,6 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<int> GetNextTempImageIndexAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            var bucketName = "Design images";
             var folderPath = $"{userId}/temp";
 
             var storage = _supabase.Storage.From(bucketName);
@@ -121,7 +117,6 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<int> GetNextFinalImageIndexAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            var bucketName = "Design images";
             var folderPath = $"{userId}/final";
 
             var storage = _supabase.Storage.From(bucketName);

@@ -37,7 +37,9 @@ window.scrollToElement = function (elementId) {
 };
 
 // Scroll-triggered fade-in animations
+// Uses MutationObserver so sections added by Blazor (InteractiveServer) after DOMContentLoaded are still observed
 window.initScrollAnimations = function () {
+    const selector = '.how-it-works-section, .describe-vision-section, .save-share-section, #features';
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -49,11 +51,26 @@ window.initScrollAnimations = function () {
         rootMargin: '0px 0px -50px 0px'
     });
 
-    // Observe all sections that should fade in
-    const sections = document.querySelectorAll('.how-it-works-section, .describe-vision-section, .save-share-section, #features');
-    sections.forEach(section => {
-        observer.observe(section);
+    function observeElement(el) {
+        if (!el || el.nodeType !== 1 || el.dataset.scrollObserved === '1') return;
+        el.dataset.scrollObserved = '1';
+        observer.observe(el);
+    }
+
+    // Observe sections already in the DOM
+    document.querySelectorAll(selector).forEach(observeElement);
+
+    // Watch for sections added later (e.g. by Blazor InteractiveServer after circuit connects)
+    const mo = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType !== 1) continue;
+                if (node.matches && node.matches(selector)) observeElement(node);
+                if (node.querySelectorAll) node.querySelectorAll(selector).forEach(observeElement);
+            }
+        }
     });
+    mo.observe(document.body, { childList: true, subtree: true });
 };
 
 // Initialize on page load

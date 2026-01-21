@@ -12,7 +12,8 @@
                     Describe Your Vision
                 </h1>
                 <p class="section-description">
-                    Tell our AI what you want. From abstract art to detailed illustrations, visualize it on premium apparel instantly.
+                    Tell our AI what you want. From abstract art to detailed illustrations, visualize it on premium
+                    apparel instantly.
                 </p>
             </div>
         </div>
@@ -23,11 +24,9 @@
                     <div class="input-glow"></div>
                     <div class="input-wrapper">
                         <span class="input-icon" style="font-size: 1.5rem;">✨</span>
-                        <input type="text" 
-                               class="prompt-input" 
-                               placeholder="A futuristic cyberpunk cat on a neon skateboard..." 
-                               @bind="promptText" 
-                               @bind:event="oninput" />
+                        <input type="text" class="prompt-input"
+                            placeholder="A futuristic cyberpunk cat on a neon skateboard..." @bind="promptText"
+                            @bind:event="oninput" />
                         <button class="generate-btn" @onclick="HandleGenerate">
                             <span>Generate</span>
                             <span>→</span>
@@ -55,11 +54,8 @@
                     <div class="creations-grid">
                         @foreach (var creation in recentCreations)
                         {
-                            <div class="creation-item" @onclick="() => ViewCreation(creation)">
+                            <div class="creation-item">
                                 <img src="@creation.ImageUrl" alt="@creation.Alt" class="creation-image" />
-                                <div class="creation-overlay">
-                                    <span>👁️</span>
-                                </div>
                             </div>
                         }
                     </div>
@@ -93,10 +89,9 @@
                             <div class="color-selector">
                                 @foreach (var color in previewColors)
                                 {
-                                    <button class="color-select-btn @(selectedColor == color ? "active" : "")" 
-                                            style="background-color: @color;" 
-                                            @onclick="() => SelectColor(color)"
-                                            title="@color"></button>
+                                    <button class="color-select-btn @(selectedColor == color ? "active" : "")"
+                                        style="background-color: @color;" @onclick="() => SelectColor(color)" type="button"
+                                        title="@color"></button>
                                 }
                             </div>
                             <button class="download-btn">
@@ -114,36 +109,40 @@
 @code {
     private string promptText = string.Empty;
     private string selectedColor = "#FFFFFF";
-    private string mockupImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuAgWWVxl6MN8T11SYp4y1DZfvF1amb2mWUDXP4VDRkKF0f4fXdwqXIG8Za3qhsbj8T7uvYIOZkyunXpW_IHfQbWVXc8j-ub33vNw5mugezpo-Wvyw9-D3H0ncpLiPgT6AE-G0VvtRB_0J7-hUnERsDN1Ts5F35W2skapSaWtGfzydxVoJKXURbd6RjOv7Q5DOs1LJg35qBbUM_hfIwP2rCjI1rI6OWcR0jzMjo4-8DY4VLh_1bnbCHlCtB645tkQ0OTyKesI4z8O_Wm";
-    
+    private string mockupImageUrl =
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuAgWWVxl6MN8T11SYp4y1DZfvF1amb2mWUDXP4VDRkKF0f4fXdwqXIG8Za3qhsbj8T7uvYIOZkyunXpW_IHfQbWVXc8j-ub33vNw5mugezpo-Wvyw9-D3H0ncpLiPgT6AE-G0VvtRB_0J7-hUnERsDN1Ts5F35W2skapSaWtGfzydxVoJKXURbd6RjOv7Q5DOs1LJg35qBbUM_hfIwP2rCjI1rI6OWcR0jzMjo4-8DY4VLh_1bnbCHlCtB645tkQ0OTyKesI4z8O_Wm";
+
+    #region mockdata
     private List<string> trendingPrompts = new()
-    {
-        "Astronaut riding a horse in space",
-        "Vaporwave sunset palm trees",
-        "Minimalist geometric fox",
-        "Oil painting of a cozy library"
-    };
+{
+"Astronaut riding a horse in space",
+"Vaporwave sunset palm trees",
+"Minimalist geometric fox",
+"Oil painting of a cozy library"
+};
 
     private List<string> previewColors = new() { "#FFFFFF", "#000000", "#2563eb" };
 
     private List<RecentCreation> recentCreations = new()
-    {
-        new RecentCreation
-        {
-            ImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDuoVLeBRa-i5h6iZR_rCXdPjM_U5xzdVOOhr4flqj2ppeM5m6TSDUikuIbEcupp9zUwJfDCsKoN5npxpKPxrhdheuso6q9bzd9PnIeOVNPBYo5eGxbIA0QfAmH2_M-S5U-1SZJWCu9gEvsiLRddHcpCUrFy8bp1adJzpypRE8qLxCdk9LAUzLQ8AaCyYhsMvTuZe1D23cSTi6hbvRhn4QcAD69NB5owdXKA51L7T57tpABrejJYTftbh2CeUzsq1_Qdc0lJxsx5i60",
-            Alt = "Abstract colorful digital art"
-        },
-        new RecentCreation
-        {
-            ImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuD8wBJ0UcqSDZbBK9_We-BzM2wdQDzo2snrqsTU1K2_w-oMmaQ9JK0zvJPIdz2q7Uq6oePltJ15l9Hw_wSTaWwoMkL0GsHrh1Yd3j4X7VApXM4Q1_TfbCgSNZzPBTmuG45LswFHLHSTloBuH63OHwd1fJMMS8bObJ1uCuQRIS06F8J7824QMnP0680zwURiaQJoN0NYF5mKXfCXEg-hMKCcxTz7RoGTPRz6yntp4sK1i9N4ei6sxBOJmIpa7EvE9N91e8TYnXW-bSd6",
-            Alt = "3D abstract render"
-        },
-        new RecentCreation
-        {
-            ImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDaqQsXfGUo0LDFPy06wdsc-x10MyDDzxMjaYIjIdknK6GvFzYg9sGtxAkmRZa_1KRwU1SwnPvR1dbsmjxR_sXT07tpa8YVV1TxHkAFQwTCGToUlj_GgVYJrctBFszVe_r4Qv1DqVDYdIhyac9VbR6UOgllsXhLBLQAEjhQOBjI52zqHcHn91-WvjhW6nEM4DYbmwqMN7puLhcJFUQ38i1Ob_W4m-Sge1IHEcMdFmakY3Yo9IMH8p-9GcoIUUUjPCkztAfmmvJtK4XO",
-            Alt = "Cyberpunk style illustration"
-        }
-    };
+{
+new RecentCreation
+{
+ImageUrl = "public/designs/image_1_1768985216052.jpg",
+Alt = "Abstract colorful digital art"
+},
+new RecentCreation
+{
+ImageUrl = "public/designs/image_1_1768985605312.jpg",
+Alt = "3D abstract render"
+},
+new RecentCreation
+{
+ImageUrl = "public/designs/image_1_1768985789863.jpg",
+Alt = "Cyberpunk style illustration"
+}
+};
+    #endregion
+
 
     private void SetPrompt(string prompt)
     {
@@ -157,12 +156,7 @@
 
     private void HandleGenerate()
     {
-        // Handle generate logic
-    }
-
-    private void ViewCreation(RecentCreation creation)
-    {
-        // Handle view creation logic
+        // later ma eli 5la2
     }
 
     private class RecentCreation

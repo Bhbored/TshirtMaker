@@ -79,7 +79,7 @@
     {
         await SupabaseAuth.SignOutAsync();
         Auth.ClearUser();
-        Nav.NavigateTo("/login");
+        Nav.NavigateTo("/landing");
     }
 
     private string GetNavLinkClass(string path)
