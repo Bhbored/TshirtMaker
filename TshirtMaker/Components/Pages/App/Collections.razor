@@ -1,10 +1,12 @@
 @page "/collections"
 @layout MainLayout
-@inject AuthService AuthService
+@inject AuthStateService AuthService
 @inject TestDataService TestData
 @inject ILogger<Feed> Logger
+@inject NavigationManager Nav
 @using TshirtMaker.Components.ui.common
 @using TshirtMaker.Models.Enums
+@using TshirtMaker.Services
 @rendermode InteractiveServer
 
 
@@ -262,13 +264,18 @@
     {
         try
         {
+            if (!AuthService.IsAuthenticated)
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+
             currentUser = AuthService.CurrentUser ?? new();
             clothingTypes = Enum.GetValues<ClothingType>().ToList();
         }
         catch (Exception ex)
         {
             Logger.LogInformation($"Error in collection: {ex.Message}");
-
         }
         await base.OnInitializedAsync();
     }

@@ -2,11 +2,12 @@
 @layout MainLayout
 @inject TestDataService DataService
 @rendermode InteractiveServer
-@inject AuthService Auth
+@inject AuthStateService Auth
 @inject ILogger<Feed> Logger
 @inject NavigationManager Nav
 @using TshirtMaker.Components.ui.Feed
 @using TshirtMaker.Tests
+@using TshirtMaker.Services
 
 <PageTitle>TshirtMaker - Community Feed</PageTitle>
 
@@ -170,16 +171,19 @@
 
     protected override Task OnInitializedAsync()
     {
-
         try
         {
+            if (!Auth.IsAuthenticated)
+            {
+                Nav.NavigateTo("/login");
+                return base.OnInitializedAsync();
+            }
+
             currentUser = Auth.CurrentUser ?? new();
-
-        }catch(Exception ex)
+        }
+        catch(Exception ex)
         {
-        
-             Logger.LogInformation($"Error in Feed: {ex.Message}");
-
+            Logger.LogInformation($"Error in Feed: {ex.Message}");
         }
         return base.OnInitializedAsync();
     }

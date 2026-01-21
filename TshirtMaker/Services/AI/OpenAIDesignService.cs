@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -12,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TshirtMaker.Models.Enums;
 using TshirtMaker.Services.AI;
+using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker.Services
 {
@@ -23,7 +22,7 @@ namespace TshirtMaker.Services
     {
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly SupabaseStorageService _storageService;
 
         private const string ApiUrl = "https://api.openai.com/v1/images/generations";
         private const string ApiModel = "gpt-image-1";
@@ -33,11 +32,11 @@ namespace TshirtMaker.Services
         public OpenAIDesignService(
             IConfiguration configuration,
             HttpClient httpClient,
-            IWebHostEnvironment webHostEnvironment)
+            SupabaseStorageService storageService)
         {
             _configuration = configuration;
             _httpClient = httpClient;
-            _webHostEnvironment = webHostEnvironment;
+            _storageService = storageService;
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
@@ -45,6 +44,7 @@ namespace TshirtMaker.Services
             string prompt,
             string? negativePrompt,
             StylePresetType? style,
+            Guid userId,
             CancellationToken cancellationToken = default)
         {
             ErrorMessage = null;
@@ -109,15 +109,8 @@ namespace TshirtMaker.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 using var document = JsonDocument.Parse(responseContent);
 
-                var fullDestinationPath = Path.Combine(
-                    _webHostEnvironment.WebRootPath,
-                    "userImages",
-                    "temp");
-
-                if (!Directory.Exists(fullDestinationPath))
-                    Directory.CreateDirectory(fullDestinationPath);
-
-                var localPaths = new List<string>();
+                var uploadedUrls = new List<string>();
+                int currentIndex = await _storageService.GetNextTempImageIndexAsync(userId, cancellationToken);
 
                 if (document.RootElement.TryGetProperty("data", out var dataArray))
                 {
@@ -131,22 +124,26 @@ namespace TshirtMaker.Services
                             continue;
 
                         var imageBytes = Convert.FromBase64String(base64);
-                        var fileName = $"{Guid.NewGuid()}.png";
-                        var fullFilePath = Path.Combine(fullDestinationPath, fileName);
+                        var fileName = $"temp_{currentIndex}.png";
 
-                        await File.WriteAllBytesAsync(fullFilePath, imageBytes, cancellationToken);
+                        var uploadedUrl = await _storageService.UploadToUserTempFolderAsync(
+                            imageBytes,
+                            fileName,
+                            userId,
+                            cancellationToken);
 
-                        localPaths.Add($"/userImages/temp/{fileName}");
+                        uploadedUrls.Add(uploadedUrl);
+                        currentIndex++;
                     }
                 }
 
-                if (localPaths.Count == 0)
+                if (uploadedUrls.Count == 0)
                 {
                     ErrorMessage = "API response was successful, but no image data was returned.";
                     return new List<string>();
                 }
 
-                return localPaths;
+                return uploadedUrls;
             }
             catch (TaskCanceledException)
             {
@@ -175,27 +172,29 @@ namespace TshirtMaker.Services
                 }
 
                 var designBytes = await designResponse.Content.ReadAsByteArrayAsync(cancellationToken);
-                var tempDesignPath = Path.Combine(_webHostEnvironment.WebRootPath, "userImages", "temp", $"{Guid.NewGuid()}_design.png");
-                Directory.CreateDirectory(Path.GetDirectoryName(tempDesignPath)!);
-                await File.WriteAllBytesAsync(tempDesignPath, designBytes, cancellationToken);
 
-                // 2. Prepare clothing image (local asset)
-                var clothingFullPath = Path.Combine(_webHostEnvironment.WebRootPath, clothingImageUrl.TrimStart('/'));
-                if (!File.Exists(clothingFullPath))
+                byte[] clothingBytes;
+                if (clothingImageUrl.StartsWith("http://") || clothingImageUrl.StartsWith("https://"))
                 {
-                    ErrorMessage = $"Clothing image not found: {clothingImageUrl}";
+                    var clothingResponse = await _httpClient.GetAsync(clothingImageUrl, cancellationToken);
+                    if (!clothingResponse.IsSuccessStatusCode)
+                    {
+                        ErrorMessage = $"Failed to download clothing image: {clothingResponse.StatusCode}";
+                        return string.Empty;
+                    }
+                    clothingBytes = await clothingResponse.Content.ReadAsByteArrayAsync(cancellationToken);
+                }
+                else
+                {
+                    ErrorMessage = $"Invalid clothing image URL: {clothingImageUrl}";
                     return string.Empty;
                 }
 
-                var clothingBytes = await File.ReadAllBytesAsync(clothingFullPath, cancellationToken);
-
-                // 3. Build prompt
                 string prompt = "Print the provided design naturally on the clothing piece.";
                 if (!string.IsNullOrWhiteSpace(color) && !color.Equals("white", StringComparison.OrdinalIgnoreCase))
                     prompt += $" Make the clothing piece {color}.";
                 prompt += " The final image should look like a professional studio shot with realistic lighting, shadows, and perspective.";
 
-                // 4. Prepare OpenAI edit request
                 var apiKey = _configuration["OpenAI:ApiKey"];
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
@@ -204,8 +203,8 @@ namespace TshirtMaker.Services
                 }
 
                 using var multipart = new MultipartFormDataContent();
-                multipart.Add(new ByteArrayContent(clothingBytes), "image", Path.GetFileName(clothingFullPath)); // base clothing
-                multipart.Add(new ByteArrayContent(designBytes), "image", Path.GetFileName(tempDesignPath));       // design image
+                multipart.Add(new ByteArrayContent(clothingBytes), "image", "clothing.png");
+                multipart.Add(new ByteArrayContent(designBytes), "image", "design.png");
                 multipart.Add(new StringContent(prompt), "prompt");
                 multipart.Add(new StringContent(ApiModel), "model");
                 multipart.Add(new StringContent("auto"), "size");
@@ -241,29 +240,17 @@ namespace TshirtMaker.Services
                     return string.Empty;
                 }
 
-                // 6. Determine final filename (_increment)
-                var finalDir = Path.Combine(_webHostEnvironment.WebRootPath, "userImages", "final");
-                Directory.CreateDirectory(finalDir);
-
-                var userPrefix = userId.ToString(); // Use GUID as prefix
-                var existingFiles = Directory.GetFiles(finalDir, $"{userPrefix}_*.png");
-                int maxIndex = existingFiles
-                    .Select(f => Path.GetFileNameWithoutExtension(f))
-                    .Select(f => f.Split('_').Last())
-                    .Where(s => int.TryParse(s, out _))
-                    .Select(int.Parse)
-                    .DefaultIfEmpty(0)
-                    .Max();
-
-                int nextIndex = maxIndex + 1;
-                var finalFileName = $"{userPrefix}_{nextIndex}.png";
-                var finalPath = Path.Combine(finalDir, finalFileName);
-
+                int nextIndex = await _storageService.GetNextFinalImageIndexAsync(userId, cancellationToken);
+                var finalFileName = $"final_{nextIndex}.png";
                 var finalBytes = Convert.FromBase64String(b64Image);
-                await File.WriteAllBytesAsync(finalPath, finalBytes, cancellationToken);
 
-                // 7. Return public URL
-                return $"/userImages/final/{finalFileName}";
+                var uploadedUrl = await _storageService.UploadToUserFinalFolderAsync(
+                    finalBytes,
+                    finalFileName,
+                    userId,
+                    cancellationToken);
+
+                return uploadedUrl;
             }
             catch (TaskCanceledException)
             {
@@ -276,9 +263,6 @@ namespace TshirtMaker.Services
                 return string.Empty;
             }
         }
-
-
-
 
     }
 }

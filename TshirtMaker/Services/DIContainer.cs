@@ -54,19 +54,22 @@ namespace TshirtMaker.Services
         public static IServiceCollection RegisterAuthServices(this IServiceCollection services)
         {
             services.AddSingleton<TestDataService>();
-            services.AddSingleton<AuthService>();
             services.AddSingleton<DeepLinkService>();
             services.AddScoped<SupabaseAuthService>();
+            services.AddScoped<AuthStateService>();
+            services.AddScoped<SupabaseStorageService>();
             return services;
         }
 
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
+
             services.AddScoped<IAIDesignService, OpenAIDesignService>();
             services.AddHttpClient<OpenAIDesignService>(client =>
             {
-                client.Timeout = TimeSpan.FromMinutes(5); 
+                client.Timeout = TimeSpan.FromMinutes(5);
             });
+
             return services;
         }
 

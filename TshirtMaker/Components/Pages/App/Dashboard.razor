@@ -4,7 +4,7 @@
 @rendermode InteractiveServer
 @inject TestDataService DataService
 @inject NavigationManager Nav
-@inject AuthService AuthService
+@inject AuthStateService AuthService
 
 <PageTitle>TshirtMaker - Dashboard</PageTitle>
 
@@ -30,10 +30,7 @@
                     <span class="material-symbols-outlined">inventory_2</span>
                     <h3>No designs yet</h3>
                     <p>Start creating your first design to see it here!</p>
-                    <button class="dashboard-new-btn" @onclick="NavigateToCreate">
-                        <span class="material-symbols-outlined">add</span>
-                        Create Your First Design
-                    </button>
+                    
                 </div>
             }
 
@@ -236,6 +233,12 @@
     {
         try
         {
+            if (!AuthService.IsAuthenticated)
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+
             LoadDashboardData();
         }
         catch (Exception ex)

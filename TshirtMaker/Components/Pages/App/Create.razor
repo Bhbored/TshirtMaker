@@ -6,9 +6,11 @@
 @using TshirtMaker.Models.Enums
 @using TshirtMaker.Models.Core
 @using TshirtMaker.Utility
+@using TshirtMaker.Services
 @layout MainLayout
 @inject IAIDesignService Gemini
-@inject AuthService AuthService
+@inject AuthStateService AuthService
+@inject NavigationManager Nav
 @implements IDisposable
 
 <PageTitle>TshirtMaker - AI Creation Workspace</PageTitle>
@@ -437,6 +439,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!AuthService.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
         await RefreshPage();
         await base.OnInitializedAsync();
     }

@@ -1,5 +1,5 @@
 @inherits LayoutComponentBase
-@inject AuthService Auth
+@inject AuthStateService Auth
 @inject ILogger<MainLayout> Logger
 @inject NavigationManager Nav
 @implements IDisposable
@@ -12,18 +12,16 @@
 
 @code {
 
-    override protected void OnInitialized()
+    override protected async Task OnInitializedAsync()
     {
         try
         {
-            if (Auth.CurrentUser != null )
-            {
-                Auth.OnUserChanged += StateHasChanged;
-            }
+            await Auth.InitializeAsync();
+            Auth.OnUserChanged += StateHasChanged;
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error in MainLayout.OnInitialized: {Message}", ex.Message);
+            Logger.LogError(ex, "Error in MainLayout.OnInitializedAsync: {Message}", ex.Message);
         }
     }
 

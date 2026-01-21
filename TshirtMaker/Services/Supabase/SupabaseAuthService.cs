@@ -1,20 +1,22 @@
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 using TshirtMaker.DTOs;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace TshirtMaker.Services.Supabase
 {
     public class SupabaseAuthService
     {
         private readonly global::Supabase.Client _supabase;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private const string SessionKey = "supabase_access_token";
         private const string RefreshTokenKey = "supabase_refresh_token";
 
-        public SupabaseAuthService(global::Supabase.Client supabase, IHttpContextAccessor httpContextAccessor)
+        private string? _cachedAccessToken;
+        private string? _cachedRefreshToken;
+
+        public SupabaseAuthService(global::Supabase.Client supabase)
         {
             _supabase = supabase;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<UserDto?> SignUpAsync(string email, string password, Dictionary<string, object>? metadata = null)
@@ -27,7 +29,11 @@ namespace TshirtMaker.Services.Supabase
             var response = await _supabase.Auth.SignUp(email, password, options);
             if (response?.User == null) return null;
 
-            StoreSession(response.AccessToken, response.RefreshToken);
+            if (!string.IsNullOrEmpty(response.AccessToken))
+            {
+                StoreSession(response.AccessToken, response.RefreshToken);
+            }
+
             return MapToUserDto(response.User);
         }
 
@@ -42,30 +48,38 @@ namespace TshirtMaker.Services.Supabase
 
         public async Task<UserDto?> GetCurrentUserAsync()
         {
-            var accessToken = GetStoredAccessToken();
-            if (string.IsNullOrEmpty(accessToken)) return null;
-
             try
             {
+                var currentUser = _supabase.Auth.CurrentUser;
+                if (currentUser != null)
+                {
+                    return MapToUserDto(currentUser);
+                }
+
+                var accessToken = GetStoredAccessToken();
+                if (string.IsNullOrEmpty(accessToken)) return null;
+
                 var user = await _supabase.Auth.GetUser(accessToken);
                 return user != null ? MapToUserDto(user) : null;
             }
             catch
             {
                 await TryRefreshSessionAsync();
-                var newAccessToken = GetStoredAccessToken();
-                if (string.IsNullOrEmpty(newAccessToken)) return null;
 
                 try
                 {
-                    var user = await _supabase.Auth.GetUser(newAccessToken);
-                    return user != null ? MapToUserDto(user) : null;
+                    var currentUser = _supabase.Auth.CurrentUser;
+                    if (currentUser != null)
+                    {
+                        return MapToUserDto(currentUser);
+                    }
                 }
                 catch
                 {
                     ClearSession();
-                    return null;
                 }
+
+                return null;
             }
         }
 
@@ -142,33 +156,27 @@ namespace TshirtMaker.Services.Supabase
 
         private void StoreSession(string? accessToken, string? refreshToken)
         {
-            var session = _httpContextAccessor.HttpContext?.Session;
-            if (session == null) return;
-
             if (!string.IsNullOrEmpty(accessToken))
-                session.SetString(SessionKey, accessToken);
+                _cachedAccessToken = accessToken;
 
             if (!string.IsNullOrEmpty(refreshToken))
-                session.SetString(RefreshTokenKey, refreshToken);
+                _cachedRefreshToken = refreshToken;
         }
 
         private string? GetStoredAccessToken()
         {
-            return _httpContextAccessor.HttpContext?.Session.GetString(SessionKey);
+            return _cachedAccessToken;
         }
 
         private string? GetStoredRefreshToken()
         {
-            return _httpContextAccessor.HttpContext?.Session.GetString(RefreshTokenKey);
+            return _cachedRefreshToken;
         }
 
         private void ClearSession()
         {
-            var session = _httpContextAccessor.HttpContext?.Session;
-            if (session == null) return;
-
-            session.Remove(SessionKey);
-            session.Remove(RefreshTokenKey);
+            _cachedAccessToken = null;
+            _cachedRefreshToken = null;
         }
 
         private UserDto MapToUserDto(User user)
