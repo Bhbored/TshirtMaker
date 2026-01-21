@@ -1,6 +1,7 @@
 using System.Text.Json;
 using TshirtMaker.DTOs;
 using TshirtMaker.Repositories.Interfaces;
+using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker.Repositories
 {
@@ -14,14 +15,14 @@ namespace TshirtMaker.Repositories
     /// </summary>
     public class PostRepository : BaseRepository<PostDto>, IPostRepository
     {
-        public PostRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey)
-            : base(supabaseClient, "posts", supabaseUrl, supabaseKey)
+        public PostRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(supabaseClient, "posts", supabaseUrl, supabaseKey, tokenProvider)
         {
         }
 
         public async Task<IEnumerable<PostDto>> GetAllPostsAsync()
         {
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?select=*&order=created_at.desc");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?select=*&order=created_at.desc");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -36,7 +37,7 @@ namespace TshirtMaker.Repositories
         public async Task<IEnumerable<PostDto>> GetByPosterIdAsync(Guid posterId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?poster_id=eq.{posterId}&order=created_at.desc&offset={offset}&limit={pageSize}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?poster_id=eq.{posterId}&order=created_at.desc&offset={offset}&limit={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -51,7 +52,7 @@ namespace TshirtMaker.Repositories
         public async Task<IEnumerable<PostDto>> GetByDesignIdAsync(Guid designId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?design_id=eq.{designId}&order=created_at.desc&offset={offset}&limit={pageSize}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?design_id=eq.{designId}&order=created_at.desc&offset={offset}&limit={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -67,7 +68,7 @@ namespace TshirtMaker.Repositories
         {
             var offset = (pageNumber - 1) * pageSize;
 
-            var followerResponse = await _httpClient.GetAsync($"/rest/v1/followers?follower_id=eq.{userId}&select=following_id");
+            var followerResponse = await SendGetAsync($"/rest/v1/followers?follower_id=eq.{userId}&select=following_id");
             followerResponse.EnsureSuccessStatusCode();
 
             var followerContent = await followerResponse.Content.ReadAsStringAsync();
@@ -84,7 +85,7 @@ namespace TshirtMaker.Repositories
             }
 
             var idsParam = string.Join(",", followingIds.Select(id => $"\"{id}\""));
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?poster_id=in.({idsParam})&order=created_at.desc&offset={offset}&limit={pageSize}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?poster_id=in.({idsParam})&order=created_at.desc&offset={offset}&limit={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -99,7 +100,7 @@ namespace TshirtMaker.Repositories
         public async Task<IEnumerable<PostDto>> GetTrendingAsync(int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?order=likes_count.desc,created_at.desc&offset={offset}&limit={pageSize}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?order=likes_count.desc,created_at.desc&offset={offset}&limit={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -113,7 +114,7 @@ namespace TshirtMaker.Repositories
 
         public async Task<IEnumerable<PostDto>> GetLatestAsync(int count = 12, int startIndex = 0)
         {
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?order=created_at.desc&offset={startIndex}&limit={count}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?order=created_at.desc&offset={startIndex}&limit={count}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -127,7 +128,7 @@ namespace TshirtMaker.Repositories
 
         public async Task<int> GetTotalPostsCountAsync()
         {
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?select=count");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?select=count");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();

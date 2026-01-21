@@ -2,13 +2,14 @@ using System.Text;
 using System.Text.Json;
 using TshirtMaker.DTOs;
 using TshirtMaker.Repositories.Interfaces;
+using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker.Repositories
 {
     public class NotificationRepository : BaseRepository<NotificationDto>, INotificationRepository
     {
-        public NotificationRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey) 
-            : base(supabaseClient, "notifications", supabaseUrl, supabaseKey)
+        public NotificationRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(supabaseClient, "notifications", supabaseUrl, supabaseKey, tokenProvider)
         {
         }
 
@@ -19,7 +20,7 @@ namespace TshirtMaker.Repositories
                 ? $"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false&order=created_at.desc&offset={offset}&limit={pageSize}"
                 : $"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&order=created_at.desc&offset={offset}&limit={pageSize}";
 
-            var response = await _httpClient.GetAsync(url);
+            var response = await SendGetAsync(url);
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -33,7 +34,7 @@ namespace TshirtMaker.Repositories
 
         public async Task<int> GetUnreadCountAsync(Guid recipientId)
         {
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -63,7 +64,7 @@ namespace TshirtMaker.Repositories
 
             try
             {
-                var response = await _httpClient.PatchAsync($"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false", content);
+                var response = await SendPatchAsync($"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false", content);
                 response.EnsureSuccessStatusCode();
                 return true;
             }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace TshirtMaker.Services.Supabase
 {
-    public class SupabaseAuthService
+    public class SupabaseAuthService : ISupabaseAccessTokenProvider
     {
         private readonly global::Supabase.Client _supabase;
         private const string SessionKey = "supabase_access_token";
@@ -152,6 +152,15 @@ namespace TshirtMaker.Services.Supabase
             {
                 return false;
             }
+        }
+
+        public async Task<string?> GetAccessTokenAsync()
+        {
+            var s = _supabase.Auth.CurrentSession;
+            if (!string.IsNullOrEmpty(s?.AccessToken))
+                return s.AccessToken;
+            await TryRefreshSessionAsync();
+            return _supabase.Auth.CurrentSession?.AccessToken;
         }
 
         private void StoreSession(string? accessToken, string? refreshToken)

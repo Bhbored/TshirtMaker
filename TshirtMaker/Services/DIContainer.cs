@@ -35,19 +35,19 @@ namespace TshirtMaker.Services
             var url = configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase:Url not configured");
             var key = configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase:Key not configured");
 
-            services.AddScoped<IUserRepository>(sp => new UserRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IDesignRepository>(sp => new DesignRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IPostRepository>(sp => new PostRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<ICommentRepository>(sp => new CommentRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<ILikeRepository>(sp => new LikeRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IBookmarkRepository>(sp => new BookmarkRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IFollowerRepository>(sp => new FollowerRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<INotificationRepository>(sp => new NotificationRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<ICollectionRepository>(sp => new CollectionRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IOrderRepository>(sp => new OrderRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IOrderItemRepository>(sp => new OrderItemRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<IShippingAddressRepository>(sp => new ShippingAddressRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
-            services.AddScoped<ITrackingEventRepository>(sp => new TrackingEventRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key));
+            services.AddScoped<IUserRepository>(sp => new UserRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IDesignRepository>(sp => new DesignRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IPostRepository>(sp => new PostRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<ICommentRepository>(sp => new CommentRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<ILikeRepository>(sp => new LikeRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IBookmarkRepository>(sp => new BookmarkRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IFollowerRepository>(sp => new FollowerRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<INotificationRepository>(sp => new NotificationRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<ICollectionRepository>(sp => new CollectionRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IOrderRepository>(sp => new OrderRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IOrderItemRepository>(sp => new OrderItemRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IShippingAddressRepository>(sp => new ShippingAddressRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<ITrackingEventRepository>(sp => new TrackingEventRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
             return services;
         }
 
@@ -56,6 +56,7 @@ namespace TshirtMaker.Services
             services.AddSingleton<TestDataService>();
             services.AddSingleton<DeepLinkService>();
             services.AddScoped<SupabaseAuthService>();
+            services.AddScoped<ISupabaseAccessTokenProvider>(sp => sp.GetRequiredService<SupabaseAuthService>());
             services.AddScoped<AuthStateService>();
             services.AddScoped<SupabaseStorageService>();
             return services;

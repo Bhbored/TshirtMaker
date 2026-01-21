@@ -7,9 +7,15 @@
 @using TshirtMaker.Models.Core
 @using TshirtMaker.Utility
 @using TshirtMaker.Services
+@using TshirtMaker.Services.Supabase
+@using Microsoft.AspNetCore.Hosting
+@inject IDesignRepository Repository
+@inject IUserRepository UserRepo
 @layout MainLayout
 @inject IAIDesignService Gemini
 @inject AuthStateService AuthService
+@inject SupabaseStorageService SupabaseStorage
+@inject IWebHostEnvironment WebHostEnvironment
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -30,7 +36,7 @@
                             <p class="create-label">Apparel Type</p>
                             <div class="dropdown">
                                 <button class="btn btn-secondary dropdown-toggle create-apparel-dropdown" type="button"
-                                        id="apparelTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    id="apparelTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                     @selectedApparelType.ToString()
                                 </button>
                                 <ul class="dropdown-menu create-dropdown-menu" aria-labelledby="apparelTypeDropdown">
@@ -38,7 +44,7 @@
                                     {
                                         <li>
                                             <a class="dropdown-item @(selectedApparelType == apparelType ? "active" : "")"
-                                               @onclick="@(() => switchApparel(apparelType))">
+                                                @onclick="@(() => switchApparel(apparelType))">
                                                 @apparelType.ToString()
                                             </a>
                                         </li>
@@ -52,9 +58,9 @@
                             <p class="create-label">Base Color</p>
                             <div class="dropdown">
                                 <button class="btn btn-secondary dropdown-toggle create-apparel-dropdown" type="button"
-                                        id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="color-preview"
-                                          style="background-color: @(selectedColor ?? "#FFFFFF");"></span>
+                                        style="background-color: @(selectedColor ?? "#FFFFFF");"></span>
                                     @ColorHelper.HexToColorName(selectedColor!)
                                 </button>
                                 <ul class="dropdown-menu create-dropdown-menu" aria-labelledby="colorDropdown">
@@ -62,9 +68,9 @@
                                     {
                                         <li>
                                             <a class="dropdown-item @(selectedColor == color.Value ? "active" : "")"
-                                               @onclick="@(() => UpdateColor(color.Value))">
+                                                @onclick="@(() => UpdateColor(color.Value))">
                                                 <span class="color-preview"
-                                                      style="background-color: @(color.Value ?? "#FFFFFF");"></span>
+                                                    style="background-color: @(color.Value ?? "#FFFFFF");"></span>
                                                 @color.Name
                                             </a>
                                         </li>
@@ -80,7 +86,7 @@
                                 @foreach (var size in sizes)
                                 {
                                     <button class="create-size-btn @(selectedSize == size ? "active" : "")"
-                                            @onclick="@(() => UpdateSize(size))">
+                                        @onclick="@(() => UpdateSize(size))">
                                         @size.ToString()
                                     </button>
                                 }
@@ -98,9 +104,9 @@
                             @foreach (var material in MaterialPrests)
                             {
                                 <div class="create-material-card @(selectedMaterial == material.Title ? "active" : "")"
-                                     @onclick="@(() => UpdateMaterial(material.Title))">
+                                    @onclick="@(() => UpdateMaterial(material.Title))">
                                     <div class="create-material-preview"
-                                         style="background-image: url('@material.PreviewImageUrl'); background-size: cover; background-position: center;">
+                                        style="background-image: url('@material.PreviewImageUrl'); background-size: cover; background-position: center;">
                                     </div>
                                     <span>@material.Title</span>
                                 </div>
@@ -130,22 +136,22 @@
             <!-- Step Navigation Buttons -->
             <div class="create-step-nav">
                 <button type="button"
-                        class="create-step-btn @(currentWindow == "setup" ? "active" : "") @(!CanNavigateToStep("setup") ? "disabled" : "")"
-                        @onclick="@(() => ChangeWindow("setup"))" disabled="@(!CanNavigateToStep("setup"))">
+                    class="create-step-btn @(currentWindow == "setup" ? "active" : "") @(!CanNavigateToStep("setup") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("setup"))" disabled="@(!CanNavigateToStep("setup"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Setup</span>
                 </button>
                 <div class="create-step-connector"></div>
                 <button type="button"
-                        class="create-step-btn @(currentWindow == "creation" ? "active" : "") @(!CanNavigateToStep("creation") ? "disabled" : "")"
-                        @onclick="@(() => ChangeWindow("creation"))" disabled="@(!CanNavigateToStep("creation"))">
+                    class="create-step-btn @(currentWindow == "creation" ? "active" : "") @(!CanNavigateToStep("creation") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("creation"))" disabled="@(!CanNavigateToStep("creation"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Creation</span>
                 </button>
                 <div class="create-step-connector"></div>
                 <button type="button"
-                        class="create-step-btn @(currentWindow == "finalization" ? "active" : "") @(!CanNavigateToStep("finalization") ? "disabled" : "")"
-                        @onclick="@(() => ChangeWindow("finalization"))" disabled="@(!CanNavigateToStep("finalization"))">
+                    class="create-step-btn @(currentWindow == "finalization" ? "active" : "") @(!CanNavigateToStep("finalization") ? "disabled" : "")"
+                    @onclick="@(() => ChangeWindow("finalization"))" disabled="@(!CanNavigateToStep("finalization"))">
                     <div class="create-step-indicator"></div>
                     <span class="create-step-label">Finalization</span>
                 </button>
@@ -216,7 +222,7 @@
                 @if (currentWindow == "finalization")
                 {
                     <Finalization FinalDesignImage="@currentDesign?.FinalImageUrl" Design="@currentDesign"
-                                  OnSave="HandleDesignSave" OnDiscard="HandleDiscard" />
+                        OnSave="HandleDesignSave" OnDiscard="HandleDiscard" />
                 }
             </div>
 
@@ -225,7 +231,7 @@
                 @if (currentWindow == "setup")
                 {
                     <button class="create-generate-btn @(isGenerating ? "generating" : "")" @onclick="GenerateAIArt"
-                            disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
+                        disabled="@(isGenerating || string.IsNullOrWhiteSpace(promptText))">
                         <span class="material-symbols-outlined">auto_awesome</span>
                         @if (isGenerating)
                         {
@@ -240,7 +246,7 @@
                 @if (currentWindow == "creation")
                 {
                     <button class="create-generate-btn @(isSelecting ? "generating" : "")" @onclick="SelectImage"
-                            disabled="@(!imageSelected || isSelecting)">
+                        disabled="@(!imageSelected || isSelecting)">
                         <span class="material-symbols-outlined">check_circle</span>
                         @if (isSelecting)
                         {
@@ -272,7 +278,7 @@
                                     @foreach (var preset in stylePresets)
                                     {
                                         <div class="create-preset-card @(selectedPreset == preset.Title ? "active" : "")"
-                                             @onclick="@(() => UpdatePreset(preset.Title))">
+                                            @onclick="@(() => UpdatePreset(preset.Title))">
                                             <div class="create-preset-overlay"></div>
                                             <img src="@preset.PreviewImageUrl" alt="@preset.Title" />
                                             <div class="create-preset-label">
@@ -301,10 +307,10 @@
                             </div>
                             <div class="create-textarea-wrapper">
                                 <textarea class="create-textarea"
-                                          placeholder="Describe the artwork you want to generate on the center of the garment..."
-                                          value="@promptText"
-                                          @oninput="@((ChangeEventArgs e) => UpdatePrompt(e.Value?.ToString() ?? string.Empty))"
-                                          maxlength="500"></textarea>
+                                    placeholder="Describe the artwork you want to generate on the center of the garment..."
+                                    value="@promptText"
+                                    @oninput="@((ChangeEventArgs e) => UpdatePrompt(e.Value?.ToString() ?? string.Empty))"
+                                    maxlength="500"></textarea>
                                 <div class="create-char-count">@promptText.Length / 500</div>
                             </div>
                         </div>
@@ -320,18 +326,20 @@
                                     <div class="create-advanced-field">
                                         <p class="create-advanced-label">Negative Prompt</p>
                                         <input class="create-advanced-input" type="text"
-                                               placeholder="What to exclude (e.g. text, blur)" value="@negativePrompt"
-                                               @oninput="@((ChangeEventArgs e) => UpdateNegativePrompt(e.Value?.ToString() ?? string.Empty))" />
+                                            placeholder="What to exclude (e.g. text, blur)" value="@negativePrompt"
+                                            @oninput="@((ChangeEventArgs e) => UpdateNegativePrompt(e.Value?.ToString() ?? string.Empty))" />
                                     </div>
                                     <div class="create-advanced-field">
                                         <p class="create-advanced-label">Upscale Resolution</p>
                                         <div class="create-resolution-buttons">
-                                            <button class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
-                                                    @onclick="@(() => UpdateResolution("2K"))">
+                                            <button
+                                                class="create-resolution-btn @(selectedResolution == "2K" ? "active" : "")"
+                                                @onclick="@(() => UpdateResolution("2K"))">
                                                 2K
                                             </button>
-                                            <button class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
-                                                    @onclick="@(() => UpdateResolution("4K"))">
+                                            <button
+                                                class="create-resolution-btn @(selectedResolution == "4K" ? "active" : "")"
+                                                @onclick="@(() => UpdateResolution("4K"))">
                                                 4K
                                             </button>
                                         </div>
@@ -423,13 +431,13 @@
 
 
 
-    #region  image urls
+    #region image urls
     private List<string> generatedImageUrls = [
 
-    "public/stylePresets/Cyberpunk.jpg",
-    "public/stylePresets/Watercolor.jpg",
-    "public/stylePresets/Gothic.jpg",
-    "public/stylePresets/Gothic.jpg",
+    "public/designs/1.png",
+"public/designs/2.png",
+"public/designs/3.jpg",
+"public/designs/4.jpg",
 
 ];
 
@@ -459,8 +467,12 @@
         clothImage = "images/t-shirt_front.png";
         isPreviewing = false;
         apiError = false;
+
+        currentUser = AuthService.CurrentUser ?? new User();
+
         currentDesign = new Design
         {
+            UserId = currentUser.Id,
             ClothingType = selectedApparelType,
             Color = selectedColor,
             Size = selectedSize,
@@ -527,13 +539,13 @@
         {
             ClothingType.TShirt => "images/t-shirt_front.png",
             ClothingType.Hoodie => "images/hoodie.png",
-            ClothingType.Sweat=> "images/sweat.png",
+            ClothingType.Sweat => "images/sweat.png",
             ClothingType.LongSleeve => "images/longSleeve.png",
             ClothingType.PoloShirt => "images/polo_shirt_front.png",
-            ClothingType.Jacket=> "images/jacket.png",
-            ClothingType.Hat=> "images/hat.png",
-            ClothingType.Tank=>"images/tank.png",
-            ClothingType.ToteBag=>"images/toteBag.png",
+            ClothingType.Jacket => "images/jacket.png",
+            ClothingType.Hat => "images/hat.png",
+            ClothingType.Tank => "images/tank.png",
+            ClothingType.ToteBag => "images/toteBag.png",
             _ => "images/t-shirt_front.png",
         };
 
@@ -568,7 +580,8 @@
         StateHasChanged();
         await Task.Delay(2000);
         //for real generated images uncomment the below line
-        // generatedImageUrls = await Gemini.GenerateInitialDesignsAsync(currentDesign!.Prompt, currentDesign.NegativePrompt, currentDesign.StylePreset);
+        // generatedImageUrls = await Gemini.GenerateInitialDesignsAsync(currentDesign!.Prompt, currentDesign.NegativePrompt,
+        // currentDesign.StylePreset);
         // apiError = !string.IsNullOrEmpty(Gemini.ErrorMessage);
         isGenerating = false;
         creationCompleted = true;
@@ -617,11 +630,25 @@
             StateHasChanged();
             await Task.Delay(3000);
             isSelecting = false;
-            // var finalDesign = await Gemini.FinalizeDesignAsync(generatedImageUrls[3], clothImage!, currentDesign!.Id, currentDesign.Color);
-            // currentDesign.FinalImageUrl = finalDesign;
+
+            // in real cases uncomment here
+            // var finalDesign = await Gemini.FinalizeDesignAsync(selectedImageUrl, clothImage!, currentDesign!.Id,
+            // currentDesign.Color);
+
+            var finalUrl = selectedImageUrl;
+            var fullPath = Path.Combine(WebHostEnvironment.WebRootPath ?? "", selectedImageUrl.Replace('/',
+            Path.DirectorySeparatorChar));
+            if (File.Exists(fullPath))
+            {
+                var imageBytes = await File.ReadAllBytesAsync(fullPath);
+                var fileName = Path.GetFileName(selectedImageUrl);
+                var userId = AuthService.CurrentUser?.Id ?? currentUser.Id;
+                finalUrl = await SupabaseStorage.UploadToUserFinalFolderAsync(imageBytes, fileName, userId);
+            }
+
             if (currentDesign != null)
             {
-                currentDesign.FinalImageUrl = selectedImageUrl;
+                currentDesign.FinalImageUrl = finalUrl;
             }
 
             selectionConfirmed = true;
@@ -733,14 +760,18 @@
 
     private async Task HandleDesignSave(string title)
     {
-        currentUser.Designs.Add(currentDesign!);
         if (currentUser != null && currentDesign != null)
         {
             currentDesign.Title = title;
-            currentDesign!.UserId = currentDesign.UserId;
+            currentDesign.UserId = currentUser.Id;
             currentDesign.User = currentUser;
-
+            currentUser.Designs.Add(currentDesign);
         }
+
+        var designdto = DesignDto.FromModel(currentDesign!);
+        var userdto = UserDto.FromModel(currentUser!);
+        await Repository.CreateAsync(designdto);
+        await UserRepo.UpdateAsync(userdto);
         await RefreshPage();
     }
 

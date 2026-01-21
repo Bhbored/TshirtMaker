@@ -2,20 +2,21 @@ using System.Text;
 using System.Text.Json;
 using TshirtMaker.DTOs;
 using TshirtMaker.Repositories.Interfaces;
+using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker.Repositories
 {
     public class ShippingAddressRepository : BaseRepository<ShippingAddressDto>, IShippingAddressRepository
     {
-        public ShippingAddressRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey) 
-            : base(supabaseClient, "shipping_addresses", supabaseUrl, supabaseKey)
+        public ShippingAddressRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(supabaseClient, "shipping_addresses", supabaseUrl, supabaseKey, tokenProvider)
         {
         }
 
         public async Task<IEnumerable<ShippingAddressDto>> GetByUserIdAsync(Guid userId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&order=created_at.desc&offset={offset}&limit={pageSize}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&order=created_at.desc&offset={offset}&limit={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -29,7 +30,7 @@ namespace TshirtMaker.Repositories
 
         public async Task<ShippingAddressDto?> GetDefaultAddressAsync(Guid userId)
         {
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&is_default=eq.true");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&is_default=eq.true");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -44,7 +45,7 @@ namespace TshirtMaker.Repositories
         public async Task<IEnumerable<ShippingAddressDto>> GetByCountryAsync(string countryCode, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await _httpClient.GetAsync($"/rest/v1/{_tableName}?country_code=eq.{countryCode}&order=created_at.desc&offset={offset}&limit={pageSize}");
+            var response = await SendGetAsync($"/rest/v1/{_tableName}?country_code=eq.{countryCode}&order=created_at.desc&offset={offset}&limit={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -64,13 +65,13 @@ namespace TshirtMaker.Repositories
                 var json = JsonSerializer.Serialize(updateData);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                await _httpClient.PatchAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}", content);
+                await SendPatchAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}", content);
 
                 var setDefaultData = new { is_default = true };
                 var setDefaultJson = JsonSerializer.Serialize(setDefaultData);
                 var setDefaultContent = new StringContent(setDefaultJson, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PatchAsync($"/rest/v1/{_tableName}?id=eq.{addressId}&user_id=eq.{userId}", setDefaultContent);
+                var response = await SendPatchAsync($"/rest/v1/{_tableName}?id=eq.{addressId}&user_id=eq.{userId}", setDefaultContent);
                 response.EnsureSuccessStatusCode();
 
                 return true;
