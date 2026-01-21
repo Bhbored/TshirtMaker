@@ -11,37 +11,37 @@ namespace TshirtMaker.PublicData
             {
                 Title = "Heavy Cotton",
                 Material = Material.HeavyCotton.ToString(),
-                PreviewImageUrl = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/materialPresets/Heavy_Cotton.jpg"
             },
             new MaterialPreview
             {
                 Title = "Polyester",
                 Material = Material.Polyester.ToString(),
-                PreviewImageUrl = "https://images.unsplash.com/photo-1597260256523-55d2cd529a09?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/materialPresets/Polyester.jpg"
             },
             new MaterialPreview
             {
                 Title = "Cotton Polyester Blend",
                 Material = Material.CottonPolyesterBlend.ToString(),
-                PreviewImageUrl = "https://images.unsplash.com/photo-1563276790-62a0e7b46ba5?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/materialPresets/Cotton Polyester Blend.jpg"
             },
             new MaterialPreview
             {
                 Title = "Linen",
                 Material = Material.Linen.ToString(),
-                PreviewImageUrl = "https://images.unsplash.com/photo-1592721759765-feff321ec04c?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/materialPresets/Linen.jpg"
             },
             new MaterialPreview
             {
                 Title = "Wool",
                 Material = Material.Wool.ToString(),
-                PreviewImageUrl = "https://images.unsplash.com/photo-1546574877-5addcb46e7e5?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/materialPresets/Wool.jpg"
             },
             new MaterialPreview
             {
                 Title = "Fleece",
                 Material = Material.Fleece.ToString(),
-                PreviewImageUrl = "https://images.unsplash.com/photo-1495259331600-4a2e58d38689?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/materialPresets/Fleece.jpg"
             }
         };
 
@@ -93,7 +93,7 @@ namespace TshirtMaker.PublicData
             {
                 Title = "Streetwear",
                 StylePreset = StylePresetType.Streetwear,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Streetwear.jpg"
             },
             new StylePresetPreview
             {
@@ -105,19 +105,19 @@ namespace TshirtMaker.PublicData
             {
                 Title = "Photorealistic",
                 StylePreset = StylePresetType.Photorealistic,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Photorealistic.jpg"
             },
             new StylePresetPreview
             {
                 Title = "Pixel Art",
                 StylePreset = StylePresetType.PixelArt,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Pixel_Art.jpg"
             },
             new StylePresetPreview
             {
                 Title = "Graffiti",
                 StylePreset = StylePresetType.Graffiti,
-                PreviewImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop"
+                PreviewImageUrl = "public/stylePresets/Graffiti.jpg"
             }
         };
     }

@@ -33,12 +33,7 @@
                         <div class="design-card">
                             <div class="card-image-wrapper">
                                 <img src="@item.ImageUrl" alt="@item.Title" class="card-image" />
-                                @if (item.IsAIGenerated)
-                                {
-                                    <div class="ai-badge">
-                                        <span>⚡</span> AI Generated
-                                    </div>
-                                }
+
                             </div>
                             <div class="card-footer">
                                 <div class="user-info">
@@ -58,12 +53,7 @@
                         <div class="design-card">
                             <div class="card-image-wrapper">
                                 <img src="@item.ImageUrl" alt="@item.Title" class="card-image" />
-                                @if (item.IsAIGenerated)
-                                {
-                                    <div class="ai-badge">
-                                        <span>⚡</span> AI Generated
-                                    </div>
-                                }
+
                             </div>
                             <div class="card-footer">
                                 <div class="user-info">
@@ -128,7 +118,7 @@
 new DesignItem
 {
 Title = "Abstract AI T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80",
+ImageUrl = "public/designs/image_1_1768985789863.jpg",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=creative_kat",
 Username = "@creative_kat",
 IsAIGenerated = true
@@ -136,7 +126,7 @@ IsAIGenerated = true
 new DesignItem
 {
 Title = "Cyberpunk T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=600&fit=crop&q=80",
+ImageUrl = "public/designs/1.png",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=neon_drifter",
 Username = "@neon_drifter",
 IsAIGenerated = false
@@ -144,23 +134,23 @@ IsAIGenerated = false
 new DesignItem
 {
 Title = "Minimalist T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=600&fit=crop&q=80",
+ImageUrl = "public/designs/3.jpg",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=art_flow",
 Username = "@art_flow",
 IsAIGenerated = false
 },
 new DesignItem
 {
-Title = "Retro T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=600&fit=crop&q=80",
+Title = "Retro Jacket",
+ImageUrl = "public/designs/5.jpg",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=retro_king",
 Username = "@retro_king",
 IsAIGenerated = false
 },
 new DesignItem
 {
-Title = "Vintage Style T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1617137968427-85924c3a6d64?w=400&h=600&fit=crop&q=80",
+Title = "Vintage Style LongSleeve",
+ImageUrl = "public/designs/4.jpg",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=vintage_style",
 Username = "@vintage_style",
 IsAIGenerated = true
@@ -168,43 +158,20 @@ IsAIGenerated = true
 new DesignItem
 {
 Title = "Modern Art T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&h=600&fit=crop&q=80",
+ImageUrl = "public/designs/image_1_1768985605312.jpg",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=modern_art",
 Username = "@modern_art",
 IsAIGenerated = false
 },
 new DesignItem
 {
-Title = "Streetwear T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=600&fit=crop&q=80",
+Title = "Streetwear Tank",
+ImageUrl = "public/designs/6.jpg",
 UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=streetwear",
 Username = "@streetwear",
 IsAIGenerated = false
 },
-new DesignItem
-{
-Title = "Abstract Design T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=600&fit=crop&q=80",
-UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=abstract_design",
-Username = "@abstract_design",
-IsAIGenerated = true
-},
-new DesignItem
-{
-Title = "Geometric T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80",
-UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=geometric",
-Username = "@geometric",
-IsAIGenerated = false
-},
-new DesignItem
-{
-Title = "Artistic T-Shirt",
-ImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=600&fit=crop&q=80",
-UserAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=artistic",
-Username = "@artistic",
-IsAIGenerated = true
-}
+
 };
     }
 
