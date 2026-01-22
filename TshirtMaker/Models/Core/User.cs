@@ -21,7 +21,7 @@ namespace TshirtMaker.Models.Core
         public string? Bio { get; set; }
 
         [MaxLength(2048)]
-        public string AvatarUrl { get; set; } = string.Empty;
+        public string AvatarUrl { get; set; } = "https://api.dicebear.com/7.x/avataaars/svg?seed=";
 
         [MaxLength(2048)]
         public string? CoverImageUrl { get; set; }

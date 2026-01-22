@@ -1,6 +1,9 @@
 @page "/feed"
 @layout MainLayout
-@inject TestDataService DataService
+@inject IPostRepository PostRepository
+@inject IDesignRepository DesignRepository
+@inject IUserRepository UserRepository
+@inject ILikeRepository LikeRepository
 @rendermode InteractiveServer
 @inject AuthStateService Auth
 @inject ILogger<Feed> Logger
@@ -129,7 +132,7 @@
                 }
             </div>
 
-            <FeedLoader Message="Loading Inspiration" />
+            @* <FeedLoader Message="Loading Inspiration" /> *@
         </div>
     }
 
@@ -169,23 +172,25 @@
     private string deleteConfirmationMessage = "Are you sure you want to delete this post? This action cannot be undone.";
 
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
-            if (!Auth.IsAuthenticated)
+            if (!Auth.IsAuthenticated || Auth.CurrentUser == null)
             {
                 Nav.NavigateTo("/login");
-                return base.OnInitializedAsync();
+                return;
+
             }
 
-            currentUser = Auth.CurrentUser ?? new();
+            await base.OnInitializedAsync();
+
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Logger.LogInformation($"Error in Feed: {ex.Message}");
         }
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -194,8 +199,14 @@
         {
             try
             {
-                await Task.Delay(3000);
-                LoadFeedData();
+                if (Auth.CurrentUser != null)
+                {
+                    var id = Auth.CurrentUser!.Id;
+                    var userdto = await UserRepository.GetByIdAsync(id);
+                    currentUser = userdto!.ToModel();
+                }
+
+                await LoadFeedData();
                 isLoading = false;
                 StateHasChanged();
             }
@@ -210,29 +221,56 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private void LoadFeedData()
+    private async Task LoadFeedData()
     {
         try
         {
-            if (DataService == null)
+
+            var allPostDtos = await PostRepository.GetAllPostsAsync();
+            var allPosts = allPostDtos.Select(dto => dto.ToModel()).ToList();
+
+            var allDesignsDtos = await DesignRepository.GetAllAsync();
+            var allDesigns = allDesignsDtos.Select(DTOs => DTOs.ToModel()).ToList();
+
+            var allLikesDtos = await LikeRepository.GetAllAsync();
+            var allLikes = allLikesDtos.Select(x => x.ToModel()).ToList();
+
+            var allUsersDtos = await UserRepository.GetAllAsync();
+            var allUsers = allUsersDtos.Select(x => x.ToModel()).ToList();
+            foreach (var x in allPosts)
             {
-                feedPost = new List<Post>();
-                return;
+                x.Design = allDesigns.Where((y) => y.Id == x.DesignId).FirstOrDefault();
+                x.Poster = allUsers.Where((y) => y.Id == x.PosterId).FirstOrDefault();
+                x.Likes = allLikes.Where((like) => like.PostId == x.Id).ToList();
             }
 
-            var allPosts = DataService.GetAllPosts() ?? new List<Post>();
-            userPosts = DataService.GetUserPosts(currentUser.Id)
+
+            var userPostdto = await PostRepository.GetByPosterIdAsync(currentUser.Id);
+            userPosts = userPostdto.Select(x => x.ToModel()).ToList()
             .OrderByDescending(d => d.CreatedAt)
             .ToList() ?? [];
 
-            userDesigns = DataService.GetUserDesigns(currentUser.Id) ?? [];
-            feedPost = activeFilter switch
+            var userDesignsDto = await DesignRepository.GetByUserIdAsync(currentUser.Id);
+            userDesigns = userDesignsDto.Select(x => x.ToModel()).ToList();
+            if (!allPosts.Any())
             {
-                "trending" => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList(),
-                "new" => allPosts.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
-                "featured" => userPosts,
-                _ => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList()
-            };
+                feedPost = new List<Post>();
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+            else
+            {
+                feedPost = activeFilter switch
+                {
+                    "trending" => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList(),
+                    "new" => allPosts.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
+                    "featured" => userPosts,
+                    _ => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList()
+                };
+            }
+
+
         }
         catch (Exception ex)
         {
@@ -242,29 +280,29 @@
     }
     #region ui controllers
 
-    private void SetFilter(string filter)
+    private async Task SetFilter(string filter)
     {
         activeFilter = filter;
-        LoadFeedData();
+        await LoadFeedData();
         StateHasChanged();
     }
 
-    private void SetTrendingFilter()
+    private async Task SetTrendingFilter()
     {
-        SetFilter("trending");
+        await SetFilter("trending");
         StateHasChanged();
     }
 
-    private void SetNewFilter()
+    private async Task SetNewFilter()
     {
-        SetFilter("new");
+        await SetFilter("new");
         StateHasChanged();
 
     }
 
-    private void SetFeaturedFilter()
+    private async Task SetFeaturedFilter()
     {
-        SetFilter("featured");
+        await SetFilter("featured");
         StateHasChanged();
 
     }
@@ -353,47 +391,77 @@
         if (currentUser.LikesGiven == null)
             return false;
 
-        return currentUser.LikesGiven.Any((x) => x.PostId == post.Id);
+        return post.Likes.Any(x => x.UserId == currentUser.Id);
     }
 
-    private void LikePost(Post post)
+    private async Task LikePost(Post post)
     {
         if (currentUser == null || currentUser.Id == Guid.Empty)
             return;
-        var parentUser = DataService.GetAllUsers().Where((x) => x.Id == post.PosterId).FirstOrDefault() ?? new User();
-        var alreadyLiked = IsPostLiked(post);
 
-        if (alreadyLiked)
+        try
         {
-            var likeToRemove = post.Likes
-            .FirstOrDefault(x => x.UserId == currentUser.Id);
-            if (likeToRemove != null)
+            var parentUserDto = await UserRepository.GetAllAsync();
+            var parentUser = parentUserDto.Select(x => x.ToModel()).Where((x) => x.Id == post.PosterId).FirstOrDefault();
+            var alreadyLiked = IsPostLiked(post);
+
+            if (alreadyLiked)
             {
-                post.Likes!.Remove(likeToRemove);
-                currentUser.LikesGiven
-                .Remove(likeToRemove);
-                parentUser.LikesTaken!.Remove(likeToRemove);
+                var likeToRemove = post.Likes
+                .FirstOrDefault(x => x.UserId == currentUser.Id);
+                if (likeToRemove != null)
+                {
+                    post.Likes!.Remove(likeToRemove);
+                    currentUser.LikesGiven.Remove(likeToRemove);
+                    parentUser!.LikesTaken!.Remove(likeToRemove);
+                    if (parentUser.Id == currentUser.Id)
+                        currentUser.LikesTaken.Remove(likeToRemove);
+                    StateHasChanged();
+                    _ = Task.Run(async () =>
+                     {
+                         await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
+                         await PostRepository.UpdateAsync(PostDto.FromModel(post));
+                         await LikeRepository.DeleteAsync((LikeDto.FromModel(likeToRemove)).Id);
+                         if (parentUser.Id != currentUser.Id)
+                             await UserRepository.UpdateAsync(UserDto.FromModel(parentUser));
+                     });
+                }
+            }
+            else
+            {
+                var newlike = new Like
+                {
+                    UserId = currentUser.Id,
+                    PostId = post.Id,
+                    User = currentUser,
+                    Post = post,
+                    LikedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                post.Likes!.Add(newlike);
+                parentUser!.LikesTaken!.Add(newlike);
+                currentUser.LikesGiven!.Add(newlike);
+                if (parentUser.Id == currentUser.Id)
+                    currentUser.LikesTaken.Add(newlike);
+                StateHasChanged();
+
+                _ = Task.Run(async () =>
+               {
+                   await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
+                   await PostRepository.UpdateAsync(PostDto.FromModel(post));
+                   await LikeRepository.CreateAsync(LikeDto.FromModel(newlike));
+                   if (parentUser.Id != currentUser.Id)
+                       await UserRepository.UpdateAsync(UserDto.FromModel(parentUser));
+               });
+
             }
         }
-        else
+        catch (Exception ex)
         {
-            var newlike = new Like
-            {
-                UserId = currentUser.Id,
-                PostId = post.Id,
-                User = currentUser,
-                Post = post,
-                LikedAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            post.Likes!.Add(newlike);
-            parentUser.LikesTaken!.Add(newlike);
-            currentUser.LikesGiven!
-            .Add(newlike);
+            Console.WriteLine(ex.Message);
         }
 
-        StateHasChanged();
     }
 
     private bool IsPostBookmarked(Post post)
@@ -485,25 +553,30 @@
 
     async Task HandlePostCreation(Post newPost)
     {
-        TestUsers.Posts.Add(newPost);
+        await PostRepository.CreateAsync(PostDto.FromModel(newPost));
         currentUser.Posts.Add(newPost);
-        await Task.Delay(300);
-        LoadFeedData();
+        await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
+        await LoadFeedData();
         StateHasChanged();
     }
 
     async Task ConfirmPost()
     {
         await Task.Delay(300);
-        LoadFeedData();
+        await LoadFeedData();
         StateHasChanged();
     }
 
 
-    private void HandleDeletePost(Guid postId)
+    private async Task HandleDeletePost(Guid postId)
     {
-        DataService.DeletePost(postId);
-        LoadFeedData();
+        var posttodelete = currentUser.Posts.Where((x) => x.Id == postId).FirstOrDefault();
+        currentUser.Posts.Remove(posttodelete!);
+
+        await PostRepository.DeleteAsync(postId);
+        await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
+        await LoadFeedData();
+
         StateHasChanged();
     }
 }

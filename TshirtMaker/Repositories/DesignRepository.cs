@@ -7,6 +7,7 @@ namespace TshirtMaker.Repositories
 {
     public class DesignRepository : BaseRepository<DesignDto>, IDesignRepository
     {
+
         public DesignRepository(HttpClient httpClient, string apiKey, ISupabaseAccessTokenProvider tokenProvider)
             : base(httpClient, "designs", apiKey, tokenProvider)
         {

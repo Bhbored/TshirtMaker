@@ -17,7 +17,7 @@ namespace TshirtMaker.DTOs
         public string? Bio { get; set; }
 
         [JsonPropertyName("avatar_url")]
-        public string AvatarUrl { get; set; } = string.Empty;
+        public string AvatarUrl { get; set; } = "https://api.dicebear.com/7.x/avataaars/svg?seed=";
 
         [JsonPropertyName("cover_image_url")]
         public string? CoverImageUrl { get; set; }
@@ -108,15 +108,15 @@ namespace TshirtMaker.DTOs
                 TotalShares = user.TotalShares,
                 FollowingCount = user.FollowingCount,
                 LastLoginAt = user.LastLoginAt,
-                Designs = user.Designs?.Select(d => d.Id).ToList(),
-                Posts = user.Posts?.Select(p => p.Id).ToList(),
-                LikesGiven = user.LikesGiven?.Select(l => l.Id).ToList(),
-                LikesTaken = user.LikesTaken?.Select(l => l.Id).ToList(),
-                Comments = user.Comments?.Select(c => c.Id).ToList(),
-                Bookmarks = user.Bookmarks?.Select(b => b.Id).ToList(),
-                Followers = user.Followers?.Select(f => f.Id).ToList(),
-                Notifications = user.Notifications?.Select(n => n.Id).ToList(),
-                Collections = user.Collections?.Select(c => c.Id).ToList(),
+                Designs = user.Designs?.Select(d => d.Id).ToList() ?? new List<Guid>(),
+                Posts = user.Posts?.Select(p => p.Id).ToList() ?? new List<Guid>(),
+                LikesGiven = user.LikesGiven?.Select(l => l.Id).ToList() ?? new List<Guid>(),
+                LikesTaken = user.LikesTaken?.Select(l => l.Id).ToList() ?? new List<Guid>(),
+                Comments = user.Comments?.Select(c => c.Id).ToList() ?? new List<Guid>(),
+                Bookmarks = user.Bookmarks?.Select(b => b.Id).ToList() ?? new List<Guid>(),
+                Followers = user.Followers?.Select(f => f.Id).ToList() ?? new List<Guid>(),
+                Notifications = user.Notifications?.Select(n => n.Id).ToList() ?? new List<Guid>(),
+                Collections = user.Collections?.Select(c => c.Id).ToList() ?? new List<Guid>(),
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt
             };

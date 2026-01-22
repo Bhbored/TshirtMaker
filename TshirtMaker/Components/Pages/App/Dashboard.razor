@@ -1,6 +1,7 @@
 @page "/dashboard"
 @layout MainLayout
 @inject IDesignRepository DesignRepository
+@inject IUserRepository UserRepository
 @inject ILogger<Dashboard> Logger
 @rendermode InteractiveServer
 @inject NavigationManager Nav
@@ -227,6 +228,7 @@
 </main>
 
 @code {
+
     private bool isLoading = true;
     private Design? latestDesign;
     private List<Design> recentDesigns = new();
@@ -241,7 +243,7 @@
     {
         try
         {
-            if (!AuthService.IsAuthenticated)
+            if (!AuthService.IsAuthenticated || AuthService.CurrentUser == null)
             {
                 Nav.NavigateTo("/login");
                 return;
@@ -265,13 +267,17 @@
             isLoading = false;
             StateHasChanged();
         }
-
-    }
+        await base.OnAfterRenderAsync(firstRender);
+    }  
     async Task LoadDashboardData()
     {
         try
         {
-            currentUser = AuthService.CurrentUser;
+            if (AuthService.CurrentUser == null)
+                return;
+            var id = AuthService.CurrentUser!.Id;
+            var userdto = await UserRepository.GetByIdAsync(id);
+            currentUser = userdto!.ToModel();
             var UserDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser!.Id);
             var allDesigns = UserDesignsDtos.Select(dto => dto.ToModel()).ToList();
 

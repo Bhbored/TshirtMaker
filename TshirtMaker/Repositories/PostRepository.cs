@@ -5,14 +5,7 @@ using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker.Repositories
 {
-    /// <summary>
-    /// PostRepository inherits from BaseRepository&lt;PostDto&gt;, which provides:
-    /// - GetAllAsync(pageNumber, pageSize) — fetches ALL posts from the posts table (paginated, ordered by created_at desc)
-    /// - GetByIdAsync(id)
-    /// - CreateAsync(entity) — add
-    /// - UpdateAsync(entity) — update
-    /// - DeleteAsync(id) — delete
-    /// </summary>
+    
     public class PostRepository : BaseRepository<PostDto>, IPostRepository
     {
         public PostRepository(HttpClient httpClient, string apiKey, ISupabaseAccessTokenProvider tokenProvider)

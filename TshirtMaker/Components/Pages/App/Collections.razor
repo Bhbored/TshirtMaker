@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject AuthStateService AuthService
 @inject IDesignRepository DesignRepository
+@inject IUserRepository UserRepository
 @inject ICollectionRepository CollectionRepository
 @inject ILogger<Feed> Logger
 @inject NavigationManager Nav
@@ -243,11 +244,6 @@
 @code {
 
 
-
-
-
-
-
     #region fields
 
     private User currentUser = new();
@@ -271,14 +267,16 @@
     {
         try
         {
-            if (!AuthService.IsAuthenticated)
+            if (!AuthService.IsAuthenticated || AuthService.CurrentUser == null)
             {
                 Nav.NavigateTo("/login");
                 return;
+
             }
 
-            currentUser = AuthService.CurrentUser!;
             clothingTypes = Enum.GetValues<ClothingType>().ToList();
+
+            await base.OnInitializedAsync();
         }
         catch (Exception ex)
         {
@@ -293,6 +291,12 @@
         {
             try
             {
+                if (AuthService.CurrentUser != null)
+                {
+                    var userdto = await UserRepository.GetByIdAsync(AuthService.CurrentUser.Id);
+                    currentUser = userdto!.ToModel();
+                }
+
                 await LoadData();
                 UpdateFiltersForTab();
                 isLoading = false;
@@ -309,9 +313,15 @@
     }
     async Task LoadData()
     {
-        var allUserDesignsDto = await DesignRepository.GetByUserIdAsync(currentUser.Id);
-        allUserDesigns = allUserDesignsDto.Select(dto => dto.ToModel()).ToList();
-        userDesigns = allUserDesigns;
+        var allDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser!.Id);
+        var allDesigns = allDesignsDtos.Select(dto => dto.ToModel()).ToList();
+
+        allUserDesigns.Clear();
+        foreach(var x in allDesigns)
+        {
+            allUserDesigns.Add(x);
+        }
+        userDesigns = new List<Design>(allUserDesigns);
 
         var allUserCollectionsDto = await CollectionRepository.GetByUserIdAsync(currentUser.Id);
         allUserCollections = allUserCollectionsDto.Select(dto => dto.ToModel()).ToList();
@@ -410,14 +420,7 @@
                 filteredDesigns = filteredDesigns.Where(d => d.StylePreset == selectedStyle);
             }
 
-            if (activeTypes.Count == 0 && selectedStyle.HasValue == false)
-            {
-                userDesigns = [];
-            }
-            else
-            {
-                userDesigns = filteredDesigns.ToList();
-            }
+            userDesigns = filteredDesigns.ToList();
         }
         else
         {
@@ -435,14 +438,7 @@
                 c.CopiedDesign.StylePreset == selectedStyle);
             }
 
-            if (activeTypes.Count == 0 && selectedStyle.HasValue == false)
-            {
-                userCollections = [];
-            }
-            else
-            {
-                userCollections = filteredCollections.Where(c => c.CopiedDesign != null).ToList();
-            }
+            userCollections = filteredCollections.Where(c => c.CopiedDesign != null).ToList();
         }
 
         StateHasChanged();
