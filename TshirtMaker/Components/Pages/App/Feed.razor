@@ -4,6 +4,7 @@
 @inject IDesignRepository DesignRepository
 @inject IUserRepository UserRepository
 @inject ILikeRepository LikeRepository
+@inject IBookmarkRepository BookmarkRepository
 @rendermode InteractiveServer
 @inject AuthStateService Auth
 @inject ILogger<Feed> Logger
@@ -237,18 +238,21 @@
 
             var allUsersDtos = await UserRepository.GetAllAsync();
             var allUsers = allUsersDtos.Select(x => x.ToModel()).ToList();
+
+            var allBookmarksDtos = await BookmarkRepository.GetAllAsync();
+            var allBookmarks = allBookmarksDtos.Select(y => y.ToModel()).ToList();
+
             foreach (var x in allPosts)
             {
                 x.Design = allDesigns.Where((y) => y.Id == x.DesignId).FirstOrDefault();
                 x.Poster = allUsers.Where((y) => y.Id == x.PosterId).FirstOrDefault();
                 x.Likes = allLikes.Where((like) => like.PostId == x.Id).ToList();
+                x.Bookmarks = allBookmarks.Where((y) => y.PostId == x.Id).ToList();
+
             }
 
 
-            var userPostdto = await PostRepository.GetByPosterIdAsync(currentUser.Id);
-            userPosts = userPostdto.Select(x => x.ToModel()).ToList()
-            .OrderByDescending(d => d.CreatedAt)
-            .ToList() ?? [];
+            userPosts = allPosts.Where((x) => x.PosterId == currentUser.Id).ToList() ?? [];
 
             var userDesignsDto = await DesignRepository.GetByUserIdAsync(currentUser.Id);
             userDesigns = userDesignsDto.Select(x => x.ToModel()).ToList();
@@ -472,10 +476,10 @@
         if (currentUser.Bookmarks == null)
             return false;
 
-        return currentUser.Bookmarks.Any((x) => x.PostId == post.Id);
+        return post.Bookmarks.Any(x => x.UserId == currentUser.Id);
     }
 
-    private void BookmarkPost(Post post)
+    private async Task BookmarkPost(Post post)
     {
         if (currentUser == null || currentUser.Id == Guid.Empty)
             return;
@@ -487,6 +491,15 @@
             if (bookmarkToRemove != null)
             {
                 post.Bookmarks.Remove(bookmarkToRemove);
+                currentUser.Bookmarks.Remove(bookmarkToRemove);
+                StateHasChanged();
+                _ = Task.Run(async () =>
+                {
+                    await BookmarkRepository.DeleteAsync(bookmarkToRemove.Id);
+                    await PostRepository.UpdateAsync(PostDto.FromModel(post));
+                    await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
+
+                });
 
             }
         }
@@ -503,6 +516,15 @@
             post.Bookmarks!.Add(newBookmark);
             currentUser.Bookmarks!
             .Add(newBookmark);
+            StateHasChanged();
+
+            _ = Task.Run(async () =>
+               {
+                   await BookmarkRepository.CreateAsync(BookmarkDto.FromModel(newBookmark));
+                   await PostRepository.UpdateAsync(PostDto.FromModel(post));
+                   await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
+
+               });
         }
 
         StateHasChanged();
