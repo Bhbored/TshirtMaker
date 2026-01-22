@@ -417,8 +417,7 @@
 
         try
         {
-            var parentUserDto = await UserRepository.GetAllAsync();
-            var parentUser = parentUserDto.Select(x => x.ToModel()).Where((x) => x.Id == post.PosterId).FirstOrDefault();
+           
             var alreadyLiked = IsPostLiked(post);
 
             if (alreadyLiked)
@@ -429,17 +428,12 @@
                 {
                     post.Likes!.Remove(likeToRemove);
                     currentUser.LikesGiven.Remove(likeToRemove);
-                    parentUser!.LikesTaken!.Remove(likeToRemove);
-                    if (parentUser.Id == currentUser.Id)
-                        currentUser.LikesTaken.Remove(likeToRemove);
+                 
                     StateHasChanged();
                     _ = Task.Run(async () =>
                      {
-                         await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
                          await PostRepository.UpdateAsync(PostDto.FromModel(post));
                          await LikeRepository.DeleteAsync((LikeDto.FromModel(likeToRemove)).Id);
-                         if (parentUser.Id != currentUser.Id)
-                             await UserRepository.UpdateAsync(UserDto.FromModel(parentUser));
                      });
                 }
             }
@@ -456,19 +450,13 @@
                 };
 
                 post.Likes!.Add(newlike);
-                parentUser!.LikesTaken!.Add(newlike);
-                currentUser.LikesGiven!.Add(newlike);
-                if (parentUser.Id == currentUser.Id)
-                    currentUser.LikesTaken.Add(newlike);
+                
                 StateHasChanged();
 
                 _ = Task.Run(async () =>
                {
-                   await UserRepository.UpdateAsync(UserDto.FromModel(currentUser));
                    await PostRepository.UpdateAsync(PostDto.FromModel(post));
                    await LikeRepository.CreateAsync(LikeDto.FromModel(newlike));
-                   if (parentUser.Id != currentUser.Id)
-                       await UserRepository.UpdateAsync(UserDto.FromModel(parentUser));
                });
 
             }

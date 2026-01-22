@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject IDesignRepository DesignRepository
 @inject IUserRepository UserRepository
+@inject ILikeRepository LikeRepository
 @inject ILogger<Dashboard> Logger
 @rendermode InteractiveServer
 @inject NavigationManager Nav
@@ -268,7 +269,7 @@
             StateHasChanged();
         }
         await base.OnAfterRenderAsync(firstRender);
-    }  
+    }
     async Task LoadDashboardData()
     {
         try
@@ -281,26 +282,31 @@
             var UserDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser!.Id);
             var allDesigns = UserDesignsDtos.Select(dto => dto.ToModel()).ToList();
 
+
+            latestDesign = allDesigns.OrderByDescending(d => d.CreatedAt).FirstOrDefault();
+            latestDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(3).ToList();
+            recentDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(6).ToList();
+            totalDesigns = currentUser.TotalDesigns;
+            var likeDto = await LikeRepository.GetByUserIdAsync(currentUser.Id);
+
+            totalLikes = likeDto.Select(x => x.ToModel())
+            .ToList().Count;
+
+
+            recentDesignsCount = allDesigns.Count(d => d.CreatedAt >= DateTime.UtcNow.AddDays(-7));
+            sharedDesigns = currentUser.TotalShares;
+
             if (!allDesigns.Any())
             {
                 latestDesign = null;
                 latestDesigns = new List<Design>();
                 recentDesigns = new List<Design>();
                 totalDesigns = 0;
-                totalLikes = 0;
                 recentDesignsCount = 0;
                 sharedDesigns = 0;
                 isLoading = false;
                 return;
             }
-
-            latestDesign = allDesigns.OrderByDescending(d => d.CreatedAt).FirstOrDefault();
-            latestDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(3).ToList();
-            recentDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(6).ToList();
-            totalDesigns = currentUser.TotalDesigns;
-            totalLikes = currentUser.TotalLikes;
-            recentDesignsCount = allDesigns.Count(d => d.CreatedAt >= DateTime.UtcNow.AddDays(-7));
-            sharedDesigns = currentUser.TotalShares;
         }
         catch (Exception ex)
         {

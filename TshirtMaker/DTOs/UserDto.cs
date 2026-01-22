@@ -43,12 +43,6 @@ namespace TshirtMaker.DTOs
         [JsonPropertyName("posts")]
         public List<Guid>? Posts { get; set; }
 
-        [JsonPropertyName("likes_given")]
-        public List<Guid>? LikesGiven { get; set; }
-
-        [JsonPropertyName("likes_taken")]
-        public List<Guid>? LikesTaken { get; set; }
-
         [JsonPropertyName("comments")]
         public List<Guid>? Comments { get; set; }
 
@@ -81,8 +75,6 @@ namespace TshirtMaker.DTOs
                 LastLoginAt = this.LastLoginAt,
                 Designs = this.Designs?.Select(id => new Design { Id = id }).ToList() ?? new List<Design>(),
                 Posts = this.Posts?.Select(id => new Models.Social.Post { Id = id }).ToList() ?? new List<Models.Social.Post>(),
-                LikesGiven = this.LikesGiven?.Select(id => new Models.Social.Like { Id = id }).ToList() ?? new List<Models.Social.Like>(),
-                LikesTaken = this.LikesTaken?.Select(id => new Models.Social.Like { Id = id }).ToList() ?? new List<Models.Social.Like>(),
                 Comments = this.Comments?.Select(id => new Models.Social.Comment { Id = id }).ToList() ?? new List<Models.Social.Comment>(),
                 Bookmarks = this.Bookmarks?.Select(id => new Models.Social.Bookmark { Id = id }).ToList() ?? new List<Models.Social.Bookmark>(),
                 Followers = this.Followers?.Select(id => new Models.Social.Follower { Id = id }).ToList() ?? new List<Models.Social.Follower>(),
@@ -110,8 +102,6 @@ namespace TshirtMaker.DTOs
                 LastLoginAt = user.LastLoginAt,
                 Designs = user.Designs?.Select(d => d.Id).ToList() ,
                 Posts = user.Posts?.Select(p => p.Id).ToList() ,
-                LikesGiven = user.LikesGiven?.Select(l => l.Id).ToList(),
-                LikesTaken = user.LikesTaken?.Select(l => l.Id).ToList(),
                 Comments =  user.Comments?.Select(c => c.Id).ToList()       ,
                 Bookmarks = user.Bookmarks?.Select(b => b.Id).ToList(),
                 Followers = user.Followers?.Select(f => f.Id).ToList(),
