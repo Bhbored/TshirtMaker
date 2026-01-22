@@ -1,6 +1,8 @@
 @using TshirtMaker.Models.Social
 @using TshirtMaker.Models.Core
-
+@inject ICommentRepository CommentRepository
+@inject IUserRepository UserRepository
+@inject IPostRepository PostRepository
 <div class="comment-popup-overlay @(IsOpen ? "comment-popup-open" : "")" @onclick="ClosePopup">
     <div class="comment-popup-container" @onclick:stopPropagation="true">
         <div class="comment-popup-header">
@@ -40,9 +42,9 @@
             <div class="comment-input-container">
                 <div class="comment-user-avatar-small" style="background-image: url('@CurrentUser?.AvatarUrl')"></div>
                 <input type="text" class="comment-input" placeholder="Add a comment..." @bind="commentText"
-                    @bind:event="oninput" @onkeypress="HandleKeyPress" />
+                       @bind:event="oninput" @onkeypress="HandleKeyPress" />
                 <button class="comment-send-btn" @onclick="AddComment"
-                    disabled="@string.IsNullOrWhiteSpace(commentText)">
+                        disabled="@string.IsNullOrWhiteSpace(commentText)">
                     <span class="material-symbols-outlined">send</span>
                 </button>
             </div>
@@ -77,7 +79,6 @@
         if (string.IsNullOrWhiteSpace(commentText) || Post == null || CurrentUser == null)
             return;
 
-        // Create and add comment directly
         if (Post.Comments == null)
             Post.Comments = new List<Comment>();
 
@@ -97,7 +98,14 @@
 
         Post.Comments.Add(newComment);
         CurrentUser.Comments.Add(newComment);
+        StateHasChanged();
+        _ = Task.Run(async () =>
+        {
+            await CommentRepository.CreateAsync(CommentDto.FromModel(newComment));
+            await PostRepository.UpdateAsync(PostDto.FromModel(Post));
+            await UserRepository.UpdateAsync(UserDto.FromModel(CurrentUser));
 
+        });
         commentText = string.Empty;
         await OnAddComment.InvokeAsync(Post);
     }

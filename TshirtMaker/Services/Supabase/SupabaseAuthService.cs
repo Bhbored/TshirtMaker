@@ -1,7 +1,5 @@
 using Supabase.Gotrue;
-using Supabase.Gotrue.Interfaces;
 using TshirtMaker.DTOs;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace TshirtMaker.Services.Supabase
 {
@@ -201,7 +199,7 @@ namespace TshirtMaker.Services.Supabase
                     : user.Email?.Split('@')[0] ?? string.Empty,
                 AvatarUrl = metadata.TryGetValue("avatar_url", out var avatarUrl)
                     ? avatarUrl?.ToString() ?? string.Empty
-                    : string.Empty,
+                    : "https://api.dicebear.com/7.x/avataaars/svg?seed=",
                 Bio = metadata.TryGetValue("bio", out var bio)
                     ? bio?.ToString()
                     : null,

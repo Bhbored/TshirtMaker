@@ -5,6 +5,7 @@
 @inject IUserRepository UserRepository
 @inject ILikeRepository LikeRepository
 @inject IBookmarkRepository BookmarkRepository
+@inject ICommentRepository CommentRepository
 @rendermode InteractiveServer
 @inject AuthStateService Auth
 @inject ILogger<Feed> Logger
@@ -160,6 +161,7 @@
 
 @code {
     private List<Post> feedPost = new();
+    private List<Post> allPosts = new();
     private string activeFilter = "trending";
     private User currentUser = new();
     private List<Post> userPosts = [];
@@ -226,9 +228,9 @@
     {
         try
         {
-
+            allPosts.Clear();
             var allPostDtos = await PostRepository.GetAllPostsAsync();
-            var allPosts = allPostDtos.Select(dto => dto.ToModel()).ToList();
+            allPosts = allPostDtos.Select(dto => dto.ToModel()).ToList();
 
             var allDesignsDtos = await DesignRepository.GetAllAsync();
             var allDesigns = allDesignsDtos.Select(DTOs => DTOs.ToModel()).ToList();
@@ -242,13 +244,16 @@
             var allBookmarksDtos = await BookmarkRepository.GetAllAsync();
             var allBookmarks = allBookmarksDtos.Select(y => y.ToModel()).ToList();
 
+            var allCommentsDtos = await CommentRepository.GetAllAsync();
+            var allComments = allCommentsDtos.Select(x => x.ToModel()).ToList();
+
             foreach (var x in allPosts)
             {
                 x.Design = allDesigns.Where((y) => y.Id == x.DesignId).FirstOrDefault();
                 x.Poster = allUsers.Where((y) => y.Id == x.PosterId).FirstOrDefault();
                 x.Likes = allLikes.Where((like) => like.PostId == x.Id).ToList();
                 x.Bookmarks = allBookmarks.Where((y) => y.PostId == x.Id).ToList();
-
+                x.Comments = allComments.Where((y) => y.PostId == x.Id).ToList();
             }
 
 
@@ -265,13 +270,7 @@
             }
             else
             {
-                feedPost = activeFilter switch
-                {
-                    "trending" => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList(),
-                    "new" => allPosts.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
-                    "featured" => userPosts,
-                    _ => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList()
-                };
+                feedPost = allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList();
             }
 
 
@@ -284,10 +283,22 @@
     }
     #region ui controllers
 
+
+    void SwitchFilter()
+    {
+        feedPost = activeFilter switch
+        {
+            "trending" => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList(),
+            "new" => allPosts.OrderByDescending(d => d.CreatedAt).Take(12).ToList(),
+            "featured" => userPosts,
+            _ => allPosts.OrderByDescending(d => d.LikesCount).Take(12).ToList()
+        };
+    }
+
     private async Task SetFilter(string filter)
     {
         activeFilter = filter;
-        await LoadFeedData();
+        SwitchFilter();
         StateHasChanged();
     }
 
@@ -367,6 +378,7 @@
 
     private void AddComment(Post post)
     {
+
         StateHasChanged();
     }
 
