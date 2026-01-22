@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using TshirtMaker.DTOs;
 using TshirtMaker.Repositories.Interfaces;
 using TshirtMaker.Services.Supabase;
@@ -7,81 +11,73 @@ namespace TshirtMaker.Repositories
 {
     public class UserRepository : BaseRepository<UserDto>, IUserRepository
     {
-        public UserRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
-            : base(supabaseClient, "users", supabaseUrl, supabaseKey, tokenProvider)
+        private readonly JsonSerializerOptions _jsonOptions;
+
+        public UserRepository(
+            HttpClient httpClient,
+            string apiKey,
+            ISupabaseAccessTokenProvider tokenProvider)
+            : base(httpClient, "users", apiKey, tokenProvider)
         {
+            _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
 
         public async Task<UserDto?> GetByUsernameAsync(string username)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?username=eq.{username}&select=*");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<UserDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return items?.FirstOrDefault();
+            var path = $"/rest/v1/{_tableName}?username=eq.{Uri.EscapeDataString(username)}&select=*";
+            return await ExecuteGetSingleAsync<UserDto>(path);
         }
 
         public async Task<UserDto?> GetByEmailAsync(string email)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?email=eq.{email}&select=*");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<UserDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return items?.FirstOrDefault();
+            var path = $"/rest/v1/{_tableName}?email=eq.{Uri.EscapeDataString(email)}&select=*";
+            return await ExecuteGetSingleAsync<UserDto>(path);
         }
 
         public async Task<IEnumerable<UserDto>> SearchUsersAsync(string searchTerm, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?or=(username.ilike.%{searchTerm}%,bio.ilike.%{searchTerm}%)&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<UserDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<UserDto>();
-
-            return items;
+            var esc = Uri.EscapeDataString(searchTerm);
+            var path = $"/rest/v1/{_tableName}?or=(username.ilike.%25{esc}%25,bio.ilike.%25{esc}%25)&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<UserDto>(path);
         }
 
         public async Task<int> GetFollowersCountAsync(Guid userId)
         {
-            var response = await SendGetAsync($"/rest/v1/followers?following_user=eq.{userId}&select=count");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<FollowerDto>>(content, new JsonSerializerOptions
+            var path = $"/rest/v1/followers?following_user=eq.{userId}&select=count";
+            var list = await ExecuteGetListAsync<FollowerDto>(path);
+            if (list.Count > 0)
             {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<FollowerDto>();
+                var first = list.First();
+                var countProp = typeof(FollowerDto).GetProperty("count", System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (countProp != null)
+                {
+                    var val = countProp.GetValue(first);
+                    if (val != null && int.TryParse(val.ToString(), out var parsed))
+                        return parsed;
+                }
+            }
 
-            return items.Count;
+            return list.Count;
         }
 
         public async Task<int> GetFollowingCountAsync(Guid userId)
         {
-            var response = await SendGetAsync($"/rest/v1/followers?follower_id=eq.{userId}&select=count");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<FollowerDto>>(content, new JsonSerializerOptions
+            var path = $"/rest/v1/followers?follower_id=eq.{userId}&select=count";
+            var list = await ExecuteGetListAsync<FollowerDto>(path);
+            if (list.Count > 0)
             {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<FollowerDto>();
+                var first = list.First();
+                var countProp = typeof(FollowerDto).GetProperty("count", System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (countProp != null)
+                {
+                    var val = countProp.GetValue(first);
+                    if (val != null && int.TryParse(val.ToString(), out var parsed))
+                        return parsed;
+                }
+            }
 
-            return items.Count;
+            return list.Count;
         }
     }
 }

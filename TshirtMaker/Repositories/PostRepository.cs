@@ -15,67 +15,37 @@ namespace TshirtMaker.Repositories
     /// </summary>
     public class PostRepository : BaseRepository<PostDto>, IPostRepository
     {
-        public PostRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
-            : base(supabaseClient, "posts", supabaseUrl, supabaseKey, tokenProvider)
+        public PostRepository(HttpClient httpClient, string apiKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(httpClient, "posts", apiKey, tokenProvider)
         {
         }
 
         public async Task<IEnumerable<PostDto>> GetAllPostsAsync()
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?select=*&order=created_at.desc");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?select=*&order=created_at.desc";
+            return await ExecuteGetListAsync<PostDto>(path);
         }
 
         public async Task<IEnumerable<PostDto>> GetByPosterIdAsync(Guid posterId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?poster_id=eq.{posterId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?poster_id=eq.{posterId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<PostDto>(path);
         }
 
         public async Task<IEnumerable<PostDto>> GetByDesignIdAsync(Guid designId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?design_id=eq.{designId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?design_id=eq.{designId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<PostDto>(path);
         }
 
         public async Task<IEnumerable<PostDto>> GetFeedAsync(Guid userId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
 
-            var followerResponse = await SendGetAsync($"/rest/v1/followers?follower_id=eq.{userId}&select=following_id");
-            followerResponse.EnsureSuccessStatusCode();
-
-            var followerContent = await followerResponse.Content.ReadAsStringAsync();
-            var followers = JsonSerializer.Deserialize<List<FollowerDto>>(followerContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<FollowerDto>();
+            var followerPath = $"/rest/v1/followers?follower_id=eq.{userId}&select=following_id";
+            var followers = await ExecuteGetListAsync<FollowerDto>(followerPath);
 
             var followingIds = followers.Select(f => f.FollowingId).ToList();
 
@@ -85,58 +55,27 @@ namespace TshirtMaker.Repositories
             }
 
             var idsParam = string.Join(",", followingIds.Select(id => $"\"{id}\""));
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?poster_id=in.({idsParam})&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?poster_id=in.({idsParam})&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<PostDto>(path);
         }
 
         public async Task<IEnumerable<PostDto>> GetTrendingAsync(int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?order=likes_count.desc,created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?order=likes_count.desc,created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<PostDto>(path);
         }
 
         public async Task<IEnumerable<PostDto>> GetLatestAsync(int count = 12, int startIndex = 0)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?order=created_at.desc&offset={startIndex}&limit={count}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?order=created_at.desc&offset={startIndex}&limit={count}";
+            return await ExecuteGetListAsync<PostDto>(path);
         }
 
         public async Task<int> GetTotalPostsCountAsync()
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?select=count");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<PostDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<PostDto>();
-
+            var path = $"/rest/v1/{_tableName}?select=count";
+            var items = await ExecuteGetListAsync<PostDto>(path);
             return items.Count;
         }
         public async Task<bool> ToggleAllowRemixAsync(Guid postId, bool allowRemix)

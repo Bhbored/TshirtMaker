@@ -3,6 +3,7 @@ using TshirtMaker.Repositories;
 using TshirtMaker.Repositories.Interfaces;
 using TshirtMaker.Services.AI;
 using TshirtMaker.Services.Supabase;
+using System.Net.Http.Headers;
 
 namespace TshirtMaker.Services
 {
@@ -13,7 +14,7 @@ namespace TshirtMaker.Services
             var url = configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase:Url not configured");
             var key = configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase:Key not configured");
 
-            services.AddSingleton(provider =>
+            services.AddSingleton<global::Supabase.Client>(sp =>
             {
                 var options = new SupabaseOptions
                 {
@@ -22,9 +23,33 @@ namespace TshirtMaker.Services
                     SessionHandler = new SupabaseSessionHandler()
                 };
 
-                var client = new global::Supabase.Client(url, key, options);
-                client.InitializeAsync().Wait();
+                var client = new Client(url, key, options);
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await client.InitializeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = sp.GetService<ILoggerFactory>()?.CreateLogger("Supabase.Client.Init");
+                        logger?.LogError(ex, "Failed to initialize Supabase.Client");
+                    }
+                });
+
                 return client;
+            });
+
+            services.AddHttpClient("supabase", client =>
+            {
+                client.BaseAddress = new Uri(url);
+                if (!client.DefaultRequestHeaders.Contains("apikey"))
+                    client.DefaultRequestHeaders.Add("apikey", key);
+
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.Timeout = TimeSpan.FromSeconds(100);
             });
 
             return services;
@@ -32,22 +57,110 @@ namespace TshirtMaker.Services
 
         public static IServiceCollection RegisterRepositories(this IServiceCollection services, IConfiguration configuration)
         {
-            var url = configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase:Url not configured");
-            var key = configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase:Key not configured");
+            services.AddScoped<IUserRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new UserRepository(client, apiKey, tokenProvider);
+            });
 
-            services.AddScoped<IUserRepository>(sp => new UserRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IDesignRepository>(sp => new DesignRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IPostRepository>(sp => new PostRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<ICommentRepository>(sp => new CommentRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<ILikeRepository>(sp => new LikeRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IBookmarkRepository>(sp => new BookmarkRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IFollowerRepository>(sp => new FollowerRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<INotificationRepository>(sp => new NotificationRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<ICollectionRepository>(sp => new CollectionRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IOrderRepository>(sp => new OrderRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IOrderItemRepository>(sp => new OrderItemRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<IShippingAddressRepository>(sp => new ShippingAddressRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
-            services.AddScoped<ITrackingEventRepository>(sp => new TrackingEventRepository(sp.GetRequiredService<global::Supabase.Client>(), url, key, sp.GetRequiredService<ISupabaseAccessTokenProvider>()));
+            services.AddScoped<IDesignRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new DesignRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<IPostRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new PostRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<ICommentRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new CommentRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<ILikeRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new LikeRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<IBookmarkRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new BookmarkRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<IFollowerRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new FollowerRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<INotificationRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new NotificationRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<ICollectionRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new CollectionRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<IOrderRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new OrderRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<IOrderItemRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new OrderItemRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<IShippingAddressRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new ShippingAddressRepository(client, apiKey, tokenProvider);
+            });
+
+            services.AddScoped<ITrackingEventRepository>(sp =>
+            {
+                var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("supabase");
+                var tokenProvider = sp.GetRequiredService<ISupabaseAccessTokenProvider>();
+                var apiKey = configuration["Supabase:Key"]!;
+                return new TrackingEventRepository(client, apiKey, tokenProvider);
+            });
+
             return services;
         }
 
@@ -64,7 +177,6 @@ namespace TshirtMaker.Services
 
         public static IServiceCollection RegisterAppServices(this IServiceCollection services)
         {
-
             services.AddScoped<IAIDesignService, OpenAIDesignService>();
             services.AddHttpClient<OpenAIDesignService>(client =>
             {

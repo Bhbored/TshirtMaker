@@ -8,41 +8,25 @@ namespace TshirtMaker.Repositories
 {
     public class NotificationRepository : BaseRepository<NotificationDto>, INotificationRepository
     {
-        public NotificationRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
-            : base(supabaseClient, "notifications", supabaseUrl, supabaseKey, tokenProvider)
+        public NotificationRepository(HttpClient httpClient, string apiKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(httpClient, "notifications", apiKey, tokenProvider)
         {
         }
 
         public async Task<IEnumerable<NotificationDto>> GetByRecipientIdAsync(Guid recipientId, int pageNumber = 1, int pageSize = 10, bool unreadOnly = false)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var url = unreadOnly 
+            var path = unreadOnly
                 ? $"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false&order=created_at.desc&offset={offset}&limit={pageSize}"
                 : $"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&order=created_at.desc&offset={offset}&limit={pageSize}";
 
-            var response = await SendGetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<NotificationDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<NotificationDto>();
-
-            return items;
+            return await ExecuteGetListAsync<NotificationDto>(path);
         }
 
         public async Task<int> GetUnreadCountAsync(Guid recipientId)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<NotificationDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<NotificationDto>();
-
+            var path = $"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false";
+            var items = await ExecuteGetListAsync<NotificationDto>(path);
             return items.Count;
         }
 
@@ -59,13 +43,11 @@ namespace TshirtMaker.Repositories
         public async Task<bool> MarkAllAsReadAsync(Guid recipientId)
         {
             var updateData = new { is_read = true };
-            var json = JsonSerializer.Serialize(updateData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             try
             {
-                var response = await SendPatchAsync($"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false", content);
-                response.EnsureSuccessStatusCode();
+                var path = $"/rest/v1/{_tableName}?recipient_id=eq.{recipientId}&is_read=eq.false";
+                await ExecutePatchAsync<NotificationDto, object>(path, updateData, returnRepresentation: false);
                 return true;
             }
             catch

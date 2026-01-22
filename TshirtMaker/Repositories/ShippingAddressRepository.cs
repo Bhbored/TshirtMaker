@@ -8,53 +8,30 @@ namespace TshirtMaker.Repositories
 {
     public class ShippingAddressRepository : BaseRepository<ShippingAddressDto>, IShippingAddressRepository
     {
-        public ShippingAddressRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
-            : base(supabaseClient, "shipping_addresses", supabaseUrl, supabaseKey, tokenProvider)
+        public ShippingAddressRepository(HttpClient httpClient, string apiKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(httpClient, "shipping_addresses", apiKey, tokenProvider)
         {
         }
 
         public async Task<IEnumerable<ShippingAddressDto>> GetByUserIdAsync(Guid userId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<ShippingAddressDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<ShippingAddressDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?user_id=eq.{userId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<ShippingAddressDto>(path);
         }
 
         public async Task<ShippingAddressDto?> GetDefaultAddressAsync(Guid userId)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&is_default=eq.true");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<ShippingAddressDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return items?.FirstOrDefault();
+            var path = $"/rest/v1/{_tableName}?user_id=eq.{userId}&is_default=eq.true";
+            var items = await ExecuteGetListAsync<ShippingAddressDto>(path);
+            return items.FirstOrDefault();
         }
 
         public async Task<IEnumerable<ShippingAddressDto>> GetByCountryAsync(string countryCode, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?country_code=eq.{countryCode}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<ShippingAddressDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<ShippingAddressDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?country_code=eq.{countryCode}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<ShippingAddressDto>(path);
         }
 
         public async Task<bool> SetDefaultAddressAsync(Guid addressId, Guid userId)
@@ -62,17 +39,12 @@ namespace TshirtMaker.Repositories
             try
             {
                 var updateData = new { is_default = false };
-                var json = JsonSerializer.Serialize(updateData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                await SendPatchAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}", content);
+                var path = $"/rest/v1/{_tableName}?user_id=eq.{userId}";
+                await ExecutePatchAsync<ShippingAddressDto, object>(path, updateData, returnRepresentation: false);
 
                 var setDefaultData = new { is_default = true };
-                var setDefaultJson = JsonSerializer.Serialize(setDefaultData);
-                var setDefaultContent = new StringContent(setDefaultJson, Encoding.UTF8, "application/json");
-
-                var response = await SendPatchAsync($"/rest/v1/{_tableName}?id=eq.{addressId}&user_id=eq.{userId}", setDefaultContent);
-                response.EnsureSuccessStatusCode();
+                var setDefaultPath = $"/rest/v1/{_tableName}?id=eq.{addressId}&user_id=eq.{userId}";
+                await ExecutePatchAsync<ShippingAddressDto, object>(setDefaultPath, setDefaultData, returnRepresentation: false);
 
                 return true;
             }

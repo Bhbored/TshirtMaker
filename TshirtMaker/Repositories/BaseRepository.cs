@@ -1,6 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using TshirtMaker.DTOs;
 using TshirtMaker.Repositories.Interfaces;
 using TshirtMaker.Services.Supabase;
@@ -9,133 +14,152 @@ namespace TshirtMaker.Repositories
 {
     public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntityDto, new()
     {
-        protected readonly Supabase.Client _supabaseClient;
+        private readonly HttpClient _httpClient;
         protected readonly string _tableName;
-        protected readonly HttpClient _httpClient;
-        protected readonly string _supabaseUrl;
-        protected readonly string _supabaseKey;
+        private readonly string _apiKey;
         private readonly ISupabaseAccessTokenProvider _tokenProvider;
+        private readonly JsonSerializerOptions _jsonOptions;
 
-        public BaseRepository(Supabase.Client supabaseClient, string tableName, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
+        public BaseRepository(
+            HttpClient httpClient,
+            string tableName,
+            string apiKey,
+            ISupabaseAccessTokenProvider tokenProvider)
         {
-            _supabaseClient = supabaseClient;
-            _tableName = tableName;
-            _supabaseUrl = supabaseUrl;
-            _supabaseKey = supabaseKey;
-            _tokenProvider = tokenProvider;
-            _httpClient = new HttpClient
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _tableName = string.IsNullOrWhiteSpace(tableName) ? throw new ArgumentNullException(nameof(tableName)) : tableName;
+            _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
+            _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
+
+            if (!_httpClient.DefaultRequestHeaders.Accept.Any(h => h.MediaType == "application/json"))
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            _jsonOptions = new JsonSerializerOptions
             {
-                BaseAddress = new Uri(supabaseUrl)
+                PropertyNameCaseInsensitive = true,
             };
-            _httpClient.DefaultRequestHeaders.Add("apikey", supabaseKey);
         }
-
-        private async Task SetAuthorizationAsync()
+        #region  Base Methods
+        private async Task<HttpRequestMessage> CreateRequestAsync(HttpMethod method, string requestUri, HttpContent? content = null, bool preferReturnRepresentation = false)
         {
+            var req = new HttpRequestMessage(method, requestUri);
+            if (content != null) req.Content = content;
+
             var token = await _tokenProvider.GetAccessTokenAsync();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token ?? _supabaseKey);
+            if (!string.IsNullOrEmpty(token))
+            {
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            if (!req.Headers.Contains("apikey"))
+                req.Headers.Add("apikey", _apiKey);
+
+            if (preferReturnRepresentation && req.Content != null)
+                req.Headers.Add("Prefer", "return=representation");
+
+            return req;
         }
 
-        protected async Task<HttpResponseMessage> SendGetAsync(string requestUri)
+        private string BuildTableUrl(string query = "")
         {
-            await SetAuthorizationAsync();
-            return await _httpClient.GetAsync(requestUri);
+            if (_tableName.Any(c => char.IsWhiteSpace(c) || c == '/' || c == '\\'))
+                throw new InvalidOperationException("Invalid table name configured for repository.");
+
+            var path = $"/rest/v1/{_tableName}";
+            if (!string.IsNullOrEmpty(query))
+                path += query.StartsWith("?") ? query : "?" + query;
+            return path;
         }
-        protected async Task<HttpResponseMessage> SendPostAsync(string requestUri, HttpContent content)
+
+        protected async Task<List<TResult>> ExecuteGetListAsync<TResult>(string path)
         {
-            await SetAuthorizationAsync();
-            return await _httpClient.PostAsync(requestUri, content);
+            using var req = await CreateRequestAsync(HttpMethod.Get, path);
+            using var res = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+            res.EnsureSuccessStatusCode();
+            using var stream = await res.Content.ReadAsStreamAsync();
+            var items = await JsonSerializer.DeserializeAsync<List<TResult>>(stream, _jsonOptions);
+            return items ?? new List<TResult>();
         }
-        protected async Task<HttpResponseMessage> SendPatchAsync(string requestUri, HttpContent content)
+
+        protected async Task<TResult?> ExecuteGetSingleAsync<TResult>(string path)
         {
-            await SetAuthorizationAsync();
-            return await _httpClient.PatchAsync(requestUri, content);
+            var list = await ExecuteGetListAsync<TResult>(path);
+            return list.FirstOrDefault();
         }
-        protected async Task<HttpResponseMessage> SendDeleteAsync(string requestUri)
+
+        protected async Task<List<TResult>> ExecutePostAsync<TResult, TPayload>(string path, TPayload payload, bool returnRepresentation = true)
         {
-            await SetAuthorizationAsync();
-            return await _httpClient.DeleteAsync(requestUri);
+            var json = JsonSerializer.Serialize(payload, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            using var req = await CreateRequestAsync(HttpMethod.Post, path, content, preferReturnRepresentation: returnRepresentation);
+            using var res = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+            res.EnsureSuccessStatusCode();
+            using var stream = await res.Content.ReadAsStreamAsync();
+            var items = await JsonSerializer.DeserializeAsync<List<TResult>>(stream, _jsonOptions);
+            return items ?? new List<TResult>();
         }
+
+        protected async Task<List<TResult>> ExecutePatchAsync<TResult, TPayload>(string path, TPayload payload, bool returnRepresentation = true)
+        {
+            var json = JsonSerializer.Serialize(payload, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            using var req = await CreateRequestAsync(HttpMethod.Patch, path, content, preferReturnRepresentation: returnRepresentation);
+            using var res = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+            res.EnsureSuccessStatusCode();
+            using var stream = await res.Content.ReadAsStreamAsync();
+            var items = await JsonSerializer.DeserializeAsync<List<TResult>>(stream, _jsonOptions);
+            return items ?? new List<TResult>();
+        }
+
+        protected async Task<bool> ExecuteDeleteAsync(string path)
+        {
+            using var req = await CreateRequestAsync(HttpMethod.Delete, path);
+            using var res = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+            return res.IsSuccessStatusCode;
+        }
+        #endregion
+
 
         public virtual async Task<T?> GetByIdAsync(Guid id)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?id=eq.{id}&select=*");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<T>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return items?.FirstOrDefault();
+            var uri = BuildTableUrl($"?id=eq.{Uri.EscapeDataString(id.ToString())}&select=*");
+            return await ExecuteGetSingleAsync<T>(uri);
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(int pageNumber = 1, int pageSize = 10)
         {
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Clamp(pageSize, 1, 1000);
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?select=*&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<T>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<T>();
-
-            return items;
+            var uri = BuildTableUrl($"?select=*&order=created_at.desc&offset={offset}&limit={pageSize}");
+            return await ExecuteGetListAsync<T>(uri);
         }
 
-        public virtual async Task<T> CreateAsync(T entity)
+        public virtual async Task<T?> CreateAsync(T entity)
         {
-            if (entity.Id == Guid.Empty)
-            {
-                entity.Id = Guid.NewGuid();
-            }
-
-            entity.CreatedAt = DateTime.UtcNow;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
             entity.UpdatedAt = DateTime.UtcNow;
 
-            var json = JsonSerializer.Serialize(entity);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await SendPostAsync($"/rest/v1/{_tableName}", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var created = JsonSerializer.Deserialize<List<T>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return created?.FirstOrDefault() ?? entity;
+            var uri = BuildTableUrl();
+            var created = await ExecutePostAsync<T, T>(uri, entity, returnRepresentation: true);
+            return created.FirstOrDefault() ?? entity;
         }
 
-        public virtual async Task<T> UpdateAsync(T entity)
+        public virtual async Task<T?> UpdateAsync(T entity)
         {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
             entity.UpdatedAt = DateTime.UtcNow;
 
-            var json = JsonSerializer.Serialize(entity);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await SendPatchAsync($"/rest/v1/{_tableName}?id=eq.{entity.Id}", content);
-            response.EnsureSuccessStatusCode();
-
-            return entity;
+            var uri = BuildTableUrl($"?id=eq.{Uri.EscapeDataString(entity.Id.ToString())}");
+            var updated = await ExecutePatchAsync<T, T>(uri, entity, returnRepresentation: true);
+            return updated.FirstOrDefault() ?? entity;
         }
 
         public virtual async Task<bool> DeleteAsync(Guid id)
         {
-            try
-            {
-                var response = await SendDeleteAsync($"/rest/v1/{_tableName}?id=eq.{id}");
-                response.EnsureSuccessStatusCode();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            var uri = BuildTableUrl($"?id=eq.{Uri.EscapeDataString(id.ToString())}");
+            return await ExecuteDeleteAsync(uri);
         }
     }
 }

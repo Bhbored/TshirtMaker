@@ -7,66 +7,36 @@ namespace TshirtMaker.Repositories
 {
     public class OrderItemRepository : BaseRepository<OrderItemDto>, IOrderItemRepository
     {
-        public OrderItemRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
-            : base(supabaseClient, "order_items", supabaseUrl, supabaseKey, tokenProvider)
+        public OrderItemRepository(HttpClient httpClient, string apiKey, ISupabaseAccessTokenProvider tokenProvider)
+            : base(httpClient, "order_items", apiKey, tokenProvider)
         {
         }
 
         public async Task<IEnumerable<OrderItemDto>> GetByOrderIdAsync(Guid orderId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?order_id=eq.{orderId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<OrderItemDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<OrderItemDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?order_id=eq.{orderId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<OrderItemDto>(path);
         }
 
         public async Task<IEnumerable<OrderItemDto>> GetByDesignIdAsync(Guid designId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?design_id=eq.{designId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<OrderItemDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<OrderItemDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?design_id=eq.{designId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<OrderItemDto>(path);
         }
 
         public async Task<decimal> GetOrderTotalAsync(Guid orderId)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?order_id=eq.{orderId}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<OrderItemDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<OrderItemDto>();
-
+            var path = $"/rest/v1/{_tableName}?order_id=eq.{orderId}";
+            var items = await ExecuteGetListAsync<OrderItemDto>(path);
             return items.Sum(item => item.TotalPrice);
         }
 
         public async Task<int> GetOrderItemCountAsync(Guid orderId)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?order_id=eq.{orderId}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<OrderItemDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<OrderItemDto>();
-
+            var path = $"/rest/v1/{_tableName}?order_id=eq.{orderId}";
+            var items = await ExecuteGetListAsync<OrderItemDto>(path);
             return items.Count;
         }
     }

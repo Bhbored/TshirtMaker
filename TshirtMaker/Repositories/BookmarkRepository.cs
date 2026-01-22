@@ -7,66 +7,40 @@ namespace TshirtMaker.Repositories
 {
     public class BookmarkRepository : BaseRepository<BookmarkDto>, IBookmarkRepository
     {
-        public BookmarkRepository(Supabase.Client supabaseClient, string supabaseUrl, string supabaseKey, ISupabaseAccessTokenProvider tokenProvider)
-            : base(supabaseClient, "bookmarks", supabaseUrl, supabaseKey, tokenProvider)
+        private readonly JsonSerializerOptions _jsonOptions;
+        public BookmarkRepository(HttpClient httpClient,
+            string apiKey,
+            ISupabaseAccessTokenProvider tokenProvider)
+            : base(httpClient, "bookmarks", apiKey, tokenProvider)
         {
+            _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
 
         public async Task<bool> BookmarkExistsAsync(Guid userId, Guid postId)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&post_id=eq.{postId}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<BookmarkDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<BookmarkDto>();
-
+            var path = $"/rest/v1/{_tableName}?user_id=eq.{userId}&post_id=eq.{postId}";
+            var items = await ExecuteGetListAsync<BookmarkDto>(path);
             return items.Any();
         }
 
         public async Task<IEnumerable<BookmarkDto>> GetByUserIdAsync(Guid userId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<BookmarkDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<BookmarkDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?user_id=eq.{userId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<BookmarkDto>(path);
         }
 
         public async Task<IEnumerable<BookmarkDto>> GetByPostIdAsync(Guid postId, int pageNumber = 1, int pageSize = 10)
         {
             var offset = (pageNumber - 1) * pageSize;
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?post_id=eq.{postId}&order=created_at.desc&offset={offset}&limit={pageSize}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<BookmarkDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<BookmarkDto>();
-
-            return items;
+            var path = $"/rest/v1/{_tableName}?post_id=eq.{postId}&order=created_at.desc&offset={offset}&limit={pageSize}";
+            return await ExecuteGetListAsync<BookmarkDto>(path);
         }
 
         public async Task<int> GetPostBookmarksCountAsync(Guid postId)
         {
-            var response = await SendGetAsync($"/rest/v1/{_tableName}?post_id=eq.{postId}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<BookmarkDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<BookmarkDto>();
-
+            var path = $"/rest/v1/{_tableName}?post_id=eq.{postId}";
+            var items = await ExecuteGetListAsync<BookmarkDto>(path);
             return items.Count;
         }
 
@@ -74,9 +48,8 @@ namespace TshirtMaker.Repositories
         {
             try
             {
-                var response = await SendDeleteAsync($"/rest/v1/{_tableName}?user_id=eq.{userId}&post_id=eq.{postId}");
-                response.EnsureSuccessStatusCode();
-                return true;
+                var path = $"/rest/v1/{_tableName}?user_id=eq.{userId}&post_id=eq.{postId}";
+                return await ExecuteDeleteAsync(path);
             }
             catch
             {

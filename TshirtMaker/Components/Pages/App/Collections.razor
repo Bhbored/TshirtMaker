@@ -1,7 +1,7 @@
 @page "/collections"
 @layout MainLayout
 @inject AuthStateService AuthService
-@inject TestDataService TestData
+@inject IDesignRepository DesignRepository
 @inject ILogger<Feed> Logger
 @inject NavigationManager Nav
 @using TshirtMaker.Components.ui.common
@@ -59,7 +59,7 @@
                         var isChecked = activeTypes.Contains(clothingType);
                         <label class="collections-checkbox-label">
                             <input type="checkbox" checked="@isChecked" class="collections-checkbox"
-                                @onchange="@(() => ToggleClothingType(clothingType))" />
+                                   @onchange="@(() => ToggleClothingType(clothingType))" />
                             <span>@clothingType.ToString() (@count)</span>
                         </label>
                     }
@@ -76,7 +76,7 @@
                         var count = GetDesignCountByStyle(styleType);
                         var isActive = selectedStyle == styleType;
                         <button class="collections-style-button @(isActive ? "active" : "")"
-                            @onclick="@(() => SelectStyleType(styleType))">
+                                @onclick="@(() => SelectStyleType(styleType))">
                             @styleType.ToString() (@count)
                         </button>
                     }
@@ -104,11 +104,11 @@
 
                 <div class="collections-tabs">
                     <button class="collections-tab @(activeTab == "creations" ? "active" : "")"
-                        @onclick="@(() => SwitchTab("creations"))">
+                            @onclick="@(() => SwitchTab("creations"))">
                         My Creations
                     </button>
                     <button class="collections-tab @(activeTab == "saves" ? "active" : "")"
-                        @onclick="@(() => SwitchTab("saves"))">
+                            @onclick="@(() => SwitchTab("saves"))">
                         Community Saves
                     </button>
                 </div>
@@ -139,21 +139,21 @@
                                         {
                                             <div class="collections-share-overlay">
                                                 <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
-                                                    OnClose="@(() => ToggleShare(design.Id))" />
+                                                                    OnClose="@(() => ToggleShare(design.Id))" />
                                             </div>
                                         }
                                         <div class="collections-card-overlay">
                                             <div class="collections-card-actions">
                                                 <button class="collections-card-action-btn" title="Edit"
-                                                    @onclick="@(() => OpenEditPopup(design))">
+                                                        @onclick="@(() => OpenEditPopup(design))">
                                                     <span class="material-symbols-outlined">edit</span>
                                                 </button>
                                                 <button class="collections-card-action-btn primary" title="Order"
-                                                    @onclick="@(() => OrderDesign(design))">
+                                                        @onclick="@(() => OrderDesign(design))">
                                                     <span class="material-symbols-outlined">shopping_bag</span>
                                                 </button>
                                                 <button class="collections-card-action-btn" title="Share"
-                                                    @onclick="@(() => ToggleShare(design.Id))">
+                                                        @onclick="@(() => ToggleShare(design.Id))">
                                                     <span class="material-symbols-outlined">share</span>
                                                 </button>
                                             </div>
@@ -199,17 +199,17 @@
                                             {
                                                 <div class="collections-share-overlay">
                                                     <ShareSocialCompact ImageUrl="@design.FinalImageUrl" CustomText="@design.Title"
-                                                        OnClose="@(() => ToggleShare(design.Id))" />
+                                                                        OnClose="@(() => ToggleShare(design.Id))" />
                                                 </div>
                                             }
                                             <div class="collections-card-overlay">
                                                 <div class="collections-card-actions">
                                                     <button class="collections-card-action-btn primary" title="Order"
-                                                        @onclick="@(() => OrderDesign(design))">
+                                                            @onclick="@(() => OrderDesign(design))">
                                                         <span class="material-symbols-outlined">shopping_bag</span>
                                                     </button>
                                                     <button class="collections-card-action-btn" title="Share"
-                                                        @onclick="@(() => ToggleShare(design.Id))">
+                                                            @onclick="@(() => ToggleShare(design.Id))">
                                                         <span class="material-symbols-outlined">share</span>
                                                     </button>
                                                 </div>
@@ -233,7 +233,7 @@
                 }
 
                 <EditDesignTitlePopup IsOpen="@editPopupOpen" Design="@selectedDesign" OnClose="CloseEditPopup"
-                    OnSave="HandleDesignTitleSave" />
+                                      OnSave="HandleDesignTitleSave" />
             }
         </section>
     </div>
@@ -270,7 +270,7 @@
                 return;
             }
 
-            currentUser = AuthService.CurrentUser ?? new();
+            currentUser = AuthService.CurrentUser!;
             clothingTypes = Enum.GetValues<ClothingType>().ToList();
         }
         catch (Exception ex)
@@ -286,8 +286,6 @@
         {
             try
             {
-                // Simulate loading delay (3 seconds)
-                await Task.Delay(3000);
                 await LoadData();
                 UpdateFiltersForTab();
                 isLoading = false;
@@ -304,8 +302,9 @@
     }
     async Task LoadData()
     {
-        allUserDesigns = TestData.GetUserDesigns(currentUser.Id) ?? [];
-        userDesigns = allUserDesigns.ToList();
+        var allUserDesignsDto = await DesignRepository.GetByUserIdAsync(currentUser.Id);
+        allUserDesigns = allUserDesignsDto.Select(dto => dto.ToModel()).ToList();
+        userDesigns = allUserDesigns;
         allUserCollections = currentUser.Collections?.ToList() ?? [];
         userCollections = allUserCollections.ToList();
 
