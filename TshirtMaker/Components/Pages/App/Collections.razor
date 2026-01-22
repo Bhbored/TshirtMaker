@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject AuthStateService AuthService
 @inject IDesignRepository DesignRepository
+@inject ICollectionRepository CollectionRepository
 @inject ILogger<Feed> Logger
 @inject NavigationManager Nav
 @using TshirtMaker.Components.ui.common
@@ -241,6 +242,12 @@
 
 @code {
 
+
+
+
+
+
+
     #region fields
 
     private User currentUser = new();
@@ -305,7 +312,22 @@
         var allUserDesignsDto = await DesignRepository.GetByUserIdAsync(currentUser.Id);
         allUserDesigns = allUserDesignsDto.Select(dto => dto.ToModel()).ToList();
         userDesigns = allUserDesigns;
-        allUserCollections = currentUser.Collections?.ToList() ?? [];
+
+        var allUserCollectionsDto = await CollectionRepository.GetByUserIdAsync(currentUser.Id);
+        allUserCollections = allUserCollectionsDto.Select(dto => dto.ToModel()).ToList();
+
+        foreach (var collection in allUserCollections)
+        {
+            if (collection.CopiedDesignId != Guid.Empty)
+            {
+                var designDto = await DesignRepository.GetByIdAsync(collection.CopiedDesignId);
+                if (designDto != null)
+                {
+                    collection.CopiedDesign = designDto.ToModel();
+                }
+            }
+        }
+
         userCollections = allUserCollections.ToList();
 
     }
@@ -480,10 +502,12 @@
     //changed on backend
     async Task HandleDesignTitleSave(Design design)
     {
-        var index = allUserDesigns.FindIndex(d => d.Id == design.Id);
-        if (index >= 0)
+        var index = allUserDesigns.Where(d => d.Id == design.Id);
+        if (!string.IsNullOrWhiteSpace(design.Title))
         {
-            allUserDesigns[index] = design;
+
+            var dto = DesignDto.FromModel(design);
+            await DesignRepository.UpdateAsync(dto);
         }
         FilterDesigns();
     }
@@ -491,7 +515,5 @@
     void OrderDesign(Design design)
     {
     }
-
-
 
 }

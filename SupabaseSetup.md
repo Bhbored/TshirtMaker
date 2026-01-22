@@ -429,6 +429,7 @@ Enable RLS on sensitive tables and define policies:
 -- Enable RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE designs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shipping_addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
@@ -445,6 +446,28 @@ CREATE POLICY design_access_policy ON designs
 
 -- Designs table policy - users can only insert designs with their own user_id
 CREATE POLICY design_insert_policy ON designs
+  FOR INSERT TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+-- Designs table policy - allow viewing designs that are in the user's collections (for saved designs)
+CREATE POLICY design_collection_view_policy ON designs
+  FOR SELECT TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR id IN (
+      SELECT copied_design_id
+      FROM collections
+      WHERE user_id = auth.uid()
+    )
+  );
+
+-- Collections table policy - users can only access their own collections
+CREATE POLICY collection_access_policy ON collections
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid());
+
+-- Collections table policy - users can only insert collections with their own user_id
+CREATE POLICY collection_insert_policy ON collections
   FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
