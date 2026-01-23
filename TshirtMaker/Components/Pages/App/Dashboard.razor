@@ -1,5 +1,4 @@
 @page "/dashboard"
-@using TshirtMaker.Tests
 @layout MainLayout
 @inject IDesignRepository DesignRepository
 @inject IUserRepository UserRepository
@@ -293,17 +292,7 @@
     }
 
 
-    // async Task injectTestData()
-    // {
-    //     var testdata = TestDesigns.Testdesigns;
-
-    //     foreach (var x in testdata)
-    //     {
-    //         var dto = DesignDto.FromModel(x);
-    //         await DesignRepository.CreateAsync(dto);
-    //     }
-
-    // }
+   
     private async Task LoadDashboardData()
     {
         try

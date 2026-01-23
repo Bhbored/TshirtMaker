@@ -36,8 +36,7 @@ window.scrollToElement = function (elementId) {
     });
 };
 
-// Scroll-triggered fade-in animations
-// Uses MutationObserver so sections added by Blazor (InteractiveServer) after DOMContentLoaded are still observed
+
 window.initScrollAnimations = function () {
     const selector = '.how-it-works-section, .describe-vision-section, .save-share-section, #features';
     const observer = new IntersectionObserver((entries) => {

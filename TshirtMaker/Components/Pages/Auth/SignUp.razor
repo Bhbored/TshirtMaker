@@ -83,7 +83,7 @@
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">person</span>
                             <InputText @bind-Value="SignUpModel.Username" class="login-input"
-                                placeholder="Choose a username"
+                                       placeholder="Choose a username" autocomplete="new-username"
                                 style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages)
@@ -98,7 +98,7 @@
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">mail</span>
                             <InputText @bind-Value="SignUpModel.Email" class="login-input"
-                                placeholder="name@example.com"
+                                       placeholder="name@example.com" autocomplete="new-email"
                                 style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages)
@@ -113,7 +113,7 @@
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">lock</span>
                             <InputText type="password" @bind-Value="SignUpModel.Password" class="login-input"
-                                placeholder="••••••••"
+                                placeholder="••••••••" autocomplete="new-password"
                                 style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages)

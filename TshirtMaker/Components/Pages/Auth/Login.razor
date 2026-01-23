@@ -78,7 +78,7 @@
                         <label class="form-label">Email Address</label>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">mail</span>
-                            <InputText @bind-Value="LoginModel.Email" class="login-input" placeholder="name@example.com"
+                            <InputText @bind-Value="LoginModel.Email" class="login-input" placeholder="name@example.com" autocomplete="current-email"
                                 style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages)
@@ -96,7 +96,7 @@
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">lock</span>
                             <InputText type="password" @bind-Value="LoginModel.Password" class="login-input"
-                                placeholder="••••••••"
+                                placeholder="••••••••" autocomplete="current-password"
                                 style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages)

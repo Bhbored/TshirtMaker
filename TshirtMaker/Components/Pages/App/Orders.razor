@@ -8,7 +8,19 @@
 <PageTitle>TshirtMaker - Order Tracking</PageTitle>
 
 <main class="orders-main">
+    <!-- Overlay for Under Construction -->
+    <div class="orders-overlay">
+        <div class="overlay-content">
+            <div class="overlay-icons">
+                <i class="bi bi-gear-fill gear-icon spinning-gear"></i>
+                <i class="bi bi-gear-fill gear-icon spinning-gear reverse-spin"></i>
+            </div>
+            <p class="overlay-text">Under Development</p>
+            <p class="overlay-subtext">Feature coming soon</p>
+        </div>
+    </div>
     <div class="orders-container">
+      
         <div class="orders-header">
             <div class="orders-header-content">
                 <h1 class="orders-title">Order Tracking</h1>
@@ -244,10 +256,8 @@
     {
         try
         {
-            // Wait a bit to allow auth state to initialize from session
             await Task.Delay(300);
 
-            // Re-initialize auth state to ensure it's loaded from session
             await Auth.InitializeAsync();
 
             if (!Auth.IsAuthenticated)
