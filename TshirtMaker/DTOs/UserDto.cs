@@ -55,8 +55,7 @@ namespace TshirtMaker.DTOs
         [JsonPropertyName("notifications")]
         public List<Guid>? Notifications { get; set; }
 
-        [JsonPropertyName("collections")]
-        public List<Guid>? Collections { get; set; }
+       
 
         public User ToModel()
         {
@@ -79,7 +78,6 @@ namespace TshirtMaker.DTOs
                 Bookmarks = this.Bookmarks?.Select(id => new Models.Social.Bookmark { Id = id }).ToList() ?? new List<Models.Social.Bookmark>(),
                 Followers = this.Followers?.Select(id => new Models.Social.Follower { Id = id }).ToList() ?? new List<Models.Social.Follower>(),
                 Notifications = this.Notifications?.Select(id => new Models.Social.Notification { Id = id }).ToList() ?? new List<Models.Social.Notification>(),
-                Collections = this.Collections?.Select(id => new Collection { Id = id }).ToList() ?? new List<Collection>(),
                 CreatedAt = this.CreatedAt,
                 UpdatedAt = this.UpdatedAt
             };
@@ -106,7 +104,6 @@ namespace TshirtMaker.DTOs
                 Bookmarks = user.Bookmarks?.Select(b => b.Id).ToList(),
                 Followers = user.Followers?.Select(f => f.Id).ToList(),
                 Notifications = user.Notifications?.Select(n => n.Id).ToList(),
-                Collections = user.Collections?.Select(c => c.Id).ToList(),
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt
             };

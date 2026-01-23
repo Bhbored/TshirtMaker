@@ -25,7 +25,7 @@ namespace TshirtMaker.Services
         private readonly SupabaseStorageService _storageService;
 
         private const string ApiUrl = "https://api.openai.com/v1/images/generations";
-        private const string ApiModel = "gpt-image-1";
+        private const string ApiModel = "DALL-E";
 
         public string? ErrorMessage { get; private set; }
 

@@ -286,7 +286,7 @@
             latestDesign = allDesigns.OrderByDescending(d => d.CreatedAt).FirstOrDefault();
             latestDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(3).ToList();
             recentDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(6).ToList();
-            totalDesigns = currentUser.TotalDesigns;
+            totalDesigns = allDesigns.Count;
             var likeDto = await LikeRepository.GetByUserIdAsync(currentUser.Id);
 
             totalLikes = likeDto.Select(x => x.ToModel())

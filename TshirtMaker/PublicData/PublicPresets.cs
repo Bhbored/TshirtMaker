@@ -120,5 +120,7 @@ namespace TshirtMaker.PublicData
                 PreviewImageUrl = "public/stylePresets/Graffiti.jpg"
             }
         };
+
+        public static Design RemixedDesign = null;
     }
 }

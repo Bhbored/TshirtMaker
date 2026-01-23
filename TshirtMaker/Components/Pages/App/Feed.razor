@@ -6,6 +6,7 @@
 @inject ILikeRepository LikeRepository
 @inject IBookmarkRepository BookmarkRepository
 @inject ICommentRepository CommentRepository
+@inject ICollectionRepository CollectionRepository
 @rendermode InteractiveServer
 @inject AuthStateService Auth
 @inject ILogger<Feed> Logger
@@ -81,7 +82,7 @@
 
                                 @if (!isMyPost && x.AllowRemix)
                                 {
-                                    <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x.PosterId))">
+                                    <button class="feed-remix-btn" @onclick="@(() => NavigateToRemix(x))">
                                         <span class="material-symbols-outlined">bolt</span>
                                         Remix
                                     </button>
@@ -166,6 +167,7 @@
     private User currentUser = new();
     private List<Post> userPosts = [];
     private List<Design> userDesigns = [];
+    private List<Collection> userCollections = [];
     private bool isCommentPopupOpen = false;
     private bool isCreatePostPopupOpen = false;
     private Post? selectedPostForComments;
@@ -247,6 +249,8 @@
             var allCommentsDtos = await CommentRepository.GetAllAsync();
             var allComments = allCommentsDtos.Select(x => x.ToModel()).ToList();
 
+            var userCollectionsDtos = await CollectionRepository.GetByUserIdAsync(currentUser.Id);
+            userCollections = userCollectionsDtos.Select(DTOs => DTOs.ToModel()).ToList();
             foreach (var x in allPosts)
             {
                 x.Design = allDesigns.Where((y) => y.Id == x.DesignId).FirstOrDefault();
@@ -357,9 +361,17 @@
         StateHasChanged();
     }
 
-    private void NavigateToRemix(Guid Id)
+    private void NavigateToRemix(Post post)
     {
-        Nav.NavigateTo($"/create?remix={Id}");
+        PublicData.PublicPresets.RemixedDesign = new()
+        {
+            ClothingType = post.Design.ClothingType,
+            Color = post.Design.Color,
+            Size = post.Design.Size,
+            Material = post.Design.Material,
+            StylePreset = post.Design.StylePreset,
+        };
+        Nav.NavigateTo($"/create");
     }
 
     private void OpenCommentPopup(Post post)
@@ -417,7 +429,7 @@
 
         try
         {
-           
+
             var alreadyLiked = IsPostLiked(post);
 
             if (alreadyLiked)
@@ -428,7 +440,7 @@
                 {
                     post.Likes!.Remove(likeToRemove);
                     currentUser.LikesGiven.Remove(likeToRemove);
-                 
+
                     StateHasChanged();
                     _ = Task.Run(async () =>
                      {
@@ -450,7 +462,7 @@
                 };
 
                 post.Likes!.Add(newlike);
-                
+
                 StateHasChanged();
 
                 _ = Task.Run(async () =>
@@ -535,12 +547,12 @@
         if (currentUser == null || currentUser.Id == Guid.Empty)
             return false;
 
-        if (currentUser.Collections == null)
+        if (userCollections == null)
             return false;
-        return currentUser.Collections.Any((x) => x.CopiedDesignId == design.Id);
+        return userCollections.Any((x) => x.CopiedDesignId == design.Id);
     }
 
-    private void SaveToCollection(Design design)
+    private async Task SaveToCollection(Design design)
     {
         if (currentUser == null || currentUser.Id == Guid.Empty)
             return;
@@ -548,11 +560,13 @@
         var alreadySaved = IsDesignInCollection(design);
         if (alreadySaved)
         {
-            var collectionToRemove = currentUser.Collections
+            var collectionToRemove = userCollections
             .FirstOrDefault(x => x.CopiedDesignId == design.Id);
             if (collectionToRemove != null)
             {
-                currentUser.Collections.Remove(collectionToRemove);
+                userCollections.Remove(collectionToRemove);
+                StateHasChanged();
+                _ = await CollectionRepository.DeleteAsync(collectionToRemove.Id);
 
             }
         }
@@ -566,7 +580,9 @@
                 CopiedDesign = design
             };
 
-            currentUser.Collections.Add(newCollection);
+            userCollections.Add(newCollection);
+            StateHasChanged();
+            _ = await CollectionRepository.CreateAsync(CollectionDto.FromModel(newCollection));
         }
 
         StateHasChanged();
