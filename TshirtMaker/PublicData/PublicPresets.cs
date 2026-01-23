@@ -122,5 +122,17 @@ namespace TshirtMaker.PublicData
         };
 
         public static Design RemixedDesign = null;
+        public static readonly List<string> Avatars = [
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=default",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Chris"
+        ];
     }
 }
