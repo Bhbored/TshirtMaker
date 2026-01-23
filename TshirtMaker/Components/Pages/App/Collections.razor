@@ -244,6 +244,9 @@
 @code {
 
 
+
+
+
     #region fields
 
     private User currentUser = new();
@@ -267,16 +270,21 @@
     {
         try
         {
+            await Task.Delay(300);
+            await AuthService.InitializeAsync();
             if (!AuthService.IsAuthenticated || AuthService.CurrentUser == null)
             {
                 Nav.NavigateTo("/login");
                 return;
 
             }
-
+            if (AuthService.CurrentUser != null)
+            {
+                var id = AuthService.CurrentUser!.Id;
+                var userdto = await UserRepository.GetByIdAsync(id);
+                currentUser = userdto!.ToModel();
+            }
             clothingTypes = Enum.GetValues<ClothingType>().ToList();
-
-            await base.OnInitializedAsync();
         }
         catch (Exception ex)
         {
@@ -291,12 +299,6 @@
         {
             try
             {
-                if (AuthService.CurrentUser != null)
-                {
-                    var userdto = await UserRepository.GetByIdAsync(AuthService.CurrentUser.Id);
-                    currentUser = userdto!.ToModel();
-                }
-
                 await LoadData();
                 UpdateFiltersForTab();
                 isLoading = false;
@@ -313,32 +315,50 @@
     }
     async Task LoadData()
     {
-        var allDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser!.Id);
-        var allDesigns = allDesignsDtos.Select(dto => dto.ToModel()).ToList();
-
-        allUserDesigns.Clear();
-        foreach(var x in allDesigns)
+        try
         {
-            allUserDesigns.Add(x);
-        }
-        userDesigns = new List<Design>(allUserDesigns);
+            await Task.Delay(300);
 
-        var allUserCollectionsDto = await CollectionRepository.GetByUserIdAsync(currentUser.Id);
-        allUserCollections = allUserCollectionsDto.Select(dto => dto.ToModel()).ToList();
-
-        foreach (var collection in allUserCollections)
-        {
-            if (collection.CopiedDesignId != Guid.Empty)
+            await AuthService.InitializeAsync();
+            if (AuthService.CurrentUser != null)
             {
-                var designDto = await DesignRepository.GetByIdAsync(collection.CopiedDesignId);
-                if (designDto != null)
+                var id = AuthService.CurrentUser!.Id;
+                var userdto = await UserRepository.GetByIdAsync(id);
+                currentUser = userdto!.ToModel();
+            }
+
+            var allDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser.Id);
+            var allDesigns = allDesignsDtos.Select(dto => dto.ToModel()).ToList();
+
+            allUserDesigns.Clear();
+            foreach (var x in allDesigns)
+            {
+                allUserDesigns.Add(x);
+            }
+            userDesigns = new List<Design>(allUserDesigns);
+
+            var allUserCollectionsDto = await CollectionRepository.GetByUserIdAsync(currentUser.Id);
+            allUserCollections = allUserCollectionsDto.Select(dto => dto.ToModel()).ToList();
+
+            foreach (var collection in allUserCollections)
+            {
+                if (collection.CopiedDesignId != Guid.Empty)
                 {
-                    collection.CopiedDesign = designDto.ToModel();
+                    var designDto = await DesignRepository.GetByIdAsync(collection.CopiedDesignId);
+                    if (designDto != null)
+                    {
+                        collection.CopiedDesign = designDto.ToModel();
+                    }
                 }
             }
-        }
 
-        userCollections = allUserCollections.ToList();
+            userCollections = allUserCollections.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogInformation($"Error in collection LoadFeedData: {ex.Message}");
+
+        }
 
     }
     #region ui controllers
@@ -495,7 +515,6 @@
     #endregion
 
 
-    //changed on backend
     async Task HandleDesignTitleSave(Design design)
     {
         var index = allUserDesigns.Where(d => d.Id == design.Id);

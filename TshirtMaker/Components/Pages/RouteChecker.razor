@@ -1,33 +1,38 @@
 @page "/"
-@layout MainLayout
 @inject AuthStateService Auth
 @inject NavigationManager Nav
 @inject ILogger<RouteChecker> Logger
+@inject IJSRuntime JSRuntime
 @using TshirtMaker.Services
 
 @code {
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-
         try
         {
+            // Initialize auth state to ensure it's loaded
+            await Auth.InitializeAsync();
+
+            // Wait a bit longer to ensure auth state is properly loaded from session
+            await Task.Delay(200);
+
             if (!Auth.IsAuthenticated || Auth.CurrentUser == null)
             {
-                Nav.NavigateTo("/landing");
-
+                Nav.NavigateTo("/landing", forceLoad: true);
             }
             else
             {
-                Nav.NavigateTo("/dashboard");
+                Nav.NavigateTo("/dashboard", forceLoad: true);
             }
         }
-        catch
-        (Exception ex)
+        catch (Exception ex)
         {
             Logger.LogError("Error during route check: {Message}", ex.Message);
+            // Navigate to landing as fallback
+            Nav.NavigateTo("/landing", forceLoad: true);
         }
 
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 }

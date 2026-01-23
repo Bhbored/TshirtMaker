@@ -23,8 +23,14 @@
 <PageTitle>TshirtMaker - AI Creation Workspace</PageTitle>
 
 <main class="create-main">
+    @if (isLoading)
+    {
+        <FeedLoader IsCentered="true" Message="Setting Things Up" />
 
-    <ImagePreview IsVisible="@isPreviewing" ImageUrl="@clothImage" OnClose="@HidePreview" />
+    }
+    else
+    {
+        <ImagePreview IsVisible="@isPreviewing" ImageUrl="@clothImage" OnClose="@HidePreview" />
     <div class="create-container">
         <!-- Left Sidebar: Configuration -->
         <aside class="create-sidebar create-sidebar-left">
@@ -120,6 +126,7 @@
 
         <!-- Center: 3D Preview Viewport -->
         <section class="create-viewport">
+           
             <!-- Viewport Tools -->
             @if (currentWindow == "setup")
             {
@@ -167,6 +174,7 @@
                         <button type="button" class="btn btn-danger ms-3" @onclick="RefreshPage">Reset</button>
                     </div>
                 }
+
                 @* hon habilai *@
                 @if (currentWindow == "setup")
                 {
@@ -260,6 +268,8 @@
                     </button>
                 }
             </div>
+
+
         </section>
 
         <!-- Right Sidebar: Creative Engine -->
@@ -350,10 +360,18 @@
                 </div>
             </div>
         </aside>
-    </div>
+    </div> 
+    }
+
+   
 </main>
 
 @code {
+
+
+
+
+
 
 
     #region fields
@@ -363,6 +381,8 @@
     private bool promptEntered = false;
     private bool isGenerating = false;
     private bool isSelecting = false;
+
+    private bool isLoading = true;
     private bool creationCompleted = false;
     private bool imageSelected = false;
     private bool selectionConfirmed = false;
@@ -445,20 +465,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+
+        await Task.Delay(300);
+
+        await AuthService.InitializeAsync();
         if (!AuthService.IsAuthenticated)
         {
             Nav.NavigateTo("/login");
             return;
         }
-        currentWindow = "setup";
-        stylePresets = PublicPresets.StylePresetPreviews;
-        MaterialPrests = PublicPresets.MaterialPresets;
-        apparelTypes = Enum.GetValues<ClothingType>().ToList();
-        sizes = Enum.GetValues<ClothingSize>().ToList();
-        resolutions = Enum.GetValues<Resolution>().ToList();
-        clothImage = "images/t-shirt_front.png";
-        isPreviewing = false;
-        apiError = false;
+
         await base.OnInitializedAsync();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -474,18 +490,19 @@
                     currentUser = userdto!.ToModel();
                 }
                 await RefreshPage();
+
+                await Task.Delay(1000);
+                isLoading = false;
                 StateHasChanged();
             }
             catch (Exception ex)
             {
                 logger.LogInformation($"Error in CREATE.OnAfterRenderAsync: {ex.Message}");
+                isLoading = false;
             }
         }
-
-
         await base.OnAfterRenderAsync(firstRender);
     }
-
 
     async Task RefreshPage()
     {
@@ -498,34 +515,6 @@
         clothImage = "images/t-shirt_front.png";
         isPreviewing = false;
         apiError = false;
-
-
-        var remixedDesign = PublicData.PublicPresets.RemixedDesign;
-        if (remixedDesign != null)
-        {
-            selectedApparelType = remixedDesign.ClothingType;
-            selectedColor = remixedDesign.Color;
-            selectedSize = remixedDesign.Size;
-            selectedMaterial = remixedDesign.Material.ToString();
-            selectedPreset = remixedDesign.StylePreset?.ToString() ?? "Cyberpunk";
-            promptText = remixedDesign.Prompt ?? string.Empty;
-            negativePrompt = remixedDesign.NegativePrompt ?? string.Empty;
-            selectedResolution = remixedDesign.Resolution.ToString();
-
-            clothImage = selectedApparelType switch
-            {
-                ClothingType.TShirt => "images/t-shirt_front.png",
-                ClothingType.Hoodie => "images/hoodie.png",
-                ClothingType.Sweat => "images/sweat.png",
-                ClothingType.LongSleeve => "images/longSleeve.png",
-                ClothingType.PoloShirt => "images/polo_shirt_front.png",
-                ClothingType.Jacket => "images/jacket.png",
-                ClothingType.Hat => "images/hat.png",
-                ClothingType.Tank => "images/tank.png",
-                ClothingType.ToteBag => "images/toteBag.png",
-                _ => "images/t-shirt_front.png",
-            };
-        }
 
         currentDesign = new Design
         {

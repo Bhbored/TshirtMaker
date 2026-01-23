@@ -1,4 +1,5 @@
 @page "/dashboard"
+@using TshirtMaker.Tests
 @layout MainLayout
 @inject IDesignRepository DesignRepository
 @inject IUserRepository UserRepository
@@ -22,7 +23,7 @@
                 <div class="dashboard-header">
                     <div>
                         <h1 class="dashboard-title">
-                            Welcome Back! <span class="hero-gradient-text">@currentUser?.Username</span>
+                            Welcome Back! <span class="hero-gradient-text">@(currentUser?.Username ?? "User")</span>
                         </h1>
                         <p class="dashboard-subtitle">Here's what's happening with your designs</p>
                     </div>
@@ -65,7 +66,7 @@
                                         <div class="dashboard-hero-meta">
                                             <span class="dashboard-hero-meta-item">
                                                 <span class="material-symbols-outlined">favorite</span>
-                                                <span>@currentUser!.TotalLikes</span>
+                                                <span>@(currentUser?.TotalLikes ?? 0)</span>
                                             </span>
                                             <span class="dashboard-hero-meta-item">
                                                 <span class="material-symbols-outlined">schedule</span>
@@ -230,11 +231,13 @@
 
 @code {
 
+
+
     private bool isLoading = true;
     private Design? latestDesign;
     private List<Design> recentDesigns = new();
     private List<Design> latestDesigns = new();
-    private User? currentUser;
+    private User currentUser = new();
     private int totalDesigns;
     private int totalLikes;
     private int recentDesignsCount;
@@ -244,54 +247,87 @@
     {
         try
         {
+            await Task.Delay(300);
+
+            await AuthService.InitializeAsync();
             if (!AuthService.IsAuthenticated || AuthService.CurrentUser == null)
             {
                 Nav.NavigateTo("/login");
                 return;
-            }
 
+            }
+            if (AuthService.CurrentUser != null)
+            {
+                var id = AuthService.CurrentUser!.Id;
+                var userdto = await UserRepository.GetByIdAsync(id);
+                currentUser = userdto!.ToModel();
+            }
+            await base.OnInitializedAsync();
 
         }
         catch (Exception ex)
         {
-            Logger.LogInformation($"Error in Dashboard.OnInitialized: {ex.Message}");
-            latestDesign = null;
-            latestDesigns = new();
-            recentDesigns = new();
+            Logger.LogInformation($"Error in Dashboard: {ex.Message}");
         }
+        await base.OnInitializedAsync();
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await LoadDashboardData();
-            isLoading = false;
-            StateHasChanged();
+            try
+            {
+                await LoadDashboardData();
+                isLoading = false;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogInformation($"Error in Dashboard.OnAfterRenderAsync: {ex.Message}");
+                isLoading = false;
+                StateHasChanged();
+            }
         }
         await base.OnAfterRenderAsync(firstRender);
     }
-    async Task LoadDashboardData()
+
+
+    // async Task injectTestData()
+    // {
+    //     var testdata = TestDesigns.Testdesigns;
+
+    //     foreach (var x in testdata)
+    //     {
+    //         var dto = DesignDto.FromModel(x);
+    //         await DesignRepository.CreateAsync(dto);
+    //     }
+
+    // }
+    private async Task LoadDashboardData()
     {
         try
         {
-            if (AuthService.CurrentUser == null)
-                return;
-            var id = AuthService.CurrentUser!.Id;
-            var userdto = await UserRepository.GetByIdAsync(id);
-            currentUser = userdto!.ToModel();
-            var UserDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser!.Id);
-            var allDesigns = UserDesignsDtos.Select(dto => dto.ToModel()).ToList();
+            await Task.Delay(300);
 
+            await AuthService.InitializeAsync();
+            if (AuthService.CurrentUser != null)
+            {
+                var id = AuthService.CurrentUser!.Id;
+                var userdto = await UserRepository.GetByIdAsync(id);
+                currentUser = userdto!.ToModel();
+            }
+
+            var userDesignsDtos = await DesignRepository.GetByUserIdAsync(currentUser!.Id);
+            var allDesigns = userDesignsDtos.Select(dto => dto.ToModel()).ToList();
 
             latestDesign = allDesigns.OrderByDescending(d => d.CreatedAt).FirstOrDefault();
             latestDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(3).ToList();
             recentDesigns = allDesigns.OrderByDescending(d => d.CreatedAt).Take(6).ToList();
             totalDesigns = allDesigns.Count;
+
             var likeDto = await LikeRepository.GetByUserIdAsync(currentUser.Id);
-
-            totalLikes = likeDto.Select(x => x.ToModel())
-            .ToList().Count;
-
+            totalLikes = likeDto?.Select(x => x.ToModel()).ToList().Count ?? 0;
 
             recentDesignsCount = allDesigns.Count(d => d.CreatedAt >= DateTime.UtcNow.AddDays(-7));
             sharedDesigns = currentUser.TotalShares;
@@ -304,20 +340,11 @@
                 totalDesigns = 0;
                 recentDesignsCount = 0;
                 sharedDesigns = 0;
-                isLoading = false;
-                return;
             }
         }
         catch (Exception ex)
         {
-            Logger.LogInformation($"Error in Dashboard.LoadDashboardData: {ex.Message}");
-            latestDesign = null;
-            latestDesigns = new();
-            recentDesigns = new();
-            totalDesigns = 0;
-            totalLikes = 0;
-            recentDesignsCount = 0;
-            sharedDesigns = 0;
+            Logger.LogError($"Error in Dashboard.LoadDashboardData: {ex.Message}");
         }
     }
 

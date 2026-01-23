@@ -16,11 +16,14 @@ namespace TshirtMaker.Services
 
             services.AddSingleton<global::Supabase.Client>(sp =>
             {
+                var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                var sessionHandler = new SupabaseSessionHandler(httpContextAccessor);
+
                 var options = new SupabaseOptions
                 {
                     AutoRefreshToken = true,
                     AutoConnectRealtime = false,
-                    SessionHandler = new SupabaseSessionHandler()
+                    SessionHandler = sessionHandler
                 };
 
                 var client = new Client(url, key, options);

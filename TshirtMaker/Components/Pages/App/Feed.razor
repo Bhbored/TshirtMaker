@@ -181,13 +181,21 @@
     {
         try
         {
+            await Task.Delay(300);
+
+            await Auth.InitializeAsync();
             if (!Auth.IsAuthenticated || Auth.CurrentUser == null)
             {
                 Nav.NavigateTo("/login");
                 return;
 
             }
-
+            if (Auth.CurrentUser != null)
+            {
+                var id = Auth.CurrentUser!.Id;
+                var userdto = await UserRepository.GetByIdAsync(id);
+                currentUser = userdto!.ToModel();
+            }
             await base.OnInitializedAsync();
 
         }
@@ -204,12 +212,6 @@
         {
             try
             {
-                if (Auth.CurrentUser != null)
-                {
-                    var id = Auth.CurrentUser!.Id;
-                    var userdto = await UserRepository.GetByIdAsync(id);
-                    currentUser = userdto!.ToModel();
-                }
 
                 await LoadFeedData();
                 isLoading = false;
@@ -230,6 +232,16 @@
     {
         try
         {
+            await Task.Delay(300);
+
+            await Auth.InitializeAsync();
+            if (Auth.CurrentUser != null)
+            {
+                var id = Auth.CurrentUser!.Id;
+                var userdto = await UserRepository.GetByIdAsync(id);
+                currentUser = userdto!.ToModel();
+            }
+
             allPosts.Clear();
             var allPostDtos = await PostRepository.GetAllPostsAsync();
             allPosts = allPostDtos.Select(dto => dto.ToModel()).ToList();

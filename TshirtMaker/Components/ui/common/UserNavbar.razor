@@ -110,21 +110,24 @@
 
 @code {
 
-
     private bool showAvatarDropdown = false;
 
     private User currentUser = new();
 
     protected override async Task OnInitializedAsync()
     {
-        Auth.OnUserChanged += StateHasChanged;
+
+        await Task.Delay(300);
+        await Auth.InitializeAsync();
         if (Auth.CurrentUser != null)
         {
             var id = Auth.CurrentUser.Id;
             var userdto = await UserRepository.GetByIdAsync(id);
             currentUser = userdto!.ToModel();
-
         }
+        Auth.OnUserChanged += StateHasChanged;
+
+        StateHasChanged();
         await base.OnInitializedAsync();
     }
 

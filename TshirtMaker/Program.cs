@@ -19,7 +19,10 @@ namespace TshirtMaker
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                // Use 'SameAsRequest' for development, 'Always' for production
+                options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+                    ? CookieSecurePolicy.SameAsRequest
+                    : CookieSecurePolicy.Always;
                 options.IdleTimeout = TimeSpan.FromHours(24);
             });
             builder.Services.AddHttpContextAccessor();

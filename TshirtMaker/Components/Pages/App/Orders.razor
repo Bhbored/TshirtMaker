@@ -240,10 +240,16 @@
         public decimal Price { get; set; }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Wait a bit to allow auth state to initialize from session
+            await Task.Delay(300);
+
+            // Re-initialize auth state to ensure it's loaded from session
+            await Auth.InitializeAsync();
+
             if (!Auth.IsAuthenticated)
             {
                 Nav.NavigateTo("/login");

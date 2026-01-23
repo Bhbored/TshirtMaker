@@ -46,8 +46,6 @@ namespace TshirtMaker.Models.Core
 
         public virtual User? User { get; set; }
 
-
-
     }
 }
 

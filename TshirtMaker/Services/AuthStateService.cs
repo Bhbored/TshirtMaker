@@ -29,19 +29,41 @@ public class AuthStateService
 
     public async Task<User?> InitializeAsync()
     {
+        // Check if we already have a user in memory
         if (CurrentUser != null)
         {
             return CurrentUser;
         }
 
-        var userDto = await _supabaseAuth.GetCurrentUserAsync();
-        if (userDto != null)
+        try
         {
-            CurrentUser = userDto.ToModel();
-            return CurrentUser;
+            // Try to get the current user from Supabase (which will use session data)
+            var userDto = await _supabaseAuth.GetCurrentUserAsync();
+            if (userDto != null)
+            {
+                CurrentUser = userDto.ToModel();
+                return CurrentUser;
+            }
         }
+        catch (Exception ex)
+        {
+            // Log the exception but don't crash
+            Console.WriteLine($"Error initializing auth state: {ex.Message}");
+        }
+
+        // If we couldn't get the user, ensure we clear the current user
         CurrentUser = null;
         return null;
+    }
+
+    // Method to force refresh the auth state from Supabase
+    public async Task<User?> RefreshAsync()
+    {
+        // Clear current user first
+        CurrentUser = null;
+
+        // Then try to initialize again
+        return await InitializeAsync();
     }
 
     public void SetUser(User user)
