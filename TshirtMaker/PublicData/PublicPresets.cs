@@ -45,6 +45,7 @@ namespace TshirtMaker.PublicData
             }
         };
 
+
         public static readonly List<StylePresetPreview> StylePresetPreviews = new()
         {
             new StylePresetPreview
@@ -121,7 +122,8 @@ namespace TshirtMaker.PublicData
             }
         };
 
-        public static Design RemixedDesign = null;
+
+        public static Design RemixedDesign = new();
         public static readonly List<string> Avatars = [
             "https://api.dicebear.com/7.x/avataaars/svg?seed=default",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=John",

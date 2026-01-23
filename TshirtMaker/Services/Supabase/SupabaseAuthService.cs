@@ -208,7 +208,7 @@ namespace TshirtMaker.Services.Supabase
 
             var userModel = new TshirtMaker.Models.Core.User
             {
-                Id = Guid.Parse(user.Id),
+                Id = Guid.Parse(user.Id!),
                 Email = user.Email ?? string.Empty,
                 Username = metadata.TryGetValue("username", out var username)
                     ? username?.ToString() ?? string.Empty

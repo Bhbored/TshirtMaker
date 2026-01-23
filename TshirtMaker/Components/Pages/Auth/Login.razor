@@ -106,9 +106,16 @@
                     </div>
 
                     <!-- Sign In Button -->
-                    <button type="submit" class="submit-button">
-                        <span>Sign In</span>
-                        <span class="material-symbols-outlined">arrow_forward</span>
+                    <button type="submit" class="submit-button" disabled="@isLoggingIn">
+                        @if (isLoggingIn)
+                        {
+                            <LoadingSpinner />
+                        }
+                        else
+                        {
+                            <span>Sign In</span>
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        }
                     </button>
                 </EditForm>
             </div>
@@ -128,6 +135,7 @@
     public LoginModel LoginModel { get; set; } = new LoginModel();
     string error = "";
     bool showValidationMessages = false;
+    bool isLoggingIn = false;
 
     void HandleInvalidSubmit()
     {
@@ -138,17 +146,19 @@
     {
         error = "";
         showValidationMessages = true;
+        isLoggingIn = true;
 
         if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
         {
             error = "Please fill in both email and password fields.";
+            isLoggingIn = false;
             return;
         }
 
         try
         {
             var userDto = await SupabaseAuth.SignInAsync(LoginModel.Email, LoginModel.Password);
-            
+
             if (userDto is not null)
             {
                 var user = userDto.ToModel();
@@ -158,11 +168,13 @@
             else
             {
                 error = "Invalid email or password.";
+                isLoggingIn = false;
             }
         }
         catch (Exception ex)
         {
             error = $"Login failed: {ex.Message}";
+            isLoggingIn = false;
         }
     }
 }

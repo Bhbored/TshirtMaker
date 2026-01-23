@@ -1,33 +1,4 @@
-# Supabase Setup Guide for TshirtMaker
-
-This document provides instructions for setting up Supabase for the TshirtMaker application, including the necessary PostgreSQL schema and configuration.
-
-## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Supabase Project Setup](#supabase-project-setup)
-- [Database Schema](#database-schema)
-- [Configuration](#configuration)
-- [VIMP Rules](#vimp-rules)
-- [Indexing Strategy](#indexing-strategy)
-
-## Prerequisites
-
-Before setting up Supabase for TshirtMaker, ensure you have:
-- A Supabase account (sign up at [supabase.com](https://supabase.com))
-- The Supabase CLI installed (optional but recommended)
-- Basic knowledge of PostgreSQL
-
-## Supabase Project Setup
-
-1. Create a new project in your Supabase dashboard
-2. Note down your Project URL and anon/public API key
-3. Configure Row Level Security (RLS) policies as needed for your application
-
-## Database Schema
-
-Run the following SQL commands in your Supabase SQL Editor to create the required tables:
-
-```sql
+--Main Tables
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -328,46 +299,9 @@ CREATE TABLE tracking_events (
     -- Navigation property stored as JSON reference
     order_ref UUID -- Reference to order ID
 );
-```
+----------------------------------------------------------------------
+--Indexing
 
-## Configuration
-
-Add the following configuration to your `appsettings.json`:
-
-```json
-{
-  "ConnectionStrings": {
-    "SupabaseDb": "Host=your-project.supabase.co;Database=postgres;Username=your-username;Password=your-password"
-  },
-  "Supabase": {
-    "Url": "https://your-project.supabase.co",
-    "Key": "your-anon-key",
-    "DatabaseUrl": "postgresql://your-db-url"
-  }
-}
-```
-
-## VIMP Rules
-
-### User Rules
-- Users can only view their own personal information and associated data
-- Users can only modify their own profile information
-- Users can only delete their own posts, comments, and other user-generated content
-- Users can only view orders associated with their account
-- Users can only follow/unfollow other users (not themselves)
-
-### Data Access Rules
-- Posts can be viewed publicly unless marked as private
-- Comments on posts are visible to anyone who can view the post
-- Likes and bookmarks are visible to anyone who can view the post
-- Orders are only accessible by the owner
-- Personal information (email, addresses) is restricted to the owner and authorized personnel
-
-## Indexing Strategy
-
-The following indexes are recommended for optimal performance:
-
-```sql
 -- Users table indexes
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
@@ -419,17 +353,12 @@ CREATE INDEX idx_notifications_created_at ON notifications(created_at DESC);
 CREATE INDEX idx_shipping_addresses_user_id ON shipping_addresses(user_id);
 CREATE INDEX idx_shipping_addresses_country_code ON shipping_addresses(country_code);
 CREATE INDEX idx_shipping_addresses_is_default ON shipping_addresses(user_id, is_default);
-```
 
-## Row Level Security (RLS) Policies
 
-Enable RLS on sensitive tables and define policies:
 
-```sql
+------------------------------------------
 -- Enable RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE designs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shipping_addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
@@ -438,38 +367,6 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY user_access_policy ON users
   FOR ALL TO authenticated
   USING (auth.uid() = id);
-
--- Designs table policy - users can only access their own designs
-CREATE POLICY design_access_policy ON designs
-  FOR ALL TO authenticated
-  USING (user_id = auth.uid());
-
--- Designs table policy - users can only insert designs with their own user_id
-CREATE POLICY design_insert_policy ON designs
-  FOR INSERT TO authenticated
-  WITH CHECK (user_id = auth.uid());
-
--- Designs table policy - allow viewing designs that are in the user's collections (for saved designs)
-CREATE POLICY design_collection_view_policy ON designs
-  FOR SELECT TO authenticated
-  USING (
-    user_id = auth.uid()
-    OR id IN (
-      SELECT copied_design_id
-      FROM collections
-      WHERE user_id = auth.uid()
-    )
-  );
-
--- Collections table policy - users can only access their own collections
-CREATE POLICY collection_access_policy ON collections
-  FOR ALL TO authenticated
-  USING (user_id = auth.uid());
-
--- Collections table policy - users can only insert collections with their own user_id
-CREATE POLICY collection_insert_policy ON collections
-  FOR INSERT TO authenticated
-  WITH CHECK (user_id = auth.uid());
 
 -- Orders table policy - users can only access their own orders
 CREATE POLICY order_access_policy ON orders
@@ -485,12 +382,45 @@ CREATE POLICY shipping_address_access_policy ON shipping_addresses
 CREATE POLICY notification_access_policy ON notifications
   FOR ALL TO authenticated
   USING (recipient_id = auth.uid());
-```
 
-## Environment Variables
+------------------------------------------------
 
-Set these environment variables in your Supabase project settings:
 
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anon key
-- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (for server-side operations)
+-- Storage "Design images" bucket and it's RLS
+CREATE POLICY "Users can upload to own folder in Design images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'Design images'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Allow SELECT: any authenticated user can read any image in the bucket (signed URLs, list, etc.)
+DROP POLICY IF EXISTS "Users can read own folder in Design images" ON storage.objects;
+DROP POLICY IF EXISTS "All authenticated users can read Design images" ON storage.objects;
+CREATE POLICY "All authenticated users can read Design images"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (bucket_id = 'Design images');
+
+-- Allow UPDATE: overwrite/update own files
+CREATE POLICY "Users can update own folder in Design images"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'Design images'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+)
+WITH CHECK (
+  bucket_id = 'Design images'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Allow DELETE: remove own files
+CREATE POLICY "Users can delete own folder in Design images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'Design images'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);

@@ -123,9 +123,16 @@
                     </div>
 
                     <!-- Sign Up Button -->
-                    <button type="submit" class="submit-button">
-                        <span>Create Account</span>
-                        <span class="material-symbols-outlined">arrow_forward</span>
+                    <button type="submit" class="submit-button" disabled="@isSigningUp">
+                        @if (isSigningUp)
+                        {
+                            <LoadingSpinner />
+                        }
+                        else
+                        {
+                            <span>Create Account</span>
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        }
                     </button>
                 </EditForm>
             </div>
@@ -146,6 +153,7 @@
     string error = "";
     string successMessage = "";
     bool showValidationMessages = false;
+    bool isSigningUp = false;
 
     void HandleInvalidSubmit()
     {
@@ -156,6 +164,7 @@
     {
         error = "";
         showValidationMessages = true;
+        isSigningUp = true;
 
         try
         {
@@ -168,6 +177,7 @@
             if (userDto is null)
             {
                 error = "Failed to create account. Email may already exist.";
+                isSigningUp = false;
                 return;
             }
 
@@ -175,6 +185,7 @@
             if (session == null)
             {
                 successMessage = "Account created! Please check your email to confirm your account before logging in.";
+                isSigningUp = false;
                 return;
             }
 
@@ -185,6 +196,7 @@
         catch (Exception ex)
         {
             error = $"Failed to create account: {ex.Message}";
+            isSigningUp = false;
         }
     }
 }
