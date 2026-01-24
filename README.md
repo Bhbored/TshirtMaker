@@ -13,6 +13,15 @@ A modern web application that allows users to create custom apparel designs usin
 - **🎨 Fabric Texture**: Choose from different fabric textures for realistic previews
 - **📝 Prompt Enhancement**: AI-powered prompt enhancement with the bolt icon
 
+
+## 📸 Screenshots
+
+|                                                                                                                    |                                                                                                                    |                                                                                                                    |
+| :----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
+| ![Screenshot 1](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193119.png) | ![Screenshot 2](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193154.png) | ![Screenshot 3](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193211.png) |
+| ![Screenshot 4](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193234.png) |                                                                                                   |
+
+---
 ### 🛠️ Creation Workflow
 
 - **⚙️ Setup Stage**: Configure your apparel specifications (type, color, size, material)
