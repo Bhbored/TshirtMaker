@@ -120,35 +120,12 @@ cd TshirtMaker
    Edit  `launchSettings.json` and add your API keys:
 
    ```json
-  {
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "profiles": {
-    "http": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "http://localhost:5114",
-      "environmentVariables": {
+"environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SUPABASE_URL": "https://your-project.supabase.co",
         "SUPABASE_ANON_KEY": "your_anon_key_here",
         "OPENAI_API_KEY": "your_openai_key_here"
       }
-    },
-    "https": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "https://localhost:7038;http://localhost:5114",//this may differ for u
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "SUPABASE_URL": "https://your-project.supabase.co",
-        "SUPABASE_ANON_KEY": "your_anon_key_here",
-        "OPENAI_API_KEY": "your_openai_key_here"
-      }
-    }
-  }
-}
    ```
 
 4. **🏃Run the Application**
