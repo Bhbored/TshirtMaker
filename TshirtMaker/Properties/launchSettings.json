@@ -7,7 +7,10 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5114",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Production"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SUPABASE_URL": "https://your-project.supabase.co",
+        "SUPABASE_ANON_KEY": "your_anon_key_here",
+        "OPENAI_API_KEY": "your_openai_key_here"
       }
     },
     "https": {
@@ -16,7 +19,10 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7038;http://localhost:5114",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Production"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SUPABASE_URL": "https://your-project.supabase.co",
+        "SUPABASE_ANON_KEY": "your_anon_key_here",
+        "OPENAI_API_KEY": "your_openai_key_here"
       }
     }
   }

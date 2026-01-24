@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using TshirtMaker.Components;
 using TshirtMaker.Services;
 
@@ -9,34 +10,43 @@ namespace TshirtMaker
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
+
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            // Add distributed memory cache (required for session)
             builder.Services.AddDistributedMemoryCache();
 
             builder.Services.AddSession(options =>
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                // Use 'SameAsRequest' for development, 'Always' for production
-                options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
-                    ? CookieSecurePolicy.SameAsRequest
-                    : CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.IdleTimeout = TimeSpan.FromHours(24);
             });
+
             builder.Services.AddHttpContextAccessor();
-            builder.Services.RegisterDependencies(builder.Configuration);
+
+            var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")
+                ?? throw new InvalidOperationException("SUPABASE_URL environment variable is missing.");
+            var supabaseAnonKey = Environment.GetEnvironmentVariable("SUPABASE_ANON_KEY")
+                ?? throw new InvalidOperationException("SUPABASE_ANON_KEY environment variable is missing.");
+            var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+
+            builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseForwardedHeaders();
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();

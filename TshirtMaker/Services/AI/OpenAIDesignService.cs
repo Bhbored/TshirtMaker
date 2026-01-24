@@ -14,29 +14,26 @@ using TshirtMaker.Services.Supabase;
 
 namespace TshirtMaker.Services
 {
-
-    //never use openai key for image generation it's too expensive and u can't go lower than 1024x1024 switch to gemini later 0_0
-
-    //read the docs before switching 
     public class OpenAIDesignService : IAIDesignService
     {
-        private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly SupabaseStorageService _storageService;
+        private readonly string? _openAiApiKey;
 
         private const string ApiUrl = "https://api.openai.com/v1/images/generations";
-        private const string ApiModel = "DALL-E";
+        private const string EditApiUrl = "https://api.openai.com/v1/images/edits";
+        private const string ApiModel = "dall-e-2";
 
         public string? ErrorMessage { get; private set; }
 
         public OpenAIDesignService(
-            IConfiguration configuration,
             HttpClient httpClient,
-            SupabaseStorageService storageService)
+            SupabaseStorageService storageService,
+            string? openAiApiKey = null)
         {
-            _configuration = configuration;
             _httpClient = httpClient;
             _storageService = storageService;
+            _openAiApiKey = openAiApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY");
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
@@ -49,7 +46,6 @@ namespace TshirtMaker.Services
         {
             ErrorMessage = null;
 
-
             var unsafeKeywords = new[] { "nudity", "violence", "hate speech", "gore", "explicit", "sexual" };
             string combinedPromptText = (prompt + " " + (negativePrompt ?? "")).ToLowerInvariant();
 
@@ -59,16 +55,14 @@ namespace TshirtMaker.Services
                 return new List<string>();
             }
 
+            if (string.IsNullOrWhiteSpace(_openAiApiKey))
+            {
+                ErrorMessage = "OpenAI API key is not configured.";
+                return new List<string>();
+            }
+
             try
             {
-
-                var apiKey = _configuration["OpenAI:ApiKey"];
-                if (string.IsNullOrWhiteSpace(apiKey))
-                {
-                    ErrorMessage = "OpenAI API key is not configured in appsettings.json.";
-                    return new List<string>();
-                }
-
                 string modifiedPrompt = $"Create 1 variation of the following prompt: {prompt}";
 
                 if (style.HasValue)
@@ -86,7 +80,7 @@ namespace TshirtMaker.Services
                     model = ApiModel,
                     prompt = modifiedPrompt,
                     n = 1,
-                    size = "auto"
+                    size = "1024x1024" // Changed from "auto" to valid size
                 };
 
                 var json = JsonSerializer.Serialize(requestBody);
@@ -94,8 +88,7 @@ namespace TshirtMaker.Services
 
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", apiKey);
-
+                    new AuthenticationHeaderValue("Bearer", _openAiApiKey);
 
                 var response = await _httpClient.PostAsync(ApiUrl, httpContent, cancellationToken);
 
@@ -157,10 +150,15 @@ namespace TshirtMaker.Services
             }
         }
 
-
         public async Task<string> FinalizeDesignAsync(string selectedDesignUrl, string clothingImageUrl, Guid userId, string color, CancellationToken cancellationToken = default)
         {
             ErrorMessage = null;
+
+            if (string.IsNullOrWhiteSpace(_openAiApiKey))
+            {
+                ErrorMessage = "OpenAI API key is not configured.";
+                return string.Empty;
+            }
 
             try
             {
@@ -195,26 +193,19 @@ namespace TshirtMaker.Services
                     prompt += $" Make the clothing piece {color}.";
                 prompt += " The final image should look like a professional studio shot with realistic lighting, shadows, and perspective.";
 
-                var apiKey = _configuration["OpenAI:ApiKey"];
-                if (string.IsNullOrWhiteSpace(apiKey))
-                {
-                    ErrorMessage = "OpenAI API key is not configured.";
-                    return string.Empty;
-                }
-
                 using var multipart = new MultipartFormDataContent();
                 multipart.Add(new ByteArrayContent(clothingBytes), "image", "clothing.png");
-                multipart.Add(new ByteArrayContent(designBytes), "image", "design.png");
+                multipart.Add(new ByteArrayContent(designBytes), "mask", "design.png"); // Changed from "image" to "mask" for edits
                 multipart.Add(new StringContent(prompt), "prompt");
                 multipart.Add(new StringContent(ApiModel), "model");
-                multipart.Add(new StringContent("auto"), "size");
+                multipart.Add(new StringContent("1024x1024"), "size"); // Valid size
                 multipart.Add(new StringContent("1"), "n");
 
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/images/edits")
+                var request = new HttpRequestMessage(HttpMethod.Post, EditApiUrl)
                 {
                     Content = multipart
                 };
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _openAiApiKey);
 
                 var response = await _httpClient.SendAsync(request, cancellationToken);
                 if (!response.IsSuccessStatusCode)
@@ -263,6 +254,5 @@ namespace TshirtMaker.Services
                 return string.Empty;
             }
         }
-
     }
 }
