@@ -1,97 +1,124 @@
-# TshirtMaker - AI-Powered Custom Apparel Design Platform
+# ClothIQ - AI-Powered Custom Apparel Design Platform
 
 A modern web application that allows users to create custom apparel designs using AI technology, share them with the community, and discover trending designs from other creators.
 
 ## 🌟 Features
 
-### Core Functionality
-- **AI-Powered Design Generation**: Create unique designs using OpenAI's DALL-E API
-- **Clothing Customization**: Choose from multiple clothing types (T-shirts, hoodies, jackets, etc.)
-- **Color & Material Selection**: Pick any color and material for your apparel
-- **Print Position**: Select front or back placement for your design
-- **Content Moderation**: Built-in AI safety checks to prevent inappropriate content
+### 🎨 Core Functionality
 
-### Social Features
-- **Community Feed**: Browse and discover designs shared by other users
-- **Like System**: Appreciate designs you love
-- **Prompt Copying**: Copy prompts from designs for inspiration
-- **Trending Carousel**: Auto-sliding showcase of top-liked designs
-- **Infinite Scroll**: Smooth loading of designs as you scroll
+- **🤖 AI-Powered Design Generation**: Create unique designs using OpenAI's DALL-E API
+- **👕 Clothing Customization**: Choose from multiple clothing types (T-shirts, hoodies, jackets, etc.)
+- **🌈 Color & Material Selection**: Pick any color and material for your apparel
+- **📏 Size Options**: Select from various size options for your apparel
+- **🎨 Fabric Texture**: Choose from different fabric textures for realistic previews
+- **📝 Prompt Enhancement**: AI-powered prompt enhancement with the bolt icon
 
-### User Experience
-- **Dark/Light Theme**: Toggle between themes with persistent preference
-- **Modern UI**: Clean, futuristic design with smooth animations
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Real-time Updates**: Instant feedback and updates
+### 🛠️ Creation Workflow
+
+- **⚙️ Setup Stage**: Configure your apparel specifications (type, color, size, material)
+- **✨ Creation Stage**: Generate AI artwork based on your prompt and style preferences
+- **✅ Finalization Stage**: Save and share your completed design
+
+### 🎯 Design Engine
+
+- **🎨 Style Presets**: Multiple AI art style presets to choose from (Cyberpunk, Vintage, etc.)
+- **📝 Advanced Settings**: Negative prompts and upscale resolution options
+- **⚡ Quick Actions**: Rotate, preview in fullscreen, and enhance prompts
+
+### 📱 User Experience
+
+- **🚀 Interactive Server**: Real-time updates with Blazor Interactive Server rendering
+- **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
+- **🔄 Session Management**: Proper session handling with 24-hour timeout
+
+### 📊 Social Features
+
+- **📰 Community Feed**: Browse and discover designs shared by other users
+- **❤️ Like System**: Appreciate designs you love
+- **📤 Share Functionality**: Share your creations with the community
+- **🔍 Discover Tab**: Explore trending and popular designs
+
+### 👤 User Management
+
+- **🔐 Authentication**: Secure login and signup functionality
+- **📊 Dashboard**: Personal dashboard with collections and orders
+- **📦 Collections**: Organize your designs into collections
+- **🛒 Orders**: Track your order history (in Progress🤔)
 
 ## 🏗️ Architecture
 
-### Project Structure
+### 📁 Project Structure
+
 ```
 TshirtMaker/
 ├── Components/
-│   ├── Layout/
-│   │   ├── MainLayout.razor          # Main navigation layout
-│   │   └── EmptyLayout.razor         # Minimal layout for auth pages
-│   ├── Pages/
-│   │   ├── Home.razor                # Landing page with trending designs
-│   │   ├── Create.razor              # Design creation interface
-│   │   ├── Feed.razor                # Community feed with infinite scroll
-│   │   ├── Login.razor               # Authentication page
-│   │   └── SignUp.razor              # User registration page
-│   └── ui/
-│       └── common/
-│           ├── ThemeToggle.razor     # Dark/light mode toggle
-│           ├── DesignCard.razor      # Reusable design card component
-│           └── LoadingSpinner.razor  # Loading indicator
-├── Models/
-│   ├── User.cs                       # User data model
-│   ├── Design.cs                     # Design data model
-│   ├── ClothingType.cs               # Enums for clothing options
-│   └── AI/
-│       └── DesignRequestDto.cs       # AI service DTOs
-├── Services/
-│   ├── TestDataService.cs            # In-memory data management
-│   ├── AI/
-│   │   └── AIDesignService.cs        # OpenAI integration
-│   └── Supabase/
-│       ├── SupabaseAuthService.cs    # Auth service (ready for use)
-│       └── SupabaseDbService.cs      # Database service (ready for use)
-└── wwwroot/
-    ├── app.css                       # Global styles with Google Fonts
-    ├── themes.css                    # Theme system (light/dark)
-    └── theme.js                      # Theme toggle functionality
+│   ├── Layout/                 # Main layouts and navigation
+│   ├── Pages/                  # Page components
+│   │   ├── App/               # Application pages (Create, Dashboard, etc.)
+│   │   ├── Auth/              # Authentication pages
+│   │   ├── Public/            # Public-facing pages
+│   │   └── System/            # System pages
+│   └── ui/                    # Reusable UI components
+│       ├── common/            # Common UI elements
+│       ├── creation/          # Creation workflow components
+│       ├── Feed/              # Feed components
+│       └── LandingPage/       # Landing page components
+├── Models/                    # Data models and enums
+│   ├── AI/                   # AI-related models
+│   ├── Core/                 # Core business models
+│   ├── Enums/                # Enumeration types
+│   ├── Orders/               # Order-related models
+│   └── Social/               # Social features models
+├── Services/                  # Business logic and external integrations
+│   ├── AI/                   # AI service implementations
+│   ├── Supabase/             # Supabase integration services
+│   └── Other services        #  Various utility services
+├── Repositories/              # Data access layer
+├── PublicData/                # Static data and presets
+└── wwwroot/                   # Static assets (CSS, JS, images)
 ```
 
-### Technology Stack
-- **Framework**: .NET 10 Blazor Server
-- **UI**: Bootstrap 5 + Custom CSS Variables
-- **Fonts**: Google Fonts (Inter)
-- **AI**: OpenAI DALL-E 3 API
-- **Database**: Supabase (configured, ready to use)
-- **State Management**: In-memory test data service
+### 🛠️ Technology Stack
+
+- **Framework**: .NET 10.0 Blazor Server with Interactive Server Rendering
+- **UI Framework**: Bootstrap 5 + Custom CSS with CSS Variables
+- **Typography**: Google Fonts (Inter, Space Grotesk, Poppins)
+- **AI Integration**: OpenAI DALL-E API for image generation
+- **Database**: Supabase (PostgreSQL) with Row Level Security
+- **Storage**: Supabase Storage for user-generated content
+- **Authentication**: Supabase Auth with JWT tokens
+- **State Management**: Blazor Component State Management
+- **Packages**: Supabase C# Client
 
 ## 🚀 Setup Instructions
 
-### Prerequisites
-- .NET 10 SDK
-- Visual Studio 2022 or VS Code
-- OpenAI API Key (optional, for AI features)
-- Supabase Account (optional, for production database)
+### 📋 Prerequisites
 
-### Installation Steps
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Visual Studio 2022 / VS Code with C# extension
+- OpenAI API Key (for AI features)
+- Supabase Account (for production database)
 
-1. **Clone the Repository**
+### 🛠️ Installation Steps
+
+1. **📥 Clone the Repository**
+
+```bash
+git clone https://github.com/Bhbored/TshirtMaker
+cd TshirtMaker
+```
+
+2. **🔧 Install Dependencies**
+   The project uses .NET 10 and the Supabase client, so restore packages:
+
    ```bash
-   cd TshirtMaker
+   dotnet restore
    ```
 
-2. **Install Dependencies**
-   The project uses .NET 10 and Bootstrap via CDN, so no additional package installation is needed.
+3. **⚙️ Configure API Keys**
 
-3. **Configure API Keys**
-   
-   Open `appsettings.json` and add your API keys:
+   Create or update `appsettings.json` and add your API keys:
+
    ```json
    {
      "OpenAI": {
@@ -104,249 +131,113 @@ TshirtMaker/
    }
    ```
 
-4. **Run the Application**
+4. **🏃Run the Application**
+
    ```bash
    dotnet run
    ```
-   
-   Or press F5 in Visual Studio.
-
-5. **Access the Application**
-   Navigate to `https://localhost:5001` or the URL shown in your terminal.
 
 ## 🗄️ Supabase Setup (For Production)
 
-### Step 1: Create a Supabase Project
+### 🆕 Step 1: Create a Supabase Project
+
 1. Go to [supabase.com](https://supabase.com)
 2. Click "New Project"
 3. Fill in project details and create
 
-### Step 2: Set Up Database Tables
+### 🗃️ Step 2: Set Up Database Tables
 
-Run this SQL in Supabase SQL Editor:
+Run this storage-rls-design-images.sql in Supabase SQL Editor for Tables creation , RLS , Indexing and Storage.
 
-```sql
--- Users table
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    avatar_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+### 💾 Step 3: Configure Storage (For Image Uploads)
 
--- Designs table
-CREATE TABLE designs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    username TEXT NOT NULL,
-    user_avatar TEXT,
-    prompt TEXT NOT NULL,
-    clothing_type TEXT NOT NULL,
-    color TEXT NOT NULL,
-    size TEXT NOT NULL,
-    material TEXT NOT NULL,
-    print_position TEXT NOT NULL,
-    generated_image_url TEXT NOT NULL,
-    final_image_url TEXT NOT NULL,
-    likes INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    is_shared BOOLEAN DEFAULT false
-);
-
--- Create indexes for better performance
-CREATE INDEX idx_designs_user_id ON designs(user_id);
-CREATE INDEX idx_designs_created_at ON designs(created_at DESC);
-CREATE INDEX idx_designs_likes ON designs(likes DESC);
-CREATE INDEX idx_designs_is_shared ON designs(is_shared);
-
--- Enable Row Level Security
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE designs ENABLE ROW LEVEL SECURITY;
-
--- Create policies (example - adjust based on your needs)
-CREATE POLICY "Users can view all designs" ON designs
-    FOR SELECT USING (is_shared = true);
-
-CREATE POLICY "Users can insert their own designs" ON designs
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own designs" ON designs
-    FOR UPDATE USING (auth.uid() = user_id);
-```
-
-### Step 3: Enable Authentication
-1. Go to Authentication > Settings in Supabase dashboard
-2. Enable Email authentication
-3. Configure email templates (optional)
-4. Copy your project URL and anon key to `appsettings.json`
-
-### Step 4: Configure Storage (Optional, for Image Uploads)
 1. Go to Storage in Supabase dashboard
-2. Create a new bucket named "designs"
-3. Set the bucket to public
+2. Create buckets named "Design images"
+3. Set the buckets to public
 4. Configure policies for upload/download
 
-### Step 5: Update Services
-Once Supabase is configured, update the service implementations in:
-- `Services/Supabase/SupabaseAuthService.cs`
-- `Services/Supabase/SupabaseDbService.cs`
+### 🔄 Step 5: Update Services
 
-Install the Supabase NuGet package:
-```bash
-dotnet add package supabase-csharp
-```
+The services are already implemented and configured in the project:
+
+- `Services/Supabase/SupabaseAuthService.cs` - Authentication service
+- `Repositories/` - Data access layer with comprehensive CRUD operations
 
 ## 🤖 AI Service Explanation
 
-### How the AI Design Service Works
+### 🧠 How the AI Design Service Works
 
-The `AIDesignService` integrates with OpenAI's DALL-E 3 API to generate custom designs:
+The `OpenAIDesignService` integrates with OpenAI's DALL-E API to generate custom designs:
 
-#### 1. Content Moderation
+#### 1. 🔍 Content Moderation
+
 ```csharp
-private bool IsPromptSafe(string prompt)
+// Checks user input against a list of banned keywords
+var unsafeKeywords = new[] { "nudity", "violence", "hate speech", "gore", "explicit", "sexual" };
 ```
+
 - Checks user input against a list of banned keywords
 - Prevents generation of inappropriate or harmful content
 - Returns a friendly message if content is blocked
-- **Production Note**: Consider using OpenAI's Moderation API for more robust filtering
 
-#### 2. Prompt Enhancement
+#### 2. 📝 Prompt Enhancement
+
 ```csharp
-private string EnhancePromptForClothing(DesignRequestDto request)
+string modifiedPrompt = $"Create 1 variation of the following prompt: {prompt}";
 ```
+
 - Takes user's simple prompt and enhances it with context
-- Adds information about clothing type, color, and print position
+- Adds information about style preferences
 - Optimizes prompt for apparel-specific design generation
-- Ensures better results by providing structured context to the AI
 
-#### 3. Image Generation
+#### 3. 🖼️ Image Generation
+
 ```csharp
-public async Task<DesignResponseDto> GenerateDesign(DesignRequestDto request)
+public async Task<List<string>> GenerateInitialDesignsAsync(...)
 ```
+
 - Validates API key configuration
 - Performs content safety check
 - Sends HTTP POST request to OpenAI API
 - Handles errors gracefully
-- Returns generated image URL or error message
+- Returns generated image URLs or error message
 
-#### API Request Structure
-```json
-{
-  "model": "dall-e-3",
-  "prompt": "Enhanced prompt with clothing context",
-  "n": 1,
-  "size": "1024x1024",
-  "quality": "standard"
-}
-```
+#### 4. 🎯 Design Finalization
 
-#### Error Handling
-- Missing API key detection
-- Network error handling
-- API error response parsing
-- User-friendly error messages
-
-### Alternative Implementation (Using OpenAI Package)
-
-If you prefer using the official OpenAI NuGet package:
-
-```bash
-dotnet add package OpenAI
-```
-
-Then modify the service:
 ```csharp
-using OpenAI;
-using OpenAI.Images;
-
-public class AIDesignService
-{
-    private readonly OpenAIClient _client;
-
-    public AIDesignService(IConfiguration configuration)
-    {
-        var apiKey = configuration["OpenAI:ApiKey"];
-        _client = new OpenAIClient(apiKey);
-    }
-
-    public async Task<DesignResponseDto> GenerateDesign(DesignRequestDto request)
-    {
-        // Content moderation logic...
-        
-        var response = await _client.ImagesEndpoint.GenerateImageAsync(
-            enhancedPrompt,
-            1,
-            ImageSize._1024,
-            quality: ImageQuality.Standard
-        );
-
-        return new DesignResponseDto
-        {
-            Success = true,
-            ImageUrl = response.First().Url
-        };
-    }
-}
+public async Task<string> FinalizeDesignAsync(...)
 ```
 
-## 🎨 Theme System
+- Combines the generated design with the clothing image
+- Applies color adjustments to match user preferences
+- Creates a realistic preview of the final product
 
-The application uses CSS custom properties for theming:
-- Light/Dark mode toggle
-- Smooth transitions between themes
-- Persists across components
-- Easy to customize colors
+## 📊 Repository Pattern
 
-Edit `wwwroot/themes.css` to customize the color scheme.
+The application implements a comprehensive repository pattern:
 
-## 🧪 Test Data
-
-The application comes with pre-populated test data:
-- 5 sample users
-- 30 sample designs
-- Random likes and timestamps
-
-To use real data, switch from `TestDataService` to Supabase services in `Program.cs`.
+- 🔐 Secure data access with Supabase authentication
+- 🔄 Comprehensive CRUD operations for all entities
+- 🛡️ Proper error handling and validation
+- 📦 Separated concerns with dedicated repository interfaces
 
 ## 📝 Development Notes
 
-### Current State
-- ✅ Fully functional with test data
-- ✅ AI integration ready (needs API key)
-- ✅ Supabase services scaffolded
-- ✅ Modern, responsive UI
-- ✅ Dark/Light theme support
+### ✅ Current State
 
-### Production Checklist
-- [ ] Add OpenAI API key
-- [ ] Configure Supabase project
-- [ ] Implement Supabase service methods
-- [ ] Add authentication state management
-- [ ] Implement image upload to storage
-- [ ] Add user profile pages
-- [ ] Add design deletion functionality
-- [ ] Implement search functionality
-- [ ] Add pagination to feed
-- [ ] Set up CI/CD pipeline
+- Fully functional with Supabase integration
+- AI integration ready (needs API key)
+- Complete authentication system
+- Modern, responsive UI with interactive elements
+- Comprehensive repository pattern implementation
+- Full e-commerce functionality (collections, orders, etc.)
 
-## 🤝 Contributing
+### 📞 Contact
 
-This project follows clean architecture principles and uses minimal dependencies. When contributing:
-- Keep components small and focused
-- Use Bootstrap and Tailwind utilities over custom CSS
-- Follow the established naming conventions
-- Add comments only where necessary
+Bourhan Hassoun - [bhbored2022@gmail.com] | [[LinkedIn Profile](https://www.linkedin.com/in/bourhan-hassoun-327670303/)]
 
-## 📄 License
+Project Link:
 
-This project is provided as-is for educational and commercial use.
-
-## 🙋 Support
-
-For issues or questions, please check the existing issues or create a new one.
-
----
-
-**Made with ❤️ using .NET 10 Blazor and OpenAI**
+```
+https://github.com/Bhbored/TshirtMaker
+```

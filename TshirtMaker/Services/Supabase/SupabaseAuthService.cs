@@ -48,14 +48,12 @@ namespace TshirtMaker.Services.Supabase
         {
             try
             {
-                // First, try to get the current user directly
                 var currentUser = _supabase.Auth.CurrentUser;
                 if (currentUser != null)
                 {
                     return MapToUserDto(currentUser);
                 }
 
-                // If no current user, try with stored access token
                 var accessToken = GetStoredAccessToken();
                 if (!string.IsNullOrEmpty(accessToken))
                 {
@@ -67,7 +65,6 @@ namespace TshirtMaker.Services.Supabase
             }
             catch
             {
-                // If there's an error, try to refresh the session
                 await TryRefreshSessionAsync();
 
                 try
@@ -89,7 +86,6 @@ namespace TshirtMaker.Services.Supabase
 
         public Session? GetSession()
         {
-            // Return the current session from Supabase client
             return _supabase.Auth.CurrentSession;
         }
 
@@ -121,7 +117,11 @@ namespace TshirtMaker.Services.Supabase
             {
                 await _supabase.Auth.SignOut();
             }
-            catch { }
+            catch (Exception EX)
+            {
+
+                Console.WriteLine(EX.Message);
+            }
 
             ClearSession();
         }
@@ -170,29 +170,24 @@ namespace TshirtMaker.Services.Supabase
             if (!string.IsNullOrEmpty(refreshToken))
                 _cachedRefreshToken = refreshToken;
 
-            // The Supabase session handler manages persistence automatically
-            // Just ensure tokens are stored in our cache
+          
         }
 
         private string? GetStoredAccessToken()
         {
-            // First try to get from the Supabase session handler
             var session = _supabase.Auth.CurrentSession;
             if (!string.IsNullOrEmpty(session?.AccessToken))
                 return session.AccessToken;
 
-            // Fallback to cached token
             return _cachedAccessToken;
         }
 
         private string? GetStoredRefreshToken()
         {
-            // First try to get from the Supabase session handler
             var session = _supabase.Auth.CurrentSession;
             if (!string.IsNullOrEmpty(session?.RefreshToken))
                 return session.RefreshToken;
 
-            // Fallback to cached token
             return _cachedRefreshToken;
         }
 

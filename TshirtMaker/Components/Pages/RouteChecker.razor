@@ -11,10 +11,8 @@
     {
         try
         {
-            // Initialize auth state to ensure it's loaded
             await Auth.InitializeAsync();
 
-            // Wait a bit longer to ensure auth state is properly loaded from session
             await Task.Delay(200);
 
             if (!Auth.IsAuthenticated || Auth.CurrentUser == null)
@@ -29,7 +27,6 @@
         catch (Exception ex)
         {
             Logger.LogError("Error during route check: {Message}", ex.Message);
-            // Navigate to landing as fallback
             Nav.NavigateTo("/landing", forceLoad: true);
         }
 

@@ -16,7 +16,6 @@ namespace TshirtMaker.Services.Supabase
 
         public void SaveSession(Session session)
         {
-            // Only save session if we have a valid HttpContext and the response hasn't started
             if (_httpContextAccessor.HttpContext != null &&
                 !_httpContextAccessor.HttpContext.Response.HasStarted &&
                 session != null)
@@ -50,7 +49,6 @@ namespace TshirtMaker.Services.Supabase
             }
             catch
             {
-                // If deserialization fails, remove the corrupted session data
                 if (_httpContextAccessor.HttpContext != null &&
                     !_httpContextAccessor.HttpContext.Response.HasStarted)
                 {
