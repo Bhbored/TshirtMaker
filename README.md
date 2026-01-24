@@ -16,11 +16,10 @@ A modern web application that allows users to create custom apparel designs usin
 
 ## 📸 Screenshots
 
-|                                                                                                                    |                                                                                                                    |                                                                                                                    |
-| :----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
-| ![Screenshot 1](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193119.png) | ![Screenshot 2](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193154.png) | ![Screenshot 3](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193211.png) |
-| ![Screenshot 4](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193234.png) |                                                                                                   |
-
+|                                                                                                                    |                                                                                                                    |
+| :----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
+| ![Screenshot 1](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193119.png?raw=true) | ![Screenshot 2](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193154.png?raw=true) |
+| ![Screenshot 3](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193211.png?raw=true) | ![Screenshot 4](https://github.com/Bhbored/TshirtMaker/blob/master/Screenshots/Screenshot%202026-01-24%20193234.png?raw=true) |
 ---
 ### 🛠️ Creation Workflow
 
