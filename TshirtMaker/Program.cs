@@ -18,7 +18,14 @@ namespace TshirtMaker
             });
 
             builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+                .AddInteractiveServerComponents()
+                .AddHubOptions(o =>
+                {
+                    o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+                    o.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+                    o.HandshakeTimeout = TimeSpan.FromSeconds(60);
+                    o.KeepAliveInterval = TimeSpan.FromSeconds(15);
+                });
 
             builder.Services.AddDistributedMemoryCache();
 
