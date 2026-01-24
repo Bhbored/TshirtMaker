@@ -1,7 +1,9 @@
 @page "/login"
 @layout EmptyLayout
 @rendermode InteractiveServer
+@attribute [IgnoreAntiforgeryToken]
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Mvc
 @using TshirtMaker.Services
 @using TshirtMaker.Services.Supabase
 @using TshirtMaker.Models
