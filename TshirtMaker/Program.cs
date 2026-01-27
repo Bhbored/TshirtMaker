@@ -18,7 +18,9 @@ namespace TshirtMaker
                 options.KnownProxies.Clear();
                 options.ForwardLimit = null;
 
-               
+                options.AllowedHosts = new List<string> { "tshirtmaker-production.up.railway.app" };
+
+
             });
 
             builder.Services.AddRazorComponents()
@@ -73,7 +75,10 @@ namespace TshirtMaker
 
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-            app.UseHttpsRedirection();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection(); 
+            }
             app.UseSession();
             app.UseAntiforgery();
 
