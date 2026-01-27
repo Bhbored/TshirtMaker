@@ -12,11 +12,15 @@ namespace TshirtMaker
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add logging first
+            // Configure port from environment (Railway uses PORT env var)
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+            builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+            // Add logging
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
 
-            // CRITICAL: Configure forwarded headers BEFORE other services
+            // Configure forwarded headers FIRST
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
@@ -27,13 +31,10 @@ namespace TshirtMaker
                 options.ForwardLimit = null;
             });
 
-            // Configure Data Protection to use a consistent application name
-            var keysPath = Path.Combine(Directory.GetCurrentDirectory(), "dp_keys");
-            Directory.CreateDirectory(keysPath);
-
+            // Data Protection with ephemeral keys (since container restarts)
             builder.Services.AddDataProtection()
-                .SetApplicationName("TshirtMaker")
-                .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+                .SetApplicationName("TshirtMaker");
+            // Note: Keys won't persist between deployments, but that's OK for antiforgery
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
@@ -44,11 +45,6 @@ namespace TshirtMaker
                     o.HandshakeTimeout = TimeSpan.FromSeconds(60);
                     o.KeepAliveInterval = TimeSpan.FromSeconds(15);
                 });
-            if (!builder.Environment.IsDevelopment())
-            {
-                builder.Services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader = true);
-                // This is a workaround - NOT recommended for production long-term
-            }
 
             builder.Services.AddDistributedMemoryCache();
 
@@ -58,17 +54,8 @@ namespace TshirtMaker
                 options.Cookie.IsEssential = true;
                 options.IdleTimeout = TimeSpan.FromHours(24);
                 options.Cookie.Name = ".TshirtMaker.Session";
-
-                if (builder.Environment.IsDevelopment())
-                {
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-                    options.Cookie.SameSite = SameSiteMode.Lax;
-                }
-                else
-                {
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Cookie.SameSite = SameSiteMode.None;
-                }
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
             });
 
             builder.Services.AddHttpContextAccessor();
@@ -81,26 +68,23 @@ namespace TshirtMaker
 
             builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
 
-            if (!builder.Environment.IsDevelopment())
+            builder.WebHost.ConfigureKestrel(options =>
             {
-                builder.WebHost.ConfigureKestrel(options =>
-                {
-                    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
-                });
-            }
+                options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
+            });
 
             var app = builder.Build();
 
-            // UseForwardedHeaders MUST be the very first middleware
+            // UseForwardedHeaders MUST be first
             app.UseForwardedHeaders();
 
-            // Add diagnostic middleware to see what's happening
+            // Diagnostic logging
             app.Use(async (context, next) =>
             {
                 var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
                 logger.LogInformation($"Request: {context.Request.Method} {context.Request.Scheme}://{context.Request.Host}{context.Request.Path}");
-                logger.LogInformation($"X-Forwarded-Proto: {context.Request.Headers["X-Forwarded-Proto"]}");
-                logger.LogInformation($"X-Forwarded-Host: {context.Request.Headers["X-Forwarded-Host"]}");
+                logger.LogInformation($"X-Forwarded-Proto: {context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? "none"}");
+                logger.LogInformation($"X-Forwarded-Host: {context.Request.Headers["X-Forwarded-Host"].FirstOrDefault() ?? "none"}");
                 await next();
             });
 
@@ -112,11 +96,8 @@ namespace TshirtMaker
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
-            // Remove HTTPS redirection in production - Railway handles SSL termination
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseHttpsRedirection();
-            }
+            // Don't redirect HTTPS - Railway handles SSL
+            // app.UseHttpsRedirection(); // <-- REMOVED
 
             app.UseStaticFiles();
             app.UseRouting();
