@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using TshirtMaker.Components;
 using TshirtMaker.Services;
@@ -48,6 +49,8 @@ namespace TshirtMaker
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
             builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
+            builder.Services.AddDataProtection()
+                   .DisableAutomaticKeyGeneration();
 
             if (!builder.Environment.IsDevelopment())
             {
@@ -59,8 +62,28 @@ namespace TshirtMaker
 
             var app = builder.Build();
 
+            var forwardingOptions = new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                       ForwardedHeaders.XForwardedProto |
+                       ForwardedHeaders.XForwardedHost
+            };
+            forwardingOptions.KnownNetworks.Clear();
+            forwardingOptions.KnownProxies.Clear();
+            forwardingOptions.ForwardLimit = null; 
 
-            app.UseForwardedHeaders();
+            app.UseForwardedHeaders(forwardingOptions);
+
+           
+            app.Use(async (context, next) =>
+            {
+                app.Logger.LogInformation("Scheme: {Scheme}, Host: {Host}, RemoteIP: {IP}",
+                    context.Request.Scheme,
+                    context.Request.Host,
+                    context.Connection.RemoteIpAddress);
+                await next();
+            });
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
@@ -71,6 +94,8 @@ namespace TshirtMaker
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
             app.UseSession();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseAntiforgery();
 
             app.MapStaticAssets();
