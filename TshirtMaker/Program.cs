@@ -18,7 +18,7 @@ namespace TshirtMaker
                 options.KnownProxies.Clear();
                 options.ForwardLimit = null;
 
-              
+               
             });
 
             builder.Services.AddRazorComponents()
