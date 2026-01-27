@@ -38,7 +38,7 @@ namespace TshirtMaker
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.IdleTimeout = TimeSpan.FromHours(24);
                 options.Cookie.Name = ".TshirtMaker.Session";
@@ -70,18 +70,7 @@ namespace TshirtMaker
 
             var app = builder.Build();
 
-            app.Use(async (context, next) =>
-            {
-                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("=== Incoming Headers ===");
-                foreach (var header in context.Request.Headers)
-                {
-                    logger.LogInformation($"{header.Key}: {header.Value}");
-                }
-                logger.LogInformation($"Scheme: {context.Request.Scheme}");
-                logger.LogInformation("=======================");
-                await next();
-            });
+
             app.UseForwardedHeaders();
             if (!app.Environment.IsDevelopment())
             {
@@ -93,7 +82,7 @@ namespace TshirtMaker
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
             app.UseSession();
-            app.UseAntiforgery();
+          
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
