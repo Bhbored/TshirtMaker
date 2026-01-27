@@ -62,28 +62,8 @@ namespace TshirtMaker
 
             var app = builder.Build();
 
-            var forwardingOptions = new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                       ForwardedHeaders.XForwardedProto |
-                       ForwardedHeaders.XForwardedHost
-            };
-            forwardingOptions.KnownNetworks.Clear();
-            forwardingOptions.KnownProxies.Clear();
-            forwardingOptions.ForwardLimit = null; 
 
-            app.UseForwardedHeaders(forwardingOptions);
-
-           
-            app.Use(async (context, next) =>
-            {
-                app.Logger.LogInformation("Scheme: {Scheme}, Host: {Host}, RemoteIP: {IP}",
-                    context.Request.Scheme,
-                    context.Request.Host,
-                    context.Connection.RemoteIpAddress);
-                await next();
-            });
-
+            app.UseForwardedHeaders();
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
@@ -94,8 +74,6 @@ namespace TshirtMaker
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
             app.UseSession();
-            app.UseAuthentication();
-            app.UseAuthorization();
             app.UseAntiforgery();
 
             app.MapStaticAssets();
