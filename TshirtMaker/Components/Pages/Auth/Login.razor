@@ -149,52 +149,33 @@
         showValidationMessages = true;
         isLoggingIn = true;
 
+        if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
+        {
+            error = "Please fill in both email and password fields.";
+            isLoggingIn = false;
+            return;
+        }
+
         try
         {
-            Logger.LogInformation("Attempting login for: {Email}", LoginModel.Email);
-
-            if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
-            {
-                error = "Please fill in both email and password fields.";
-                isLoggingIn = false;
-                return;
-            }
-
             var userDto = await SupabaseAuth.SignInAsync(LoginModel.Email, LoginModel.Password);
 
             if (userDto is not null)
             {
                 var user = userDto.ToModel();
                 Auth.SetUser(user);
-                Logger.LogInformation("Login successful for: {Email}", LoginModel.Email);
-                
-                // Try navigation with different approaches
-                try
-                {
-                    Navigation.NavigateTo("/dashboard", forceLoad: true);
-                }
-                catch (Exception navEx)
-                {
-                    Logger.LogError(navEx, "Navigation failed, using JS interop");
-                    // Fallback to JavaScript navigation if needed
-                }
+                Navigation.NavigateTo("/dashboard",forceLoad:false);
             }
             else
             {
                 error = "Invalid email or password.";
-                Logger.LogWarning("Login failed for: {Email}", LoginModel.Email);
                 isLoggingIn = false;
             }
         }
         catch (Exception ex)
         {
-            error = $"Login failed. Please try again.";
-            Logger.LogError(ex, "Login exception for: {Email}", LoginModel.Email);
+            error = $"Login failed: {ex.Message}";
             isLoggingIn = false;
-        }
-        finally
-        {
-            StateHasChanged();
         }
     }
 }
