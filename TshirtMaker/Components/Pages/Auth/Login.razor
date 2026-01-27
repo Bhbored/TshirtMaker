@@ -10,7 +10,6 @@
 @inject NavigationManager Navigation
 @inject SupabaseAuthService SupabaseAuth
 @inject AuthStateService Auth
-@inject IJSRuntime JS
 
 <div class="login-container">
     <!-- Left Side: Visual Showcase -->
@@ -72,30 +71,20 @@
                     <div class="alert alert-danger">@error</div>
                 }
 
-                @if (!string.IsNullOrEmpty(successMessage))
-                {
-                    <div class="alert alert-success">@successMessage</div>
-                }
+                <EditForm Model="LoginModel" OnValidSubmit="HandleLogin" OnInvalidSubmit="HandleInvalidSubmit">
+                    <DataAnnotationsValidator />
 
-                <!-- Using standard HTML form with Blazor event handling -->
-                <div>
                     <!-- Email Field -->
                     <div class="form-field">
                         <label class="form-label">Email Address</label>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">mail</span>
-                            <input @bind="LoginModel.Email" 
-                                   @bind:event="oninput"
-                                   type="email"
-                                   class="login-input" 
-                                   placeholder="name@example.com" 
-                                   autocomplete="email"
-                                   disabled="@isLoggingIn"
-                                   style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                            <InputText @bind-Value="LoginModel.Email" class="login-input" placeholder="name@example.com" autocomplete="current-email"
+                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
-                        @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Email))
+                        @if (showValidationMessages)
                         {
-                            <span style="color: #ef4444; font-size: 0.875rem; margin-top: 0.25rem; display: block;">Email is required</span>
+                            <ValidationMessage For="@(() => LoginModel.Email)" />
                         }
                     </div>
 
@@ -107,23 +96,18 @@
                         </div>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">lock</span>
-                            <input @bind="LoginModel.Password" 
-                                   @bind:event="oninput"
-                                   type="password"
-                                   class="login-input"
-                                   placeholder="••••••••" 
-                                   autocomplete="current-password"
-                                   disabled="@isLoggingIn"
-                                   style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                            <InputText type="password" @bind-Value="LoginModel.Password" class="login-input"
+                                placeholder="••••••••" autocomplete="current-password"
+                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
-                        @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Password))
+                        @if (showValidationMessages)
                         {
-                            <span style="color: #ef4444; font-size: 0.875rem; margin-top: 0.25rem; display: block;">Password is required</span>
+                            <ValidationMessage For="@(() => LoginModel.Password)" />
                         }
                     </div>
 
                     <!-- Sign In Button -->
-                    <button type="button" @onclick="HandleLogin" class="submit-button" disabled="@isLoggingIn">
+                    <button type="submit" class="submit-button" disabled="@isLoggingIn">
                         @if (isLoggingIn)
                         {
                             <LoadingSpinner />
@@ -134,7 +118,7 @@
                             <span class="material-symbols-outlined">arrow_forward</span>
                         }
                     </button>
-                </div>
+                </EditForm>
             </div>
 
             <!-- Footer CTA -->
@@ -151,54 +135,36 @@
 @code {
     public LoginModel LoginModel { get; set; } = new LoginModel();
     string error = "";
-    string successMessage = "";
     bool showValidationMessages = false;
     bool isLoggingIn = false;
 
-    protected override async Task OnInitializedAsync()
+    void HandleInvalidSubmit()
     {
-        // Check if user is already logged in
-        var currentUser = Auth.GetCurrentUser();
-        if (currentUser != null)
-        {
-            Navigation.NavigateTo("/dashboard", forceLoad: true);
-        }
+        showValidationMessages = true;
     }
 
     async Task HandleLogin()
     {
         error = "";
-        successMessage = "";
         showValidationMessages = true;
         isLoggingIn = true;
 
+        if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
+        {
+            error = "Please fill in both email and password fields.";
+            isLoggingIn = false;
+            return;
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
-            {
-                error = "Please fill in both email and password fields.";
-                isLoggingIn = false;
-                return;
-            }
-
             var userDto = await SupabaseAuth.SignInAsync(LoginModel.Email, LoginModel.Password);
 
             if (userDto is not null)
             {
                 var user = userDto.ToModel();
                 Auth.SetUser(user);
-                
-                // Add a small delay to ensure state is saved
-                await Task.Delay(100);
-                
-                successMessage = "Login successful! Redirecting...";
-                StateHasChanged();
-                
-                // Add another small delay before navigation
-                await Task.Delay(500);
-                
-                // Force a full page reload to ensure authentication state is recognized
-                Navigation.NavigateTo("/dashboard", forceLoad: true);
+                Navigation.NavigateTo("/dashboard",forceLoad:false);
             }
             else
             {
@@ -210,7 +176,6 @@
         {
             error = $"Login failed: {ex.Message}";
             isLoggingIn = false;
-            Console.WriteLine($"Login error: {ex}");
         }
     }
 }
