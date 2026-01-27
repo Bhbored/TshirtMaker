@@ -73,39 +73,12 @@ namespace TshirtMaker
                 app.UseHsts();
             }
 
-
             app.UseStaticFiles();
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
             app.UseSession();
             app.UseAntiforgery();
-            if (Environment.GetEnvironmentVariable("ENABLE_DIAGNOSTICS") == "true")
-            {
-                app.MapGet("/diagnostics/wwwroot", async (IWebHostEnvironment env, HttpContext ctx) =>
-                {
-                    ctx.Response.ContentType = "text/plain";
-                    var root = env.WebRootPath;
-                    await ctx.Response.WriteAsync($"WebRootPath: {root}\n\n");
 
-                    if (Directory.Exists(root))
-                    {
-                        var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories)
-                            .Select(f => f.Replace(root, "").TrimStart('\\', '/'))
-                            .OrderBy(f => f);
-                        foreach (var f in files)
-                            await ctx.Response.WriteAsync($"{f}\n");
-                    }
-                    else
-                    {
-                        await ctx.Response.WriteAsync("? WebRootPath DOES NOT EXIST!");
-                    }
-                });
-
-                // Optional: Log at startup
-                using var scope = app.Services.CreateScope();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                logger.LogWarning("DIAGNOSTICS ENABLED! WebRoot: {WebRoot}", app.Environment.WebRootPath);
-            }
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
