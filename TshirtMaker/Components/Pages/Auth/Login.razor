@@ -10,6 +10,7 @@
 @inject NavigationManager Navigation
 @inject SupabaseAuthService SupabaseAuth
 @inject AuthStateService Auth
+@inject IJSRuntime JS
 
 <div class="login-container">
     <!-- Left Side: Visual Showcase -->
@@ -71,6 +72,11 @@
                     <div class="alert alert-danger">@error</div>
                 }
 
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+
                 <!-- Using standard HTML form with Blazor event handling -->
                 <div>
                     <!-- Email Field -->
@@ -84,6 +90,7 @@
                                    class="login-input" 
                                    placeholder="name@example.com" 
                                    autocomplete="email"
+                                   disabled="@isLoggingIn"
                                    style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Email))
@@ -106,6 +113,7 @@
                                    class="login-input"
                                    placeholder="••••••••" 
                                    autocomplete="current-password"
+                                   disabled="@isLoggingIn"
                                    style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
                         @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Password))
@@ -143,31 +151,54 @@
 @code {
     public LoginModel LoginModel { get; set; } = new LoginModel();
     string error = "";
+    string successMessage = "";
     bool showValidationMessages = false;
     bool isLoggingIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is already logged in
+        var currentUser = Auth.GetCurrentUser();
+        if (currentUser != null)
+        {
+            Navigation.NavigateTo("/dashboard", forceLoad: true);
+        }
+    }
 
     async Task HandleLogin()
     {
         error = "";
+        successMessage = "";
         showValidationMessages = true;
         isLoggingIn = true;
 
-        if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
-        {
-            error = "Please fill in both email and password fields.";
-            isLoggingIn = false;
-            return;
-        }
-
         try
         {
+            if (string.IsNullOrWhiteSpace(LoginModel.Email) || string.IsNullOrWhiteSpace(LoginModel.Password))
+            {
+                error = "Please fill in both email and password fields.";
+                isLoggingIn = false;
+                return;
+            }
+
             var userDto = await SupabaseAuth.SignInAsync(LoginModel.Email, LoginModel.Password);
 
             if (userDto is not null)
             {
                 var user = userDto.ToModel();
                 Auth.SetUser(user);
-                Navigation.NavigateTo("/dashboard", forceLoad: false);
+                
+                // Add a small delay to ensure state is saved
+                await Task.Delay(100);
+                
+                successMessage = "Login successful! Redirecting...";
+                StateHasChanged();
+                
+                // Add another small delay before navigation
+                await Task.Delay(500);
+                
+                // Force a full page reload to ensure authentication state is recognized
+                Navigation.NavigateTo("/dashboard", forceLoad: true);
             }
             else
             {
@@ -179,6 +210,7 @@
         {
             error = $"Login failed: {ex.Message}";
             isLoggingIn = false;
+            Console.WriteLine($"Login error: {ex}");
         }
     }
 }
