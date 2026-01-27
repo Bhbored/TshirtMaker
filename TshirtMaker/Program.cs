@@ -12,7 +12,11 @@ namespace TshirtMaker
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configure forwarded headers FIRST - this is critical for proxy scenarios
+            // Add logging first
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+
+            // CRITICAL: Configure forwarded headers BEFORE other services
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
@@ -23,24 +27,31 @@ namespace TshirtMaker
                 options.ForwardLimit = null;
             });
 
-            // Configure Data Protection to persist keys and use a stable application name
+            // Configure Data Protection to use a consistent application name
+            var keysPath = Path.Combine(Directory.GetCurrentDirectory(), "dp_keys");
+            Directory.CreateDirectory(keysPath);
+
             builder.Services.AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo("/app/keys")) // Adjust path as needed
-                .SetApplicationName("TshirtMaker");
+                .SetApplicationName("TshirtMaker")
+                .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddHubOptions(o =>
                 {
-                    o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+                    o.MaximumReceiveMessageSize = 10 * 1024 * 1024;
                     o.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
                     o.HandshakeTimeout = TimeSpan.FromSeconds(60);
                     o.KeepAliveInterval = TimeSpan.FromSeconds(15);
                 });
+            if (!builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader = true);
+                // This is a workaround - NOT recommended for production long-term
+            }
 
             builder.Services.AddDistributedMemoryCache();
 
-            // Fix session cookie configuration
             builder.Services.AddSession(options =>
             {
                 options.Cookie.HttpOnly = true;
@@ -48,7 +59,6 @@ namespace TshirtMaker
                 options.IdleTimeout = TimeSpan.FromHours(24);
                 options.Cookie.Name = ".TshirtMaker.Session";
 
-                // Use environment-aware cookie settings
                 if (builder.Environment.IsDevelopment())
                 {
                     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
@@ -81,8 +91,18 @@ namespace TshirtMaker
 
             var app = builder.Build();
 
-            // UseForwardedHeaders MUST be called early, before other middleware
+            // UseForwardedHeaders MUST be the very first middleware
             app.UseForwardedHeaders();
+
+            // Add diagnostic middleware to see what's happening
+            app.Use(async (context, next) =>
+            {
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation($"Request: {context.Request.Method} {context.Request.Scheme}://{context.Request.Host}{context.Request.Path}");
+                logger.LogInformation($"X-Forwarded-Proto: {context.Request.Headers["X-Forwarded-Proto"]}");
+                logger.LogInformation($"X-Forwarded-Host: {context.Request.Headers["X-Forwarded-Host"]}");
+                await next();
+            });
 
             if (!app.Environment.IsDevelopment())
             {
@@ -92,13 +112,14 @@ namespace TshirtMaker
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
-            // For Railway, you might want to remove or conditionally apply HTTPS redirection
-            if (builder.Environment.IsDevelopment())
+            // Remove HTTPS redirection in production - Railway handles SSL termination
+            if (app.Environment.IsDevelopment())
             {
                 app.UseHttpsRedirection();
             }
 
-            app.UseStaticFiles(); // Add this if missing
+            app.UseStaticFiles();
+            app.UseRouting();
             app.UseSession();
             app.UseAntiforgery();
             app.MapStaticAssets();
