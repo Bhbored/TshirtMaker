@@ -72,13 +72,10 @@ namespace TshirtMaker
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-
+            app.UseStaticFiles();
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseHttpsRedirection(); 
-            }
+            app.UseHttpsRedirection();
             app.UseSession();
             app.UseAntiforgery();
 
