@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Supabase.Gotrue;
 using TshirtMaker.Components;
 using TshirtMaker.Services;
 
@@ -11,15 +12,21 @@ namespace TshirtMaker
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Configure forwarded headers FIRST - this is critical for proxy scenarios
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
-                options.KnownIPNetworks.Clear();
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                                          ForwardedHeaders.XForwardedProto |
+                                          ForwardedHeaders.XForwardedHost;
+                options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
                 options.ForwardLimit = null;
-
-              
             });
+
+            // Configure Data Protection to persist keys and use a stable application name
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo("/app/keys")) // Adjust path as needed
+                .SetApplicationName("TshirtMaker");
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
@@ -33,14 +40,25 @@ namespace TshirtMaker
 
             builder.Services.AddDistributedMemoryCache();
 
+            // Fix session cookie configuration
             builder.Services.AddSession(options =>
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-                options.Cookie.SameSite = SameSiteMode.None;
                 options.IdleTimeout = TimeSpan.FromHours(24);
                 options.Cookie.Name = ".TshirtMaker.Session";
+
+                // Use environment-aware cookie settings
+                if (builder.Environment.IsDevelopment())
+                {
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                }
+                else
+                {
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                }
             });
 
             builder.Services.AddHttpContextAccessor();
@@ -52,32 +70,39 @@ namespace TshirtMaker
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
             builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
-       
+
             if (!builder.Environment.IsDevelopment())
             {
                 builder.WebHost.ConfigureKestrel(options =>
                 {
-                    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; 
+                    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
                 });
             }
 
             var app = builder.Build();
 
-
+            // UseForwardedHeaders MUST be called early, before other middleware
             app.UseForwardedHeaders();
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
-
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-            app.UseHttpsRedirection();
+
+            // For Railway, you might want to remove or conditionally apply HTTPS redirection
+            if (builder.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
+            app.UseStaticFiles(); // Add this if missing
             app.UseSession();
             app.UseAntiforgery();
-
             app.MapStaticAssets();
+
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
