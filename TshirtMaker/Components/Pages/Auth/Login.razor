@@ -12,8 +12,39 @@
 @inject AuthStateService Auth
 
 <div class="login-container">
-    <!-- ... your existing HTML ... -->
+    <!-- Left Side: Visual Showcase -->
+    <div class="login-visual-side">
+        <div class="visual-background">
+            <div class="iq-pattern"></div>
+            <div class="gradient-blur gradient-blur-1"></div>
+            <div class="gradient-blur gradient-blur-2"></div>
+        </div>
 
+        <div class="brand-logo">
+            <div class="logo-icon">
+                <span style="font-size: 1.25rem;">✨</span>
+            </div>
+            <h2 class="brand-name">ClothIQ</h2>
+        </div>
+
+        <div class="visual-content">
+            <div class="hero-image-container">
+                <div class="hero-image">
+                    <div class="hero-image-inner"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAeYT9laJe73dIHWvw8J8bpKqkHTURjWXZC9zInvVz8vHF6CNwX5lM9ZgFYsD3DgTO0V5OVjJOUBbCIgGblz7PGW5cUFVdujcQFn-d0jHCCTTTiLVGWOK35Bsbi_cru-TmeCShMOFglKqGsPVDJeQDKSN4nqfSph-8cOyuXfMu4QfllltFiS0CmZYTZn27oAxIuNJLeEfpdpDNDIuGKfF3Ho7i8BiBE742hUDLd3aSB8eir44qPbwcfJUUXx_T7HEZZ1hQBhxcIFdyb");'>
+                    </div>
+                    <div class="hero-overlay"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-footer">
+            <p class="visual-tagline">Generative Fashion</p>
+            <h3 class="visual-title">Elevate your style with <span class="primary-text">AI precision.</span></h3>
+        </div>
+    </div>
+
+    <!-- Right Side: Login Form -->
     <div class="login-form-side">
         <div class="form-background">
             <div class="iq-pattern"></div>
@@ -40,14 +71,15 @@
                     <div class="alert alert-danger">@error</div>
                 }
 
-                <!-- CHANGED: Use regular form submission instead of EditForm -->
-                <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
+                <!-- Using standard HTML form with Blazor event handling -->
+                <div>
                     <!-- Email Field -->
                     <div class="form-field">
                         <label class="form-label">Email Address</label>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">mail</span>
                             <input @bind="LoginModel.Email" 
+                                   @bind:event="oninput"
                                    type="email"
                                    class="login-input" 
                                    placeholder="name@example.com" 
@@ -56,7 +88,7 @@
                         </div>
                         @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Email))
                         {
-                            <span class="text-danger">Email is required</span>
+                            <span style="color: #ef4444; font-size: 0.875rem; margin-top: 0.25rem; display: block;">Email is required</span>
                         }
                     </div>
 
@@ -68,7 +100,8 @@
                         </div>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">lock</span>
-                            <input @bind="LoginModel.Password"
+                            <input @bind="LoginModel.Password" 
+                                   @bind:event="oninput"
                                    type="password"
                                    class="login-input"
                                    placeholder="••••••••" 
@@ -77,12 +110,12 @@
                         </div>
                         @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Password))
                         {
-                            <span class="text-danger">Password is required</span>
+                            <span style="color: #ef4444; font-size: 0.875rem; margin-top: 0.25rem; display: block;">Password is required</span>
                         }
                     </div>
 
                     <!-- Sign In Button -->
-                    <button type="submit" class="submit-button" disabled="@isLoggingIn">
+                    <button type="button" @onclick="HandleLogin" class="submit-button" disabled="@isLoggingIn">
                         @if (isLoggingIn)
                         {
                             <LoadingSpinner />
@@ -93,7 +126,7 @@
                             <span class="material-symbols-outlined">arrow_forward</span>
                         }
                     </button>
-                </form>
+                </div>
             </div>
 
             <!-- Footer CTA -->
