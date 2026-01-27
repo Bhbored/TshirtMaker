@@ -72,7 +72,13 @@ namespace TshirtMaker
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+         Path.Combine(AppContext.BaseDirectory, "wwwroot")),
+                RequestPath = ""
+            });
+
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
