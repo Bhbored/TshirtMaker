@@ -15,6 +15,7 @@ namespace TshirtMaker
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
                 options.KnownIPNetworks.Clear();
                 options.KnownProxies.Clear();
+                options.ForwardLimit = null;
             });
 
             builder.Services.AddRazorComponents()
@@ -33,7 +34,8 @@ namespace TshirtMaker
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None; 
+                options.Cookie.SameSite = SameSiteMode.None; 
                 options.IdleTimeout = TimeSpan.FromHours(24);
             });
 
@@ -47,15 +49,24 @@ namespace TshirtMaker
 
             builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
 
+            if (!builder.Environment.IsDevelopment())
+            {
+                builder.WebHost.ConfigureKestrel(options =>
+                {
+                    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; 
+                });
+            }
+
             var app = builder.Build();
 
+
+            app.UseForwardedHeaders();
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
-            app.UseForwardedHeaders();
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
