@@ -18,8 +18,7 @@ namespace TshirtMaker
                 options.KnownProxies.Clear();
                 options.ForwardLimit = null;
 
-                options.RequireHeaderSymmetry = false;
-                options.ForwardedProtoHeaderName = "X-Forwarded-Proto";
+              
             });
 
             builder.Services.AddRazorComponents()
@@ -38,8 +37,8 @@ namespace TshirtMaker
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                options.Cookie.SameSite = SameSiteMode.None;
                 options.IdleTimeout = TimeSpan.FromHours(24);
                 options.Cookie.Name = ".TshirtMaker.Session";
             });
