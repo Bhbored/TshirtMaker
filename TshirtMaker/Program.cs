@@ -72,7 +72,14 @@ namespace TshirtMaker
 
             app.Use(async (context, next) =>
             {
-                context.Request.Scheme = "https";
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("=== Incoming Headers ===");
+                foreach (var header in context.Request.Headers)
+                {
+                    logger.LogInformation($"{header.Key}: {header.Value}");
+                }
+                logger.LogInformation($"Scheme: {context.Request.Scheme}");
+                logger.LogInformation("=======================");
                 await next();
             });
             app.UseForwardedHeaders();
