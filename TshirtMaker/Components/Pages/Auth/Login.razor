@@ -12,39 +12,8 @@
 @inject AuthStateService Auth
 
 <div class="login-container">
-    <!-- Left Side: Visual Showcase -->
-    <div class="login-visual-side">
-        <div class="visual-background">
-            <div class="iq-pattern"></div>
-            <div class="gradient-blur gradient-blur-1"></div>
-            <div class="gradient-blur gradient-blur-2"></div>
-        </div>
+    <!-- ... your existing HTML ... -->
 
-        <div class="brand-logo">
-            <div class="logo-icon">
-                <span style="font-size: 1.25rem;">✨</span>
-            </div>
-            <h2 class="brand-name">ClothIQ</h2>
-        </div>
-
-        <div class="visual-content">
-            <div class="hero-image-container">
-                <div class="hero-image">
-                    <div class="hero-image-inner"
-                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAeYT9laJe73dIHWvw8J8bpKqkHTURjWXZC9zInvVz8vHF6CNwX5lM9ZgFYsD3DgTO0V5OVjJOUBbCIgGblz7PGW5cUFVdujcQFn-d0jHCCTTTiLVGWOK35Bsbi_cru-TmeCShMOFglKqGsPVDJeQDKSN4nqfSph-8cOyuXfMu4QfllltFiS0CmZYTZn27oAxIuNJLeEfpdpDNDIuGKfF3Ho7i8BiBE742hUDLd3aSB8eir44qPbwcfJUUXx_T7HEZZ1hQBhxcIFdyb");'>
-                    </div>
-                    <div class="hero-overlay"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="visual-footer">
-            <p class="visual-tagline">Generative Fashion</p>
-            <h3 class="visual-title">Elevate your style with <span class="primary-text">AI precision.</span></h3>
-        </div>
-    </div>
-
-    <!-- Right Side: Login Form -->
     <div class="login-form-side">
         <div class="form-background">
             <div class="iq-pattern"></div>
@@ -71,20 +40,23 @@
                     <div class="alert alert-danger">@error</div>
                 }
 
-                <EditForm Model="LoginModel" OnValidSubmit="HandleLogin" OnInvalidSubmit="HandleInvalidSubmit">
-                    <DataAnnotationsValidator />
-
+                <!-- CHANGED: Use regular form submission instead of EditForm -->
+                <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
                     <!-- Email Field -->
                     <div class="form-field">
                         <label class="form-label">Email Address</label>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">mail</span>
-                            <InputText @bind-Value="LoginModel.Email" class="login-input" placeholder="name@example.com" autocomplete="current-email"
-                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                            <input @bind="LoginModel.Email" 
+                                   type="email"
+                                   class="login-input" 
+                                   placeholder="name@example.com" 
+                                   autocomplete="email"
+                                   style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
-                        @if (showValidationMessages)
+                        @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Email))
                         {
-                            <ValidationMessage For="@(() => LoginModel.Email)" />
+                            <span class="text-danger">Email is required</span>
                         }
                     </div>
 
@@ -96,13 +68,16 @@
                         </div>
                         <div class="input-wrapper">
                             <span class="input-icon material-symbols-outlined">lock</span>
-                            <InputText type="password" @bind-Value="LoginModel.Password" class="login-input"
-                                placeholder="••••••••" autocomplete="current-password"
-                                style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
+                            <input @bind="LoginModel.Password"
+                                   type="password"
+                                   class="login-input"
+                                   placeholder="••••••••" 
+                                   autocomplete="current-password"
+                                   style="width: 100%; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; height: 3.5rem; padding-left: 3rem; padding-right: 1.5rem; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; box-sizing: border-box;" />
                         </div>
-                        @if (showValidationMessages)
+                        @if (showValidationMessages && string.IsNullOrWhiteSpace(LoginModel.Password))
                         {
-                            <ValidationMessage For="@(() => LoginModel.Password)" />
+                            <span class="text-danger">Password is required</span>
                         }
                     </div>
 
@@ -118,7 +93,7 @@
                             <span class="material-symbols-outlined">arrow_forward</span>
                         }
                     </button>
-                </EditForm>
+                </form>
             </div>
 
             <!-- Footer CTA -->
@@ -137,11 +112,6 @@
     string error = "";
     bool showValidationMessages = false;
     bool isLoggingIn = false;
-
-    void HandleInvalidSubmit()
-    {
-        showValidationMessages = true;
-    }
 
     async Task HandleLogin()
     {
@@ -164,7 +134,7 @@
             {
                 var user = userDto.ToModel();
                 Auth.SetUser(user);
-                Navigation.NavigateTo("/dashboard",forceLoad:false);
+                Navigation.NavigateTo("/dashboard", forceLoad: false);
             }
             else
             {
