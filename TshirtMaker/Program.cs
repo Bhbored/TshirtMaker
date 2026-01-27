@@ -49,9 +49,7 @@ namespace TshirtMaker
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
             builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
-            builder.Services.AddDataProtection()
-                   .DisableAutomaticKeyGeneration();
-
+       
             if (!builder.Environment.IsDevelopment())
             {
                 builder.WebHost.ConfigureKestrel(options =>
