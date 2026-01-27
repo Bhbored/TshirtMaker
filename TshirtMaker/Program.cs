@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
-using Supabase.Gotrue;
 using TshirtMaker.Components;
 using TshirtMaker.Services;
 
@@ -12,28 +11,21 @@ namespace TshirtMaker
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-            builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                                          ForwardedHeaders.XForwardedProto |
-                                          ForwardedHeaders.XForwardedHost;
-                options.KnownNetworks.Clear();
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+                options.KnownIPNetworks.Clear();
                 options.KnownProxies.Clear();
                 options.ForwardLimit = null;
-                options.RequireHeaderSymmetry = false;
-            });
 
-            builder.Services.AddDataProtection()
-                .SetApplicationName("TshirtMaker");
+               
+            });
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddHubOptions(o =>
                 {
-                    o.MaximumReceiveMessageSize = 10 * 1024 * 1024;
+                    o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
                     o.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
                     o.HandshakeTimeout = TimeSpan.FromSeconds(60);
                     o.KeepAliveInterval = TimeSpan.FromSeconds(15);
@@ -45,10 +37,10 @@ namespace TshirtMaker
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                options.Cookie.SameSite = SameSiteMode.None;
                 options.IdleTimeout = TimeSpan.FromHours(24);
                 options.Cookie.Name = ".TshirtMaker.Session";
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.Cookie.SameSite = SameSiteMode.None;
             });
 
             builder.Services.AddHttpContextAccessor();
@@ -60,42 +52,32 @@ namespace TshirtMaker
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
             builder.Services.RegisterDependencies(supabaseUrl, supabaseAnonKey, openAiApiKey);
-
-            builder.WebHost.ConfigureKestrel(options =>
+       
+            if (!builder.Environment.IsDevelopment())
             {
-                options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
-            });
+                builder.WebHost.ConfigureKestrel(options =>
+                {
+                    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; 
+                });
+            }
 
             var app = builder.Build();
 
+
             app.UseForwardedHeaders();
-
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Host.Host.Contains("railway.app"))
-                {
-                    context.Request.Scheme = "https";
-                }
-                await next();
-            });
-
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
+
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-
-            app.UseStaticFiles();
-            app.UseRouting();
+            app.UseHttpsRedirection();
             app.UseSession();
-
-            // ANTIFORGERY DISABLED - comment back in after login works
-            // app.UseAntiforgery();
+            app.UseAntiforgery();
 
             app.MapStaticAssets();
-
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
