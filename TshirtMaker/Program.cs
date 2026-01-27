@@ -44,12 +44,11 @@ namespace TshirtMaker
                 options.Cookie.Name = ".TshirtMaker.Session";
             });
 
-
-            //builder.Services.AddAntiforgery(options =>
-            //{
-            //    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            //    options.Cookie.SameSite = SameSiteMode.Lax;
-            //});
+            builder.Services.AddAntiforgery(options =>
+            {
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+            });
 
             builder.Services.AddHttpContextAccessor();
 
@@ -83,7 +82,7 @@ namespace TshirtMaker
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
             app.UseSession();
-          
+            app.UseAntiforgery();
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
