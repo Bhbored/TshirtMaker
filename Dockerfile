@@ -14,7 +14,7 @@ COPY . .
 RUN dotnet publish "TshirtMaker/TshirtMaker.csproj" -c Release -o /app/publish --no-restore
 
 # Use the official .NET 8.0 ASP.NET runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
 # Copy the published output from the 'build' stage
